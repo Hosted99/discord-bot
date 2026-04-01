@@ -1,4 +1,51 @@
 const { Client, GatewayIntentBits, EmbedBuilder } = require("discord.js");
+const { pool, initDB } = require("./utilities/db");
+const { initSchedulers, isValidCron } = require("./utilities/scheduler");
+const heroesData = require("./data/heroes.json");
+const staticReminders = require("./data/staticReminders");
+
+const client = new Client({
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMembers]
+});
+
+client.once("ready", async () => {
+    await initDB();
+    initSchedulers(client, staticReminders, pool);
+    console.log(`🤖 Online as ${client.user.tag}`);
+});
+
+client.on("messageCreate", async (msg) => {
+    if (msg.author.bot || !msg.guild) return;
+    const args = msg.content.trim().split(/\s+/);
+    const cmd = args.shift().toLowerCase();
+
+    // КОМАНДИ
+    if (cmd === "!hero" && msg.channel.name === "unit-build") {
+        const hero = heroesData[args[0]?.toLowerCase()];
+        if (!hero) return msg.reply("Hero not found!");
+        const embed = new EmbedBuilder().setTitle(hero.title).setImage(hero.image).setColor(hero.color || "#2b2d31")
+            .addFields({ name: "Role", value: hero.role }, { name: "Seals", value: hero.seals });
+        return msg.channel.send({ embeds: [embed] });
+    }
+
+    if (cmd === "!remind") {
+        const targetCh = msg.guild.channels.cache.find(ch => ch.name === "reminders");
+        if (!targetCh) return msg.reply("No #reminders channel found!");
+        const cronExpr = args.slice(0, 5).join(" ");
+        const text = args.slice(5).join(" ");
+        if (!isValidCron(cronExpr)) return msg.reply("Invalid Cron!");
+        
+        await pool.query("INSERT INTO reminders (id, cron, message, channel_id) VALUES ($1, $2, $3, $4)", [Date.now(), cronExpr, text, targetCh.id]);
+        msg.reply(`✅ Set for <#${targetCh.id}>`);
+    }
+
+    if (cmd === "!clear" && msg.member.permissions.has("ManageMessages")) {
+        msg.channel.bulkDelete(parseInt(args[0]) || 0, true);
+    }
+});
+
+client.login(process.env.DISCORD_TOKEN);
+const { Client, GatewayIntentBits, EmbedBuilder } = require("discord.js");
 const cron = require("node-cron");
 const { pool, initDB } = require("./utilities/db");
 const heroesData = require("./data/heroes.json");
