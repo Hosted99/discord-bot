@@ -5,7 +5,7 @@ const { initSchedulers, isValidCron } = require("./utilities/scheduler");
 // Зареждане на данни от външни файлове
 const heroesData = require("./data/heroes.json");
 const staticReminders = require("./data/staticReminders");
-const repairMessages = require("./data/repairMessages"); // Трябва да са на английски в JSON-а
+const repairMessages = require("./data/repairMessages");
 
 const client = new Client({
     intents: [
@@ -19,7 +19,7 @@ const client = new Client({
 // Списък с позволени кораби за ремонт
 const allowedShips = ["@mugi-ship", "@goat-ship", "@ati-ship"];
 
-// Списък със забавни съобщения при грешен кораб (на английски)
+// Списък със забавни съобщения при грешен кораб
 const noShipMessages = [
     "🚫 Hmm, **{user}**? This ship is not in our registry. Are you sure it's not a pirate raft?",
     "🔍 We searched everywhere, but couldn't find **{user}**. Maybe it sank somewhere?",
@@ -38,38 +38,48 @@ client.on("messageCreate", async (msg) => {
     
     const content = msg.content.trim();
     const args = content.split(/\s+/);
-    const cmd = args.shift().toLowerCase();
+    const cmd = args[0]?.toLowerCase();
 
     // ========================================================
-    // 1. ЛОГИКА ЗА REPAIR-SHIP (Само в този канал)
+    // 1. ЛОГИКА ЗА REPAIR-SHIP (Строг контрол)
     // ========================================================
     if (msg.channel.name === "repair-ship") {
         const lowerContent = content.toLowerCase();
         
+        // Проверка: Дали съобщението започва точно с "repair "
         if (lowerContent.startsWith("repair ")) {
             const target = content.slice(7).trim(); 
             if (!target) return;
 
-            // Проверка дали корабът е в списъка
             if (allowedShips.includes(target.toLowerCase())) {
-                // Успешен ремонт (взима съобщение от data/repairMessages.js)
                 const randomMsg = repairMessages[Math.floor(Math.random() * repairMessages.length)];
-                const finalResponse = randomMsg.replace("{user}", target);
-                return msg.channel.send(finalResponse);
+                return msg.channel.send(randomMsg.replace("{user}", target));
             } else {
-                // Грешен кораб
                 const randomNoShip = noShipMessages[Math.floor(Math.random() * noShipMessages.length)];
                 return msg.channel.send(randomNoShip.replace("{user}", target));
             }
+        } 
+        // Ако не е команда за ремонт -> Изтриване!
+        else {
+            try {
+                await msg.delete();
+                const warning = await msg.channel.send(`⚠️ ${msg.author}, only repair commands are allowed here!`);
+                setTimeout(() => warning.delete().catch(() => {}), 5000);
+            } catch (err) { console.error("Error cleaning repair-ship:", err.message); }
+            return;
         }
-        return; 
     }
 
     // ========================================================
     // 2. КОМАНДА: !hero (Само в #unit-build)
     // ========================================================
-    if (cmd === "!hero" && msg.channel.name === "unit-build") {
-        const heroName = args[0]?.toLowerCase();
+    if (cmd === "!hero") {
+        if (msg.channel.name !== "unit-build") {
+            const err = await msg.reply("❌ This command only works in #unit-build!");
+            return setTimeout(() => { err.delete().catch(()=>{}); msg.delete().catch(()=>{}); }, 5000);
+        }
+
+        const heroName = args[1]?.toLowerCase();
         const hero = heroesData[heroName];
         
         if (!hero) return msg.reply("❌ Hero not found! Please check the name.");
@@ -89,18 +99,18 @@ client.on("messageCreate", async (msg) => {
     }
 
     // ========================================================
-    // 3. КОМАНДА: !remind (Записва за стая #reminders)
+    // 3. КОМАНДА: !remind (Може отвсякъде, праща в #reminders)
     // ========================================================
     if (cmd === "!remind") {
         const targetCh = msg.guild.channels.cache.find(ch => ch.name === "reminders");
-        if (!targetCh) return msg.reply("❌ Error: No #reminders channel found in this server!");
+        if (!targetCh) return msg.reply("❌ Error: No #reminders channel found!");
         
-        if (args.length < 5) return msg.reply("❌ Usage: `!remind <min> <hour> <day> <month> <weekday> <message>`");
+        if (args.length < 7) return msg.reply("❌ Usage: `!remind <min> <hour> <day> <month> <weekday> <message>`");
         
-        const cronExpr = args.slice(0, 5).join(" ");
-        const text = args.slice(5).join(" ");
+        const cronExpr = args.slice(1, 6).join(" ");
+        const text = args.slice(6).join(" ");
         
-        if (!isValidCron(cronExpr)) return msg.reply("❌ Invalid Cron format! Use spaces between stars.");
+        if (!isValidCron(cronExpr)) return msg.reply("❌ Invalid Cron format!");
         
         try {
             await pool.query(
@@ -108,21 +118,15 @@ client.on("messageCreate", async (msg) => {
                 [Date.now(), cronExpr, text, targetCh.id, msg.author.id]
             );
             msg.reply(`✅ Reminder set! It will be sent in <#${targetCh.id}>`);
-        } catch (err) {
-            console.error(err);
-            msg.reply("❌ Database error occurred.");
-        }
+        } catch (err) { msg.reply("❌ Database error."); }
     }
 
     // ========================================================
-    // 4. КОМАНДА: !clear (Триене на съобщения)
+    // 4. КОМАНДА: !clear
     // ========================================================
     if (cmd === "!clear" && msg.member.permissions.has("ManageMessages")) {
-        const amount = parseInt(args[0]);
-        if (isNaN(amount) || amount < 1 || amount > 100) {
-            return msg.reply("⚠️ Please enter a number between 1 and 100.");
-        }
-        await msg.channel.bulkDelete(amount, true).catch(err => console.error(err));
+        const amount = parseInt(args[1]);
+        if (amount > 0 && amount <= 100) await msg.channel.bulkDelete(amount, true);
     }
 });
 
