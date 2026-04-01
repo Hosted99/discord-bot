@@ -1,8 +1,11 @@
 const { Client, GatewayIntentBits, EmbedBuilder } = require("discord.js");
 const { pool, initDB } = require("./utilities/db");
 const { initSchedulers, isValidCron } = require("./utilities/scheduler");
+
+// Зареждане на данни от външни файлове
 const heroesData = require("./data/heroes.json");
 const staticReminders = require("./data/staticReminders");
+const repairMessages = require("./data/repairMessages");
 
 const client = new Client({
     intents: [
@@ -26,7 +29,26 @@ client.on("messageCreate", async (msg) => {
     const args = content.split(/\s+/);
     const cmd = args.shift().toLowerCase();
 
-    // --- КОМАНДА: !hero ---
+    // ========================================================
+    // 1. СПЕЦИАЛНА ЛОГИКА ЗА REPAIR-SHIP (Само в този канал)
+    // ========================================================
+    if (msg.channel.name === "repair-ship") {
+        if (content.toLowerCase().startsWith("repair ")) {
+            const target = content.slice(7).trim(); 
+            if (!target) return;
+
+            // Избиране на произволно съобщение от заредения списък
+            const randomMsg = repairMessages[Math.floor(Math.random() * repairMessages.length)];
+            const finalResponse = randomMsg.replace("{user}", target);
+            
+            return msg.channel.send(finalResponse);
+        }
+        return; 
+    }
+
+    // ========================================================
+    // 2. КОМАНДА: !hero (Само в #unit-build)
+    // ========================================================
     if (cmd === "!hero" && msg.channel.name === "unit-build") {
         const heroName = args[0]?.toLowerCase();
         const hero = heroesData[heroName];
@@ -38,17 +60,20 @@ client.on("messageCreate", async (msg) => {
             .setColor(hero.color || "#2b2d31")
             .addFields(
                 { name: "Role", value: hero.role, inline: true },
-                { name: "Seals", value: hero.seals, inline: false }
+                { name: "Seals", value: hero.seals, inline: false },
+                { name: "Haki Rec", value: hero.haki || "N/A", inline: true }
             );
         return msg.channel.send({ embeds: [embed] });
     }
 
-    // --- КОМАНДА: !remind ---
+    // ========================================================
+    // 3. КОМАНДА: !remind (Записва за стая #reminders)
+    // ========================================================
     if (cmd === "!remind") {
         const targetCh = msg.guild.channels.cache.find(ch => ch.name === "reminders");
         if (!targetCh) return msg.reply("No #reminders channel found!");
         
-        if (args.length < 6) return msg.reply("Usage: !remind 0 12 * * * Message");
+        if (args.length < 5) return msg.reply("Usage: !remind 0 12 * * * Message");
         
         const cronExpr = args.slice(0, 5).join(" ");
         const text = args.slice(5).join(" ");
@@ -66,7 +91,9 @@ client.on("messageCreate", async (msg) => {
         }
     }
 
-    // --- КОМАНДА: !clear ---
+    // ========================================================
+    // 4. КОМАНДА: !clear
+    // ========================================================
     if (cmd === "!clear" && msg.member.permissions.has("ManageMessages")) {
         const amount = parseInt(args[0]);
         if (amount > 0 && amount <= 100) msg.channel.bulkDelete(amount, true);
