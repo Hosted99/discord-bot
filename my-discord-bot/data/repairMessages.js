@@ -1,9 +1,9 @@
 module.exports = [
-    "🔧 Чук-чук! Корабът на **{user}** вече е като нов... е, поне не потъва!",
-    "🛠️ Ремонтът приключи! **{user}**, следващия път карай по-внимателно в рифовете!",
-    "🚢 Корабът на **{user}** е излъскан до блясък! Готов за нови приключения!",
-    "🧪 Малко тиксо, малко магия и корабът на **{user}** е готов за плаване!",
-    "⚓ Капитанът на **{user}** може да бъде спокоен – дупките са запушени (повечето)!",
-    "🧹 Чисто нов дизайн за **{user}**! Внимавай, боята още е мокра!",
-    "⚡ Светкавичен ремонт за **{user}**! Сега е по-бърз от вятъра!"
+    "🔧 Knock-knock! **{user}** is now as good as new... well, at least it’s not sinking!",
+    "🛠️ Repair complete! **{user}**, try to avoid the reefs next time!",
+    "🚢 **{user}** has been polished to a shine! Ready for new adventures!",
+    "🧪 A bit of duct tape, a little magic, and **{user}** is ready to sail again!",
+    "⚓ The captain of **{user}** can rest easy – the holes are plugged (mostly)!",
+    "🧹 Brand new look for **{user}**! Careful, the paint is still wet!",
+    "⚡ Lightning-fast repair for **{user}**! It's now faster than the wind!"
 ];
