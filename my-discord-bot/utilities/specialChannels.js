@@ -9,7 +9,7 @@ const noShipMessages = [
 ];
 
 async function handleSpecialChannels(msg) {
-    // --- Логика за REPAIR-SHIP ---
+    // --- 1. Логика за REPAIR-SHIP ---
     if (msg.channel.name === "repair-ship") {
         const content = msg.content.trim();
         const lowerContent = content.toLowerCase();
@@ -33,7 +33,21 @@ async function handleSpecialChannels(msg) {
                 setTimeout(() => warning.delete().catch(() => {}), 5000);
             } catch (err) { console.error("Special channel cleanup error:", err.message); }
         }
-        return true; // Връщаме true, за да спрем обработката в main.js
+        return true; // Спираме обработката тук
+    }
+
+    // --- 2. Логика САМО ЗА СНИМКИ (Photos Only) ---
+    // Проверява дали в описанието (Topic) на канала има думата "photos"
+    if (msg.channel.topic && msg.channel.topic.includes("photos")) {
+        // Ако съобщението няма прикачени файлове (снимки)
+        if (msg.attachments.size === 0) {
+            try {
+                await msg.delete();
+                const warning = await msg.channel.send(`📸 ${msg.author}, only photos are allowed in this channel!`);
+                setTimeout(() => warning.delete().catch(() => {}), 5000);
+            } catch (err) { console.error("Photo channel cleanup error:", err.message); }
+            return true; // Спираме съобщението да стигне до командите
+        }
     }
     
     return false; // Продължаваме към командите, ако не сме в специален канал
