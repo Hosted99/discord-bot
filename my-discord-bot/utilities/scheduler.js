@@ -1,22 +1,12 @@
 const cron = require("node-cron");
+// Зареждаме данните директно тук, за да не ги прехвърляме през main.js
+const staticList = require("../data/staticReminders"); 
 
 const isValidCron = (expr) => typeof expr === "string" && cron.validate(expr);
 
-// Функция за тагване по име (Marika, Mugi)
-async function getMention(guild, target) {
-    if (target === "@everyone" || target === "@here") return target;
-    const role = guild.roles.cache.find(r => r.name.toLowerCase() === target.toLowerCase());
-    if (role) return `<@&${role.id}>`;
-    const member = guild.members.cache.find(m => 
-        m.user.username.toLowerCase() === target.toLowerCase() || 
-        m.displayName.toLowerCase() === target.toLowerCase()
-    );
-    return member ? `<@${member.id}>` : target;
-}
-
-// Стартиране на всичко
-function initSchedulers(client, staticList, pool) {
-    // 1. Статични
+// Вече не искаме staticList като аргумент, защото го имаме горе
+function initSchedulers(client, pool) { 
+    // 1. Статични напомняния
     staticList.forEach(rem => {
         if (!isValidCron(rem.cron)) return;
         cron.schedule(rem.cron, () => {
@@ -30,7 +20,7 @@ function initSchedulers(client, staticList, pool) {
         }, { timezone: "Europe/London" });
     });
 
-    // 2. Динамични (при старт)
+    // 2. Динамични напомняния (от базата)
     pool.query("SELECT * FROM reminders").then(res => {
         res.rows.forEach(rem => {
             if (!isValidCron(rem.cron)) return;
@@ -39,7 +29,19 @@ function initSchedulers(client, staticList, pool) {
                 if (ch) ch.send(rem.message);
             }, { timezone: "Europe/London" });
         });
-    });
+    }).catch(err => console.error("DB Scheduler Error:", err.message));
+}
+
+// Помощна функция за тагване
+async function getMention(guild, target) {
+    if (target === "@everyone" || target === "@here") return target;
+    const role = guild.roles.cache.find(r => r.name.toLowerCase() === target.toLowerCase());
+    if (role) return `<@&${role.id}>`;
+    const member = guild.members.cache.find(m => 
+        m.user.username.toLowerCase() === target.toLowerCase() || 
+        m.displayName.toLowerCase() === target.toLowerCase()
+    );
+    return member ? `<@${member.id}>` : target;
 }
 
 module.exports = { initSchedulers, isValidCron };
