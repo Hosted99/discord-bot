@@ -4,6 +4,26 @@ const { initSchedulers } = require("./utilities/scheduler");
 const { handleCommands } = require("./utilities/commandHandler");
 const { handleSpecialChannels } = require("./utilities/specialChannels");
 
+///*
+// ──────────────────────────────────────────────
+// Keep-alive HTTP сървър (за Render)
+// ──────────────────────────────────────────────
+const express = require("express");
+const app = express();
+
+// Render дава динамичен порт чрез process.env.PORT
+const PORT = process.env.PORT || 10000;
+
+// Основен endpoint, който връща текст, че ботът е жив
+app.get("/", (req, res) => {
+  res.send("🤖 Bot is running ✅");
+});
+//*/
+// Слушаме на всички интерфейси, за да Render може да достигне сървъра
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`✅ Keep-alive server running on port ${PORT}`);
+});
+
 const client = new Client({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMembers]
 });
