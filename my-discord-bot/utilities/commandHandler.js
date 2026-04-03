@@ -2,13 +2,14 @@ const { EmbedBuilder } = require("discord.js");
 const heroesData = require("../data/heroes.json");
 const staticReminders = require("../data/staticReminders");
 const { isValidCron } = require("./scheduler");
+const { updateBountyRole } = require("./roleHandler"); // Вмъкваме автоматичната смяна на роли
 
 async function handleCommands(msg, pool) {
     const content = msg.content.trim();
     const args = content.split(/\s+/);
     const cmd = args.shift().toLowerCase();
 
-    // --- 1. КОМАНДА: !help (ПЪЛНОТО МЕНЮ С ВСИЧКИ ФУНКЦИИ) ---
+    // --- 1. КОМАНДА: !help ---
     if (cmd === "!help") {
         const helpEmbed = new EmbedBuilder()
             .setTitle("🏴‍☠️ Sailing Kingdom - Full Help Menu")
@@ -17,7 +18,7 @@ async function handleCommands(msg, pool) {
             .addFields(
                 { 
                     name: "💰 Bounty System", 
-                    value: "`!wanted [@user]` - Show wanted poster.\n`!setbounty @user <amt>` - Set reward (Admin).\n`!resetbounty @user` - Reset reward (Admin)." 
+                    value: "`!wanted [@user]` - Show wanted poster.\n`!setbounty @user <amt>` - Set reward & role (Admin).\n`!resetbounty @user` - Reset reward & role (Admin)." 
                 },
                 { 
                     name: "⚔️ Heroes & Guides", 
@@ -41,13 +42,13 @@ async function handleCommands(msg, pool) {
         return msg.reply({ embeds: [helpEmbed] });
     }
 
-    // --- 2. КОМАНДА: !hero (Гайдове за герои) ---
+    // --- 2. КОМАНДА: !hero ---
     if (cmd === "!hero") {
         if (msg.channel.name !== "unit-build") {
             const err = await msg.reply("❌ This command only works in #unit-build!");
             return setTimeout(() => { err.delete().catch(()=>{}); msg.delete().catch(()=>{}); }, 5000);
         }
-        const heroName = args[0]?.toLowerCase(); // Взимаме името на героя
+        const heroName = args[0]?.toLowerCase();
         const hero = heroesData[heroName];
         if (!hero) return msg.reply("❌ Hero not found in database!");
 
@@ -63,7 +64,7 @@ async function handleCommands(msg, pool) {
         return msg.channel.send({ embeds: [embed] });
     }
 
-    // --- 3. КОМАНДА: !remind (Нов ремайндър) ---
+    // --- 3. КОМАНДА: !remind ---
     if (cmd === "!remind") {
         const targetCh = msg.guild.channels.cache.find(ch => ch.name === "reminders");
         if (!targetCh) return msg.reply("❌ No #reminders channel found!");
@@ -83,14 +84,14 @@ async function handleCommands(msg, pool) {
         } catch (err) { msg.reply("❌ Database error saving reminder."); }
     }
 
-    // --- 4. КОМАНДА: !reminders (Динамични) ---
+    // --- 4. КОМАНДА: !reminders ---
     if (cmd === "!reminders") {
         const res = await pool.query("SELECT * FROM reminders ORDER BY id ASC");
         const list = res.rows.map(r => `ID: \`${r.id}\` | \`${r.cron}\` | ${r.message}`).join("\n") || "No dynamic reminders.";
         return msg.reply("📋 **Dynamic Reminders:**\n" + list);
     }
 
-    // --- 5. КОМАНДА: !allreminders (Всичко) ---
+    // --- 5. КОМАНДА: !allreminders ---
     if (cmd === "!allreminders") {
         const res = await pool.query("SELECT * FROM reminders ORDER BY id ASC");
         const dynamicList = res.rows.map(r => `ID: \`${r.id}\` | \`${r.cron}\` | ${r.message}`).join("\n") || "None";
@@ -101,7 +102,7 @@ async function handleCommands(msg, pool) {
         return msg.reply({ embeds: [embed] });
     }
 
-    // --- 6. КОМАНДА: !delete (САМО АДМИН) ---
+    // --- 6. КОМАНДА: !delete ---
     if (cmd === "!delete") {
         if (!msg.member.permissions.has("Administrator")) {
             return msg.reply("❌ Only Admirals can delete reminders!").then(m => setTimeout(() => m.delete().catch(()=>{}), 5000));
@@ -115,7 +116,7 @@ async function handleCommands(msg, pool) {
         } catch (err) { return msg.reply("❌ DB Error during deletion."); }
     }
 
-    // --- 7. КОМАНДА: !wanted (Плакат) ---
+    // --- 7. КОМАНДА: !wanted ---
     if (cmd === "!wanted") {
         const target = msg.mentions.users.first() || msg.author;
         try {
@@ -130,29 +131,44 @@ async function handleCommands(msg, pool) {
         } catch (err) { return msg.reply("❌ Error fetching bounty data."); }
     }
 
-    // --- 8. КОМАНДА: !setbounty (АДМИН) ---
+    // --- 8. КОМАНДА: !setbounty (С АВТОМАТИЧНА РОЛЯ) ---
     if (cmd === "!setbounty") {
         if (!msg.member.permissions.has("Administrator")) return;
-        const target = msg.mentions.users.first();
+        const targetUser = msg.mentions.users.first();
+        const targetMember = msg.mentions.members.first();
         const amount = parseInt(args[1]);
-        if (!target || isNaN(amount)) return msg.reply("❌ Usage: `!setbounty @user 50000` ");
+
+        if (!targetUser || isNaN(amount)) return msg.reply("❌ Usage: `!setbounty @user 50000000` ");
+        
         try {
             await pool.query(
                 "INSERT INTO users (user_id, bounty, username) VALUES ($1, $2, $3) ON CONFLICT (user_id) DO UPDATE SET bounty = $2, username = $3", 
-                [target.id, amount, target.username]
+                [targetUser.id, amount, targetUser.username]
             );
-            return msg.channel.send(`💰 **${target.username}**'s bounty is now **฿ ${amount.toLocaleString()}**!`);
+
+            // Обновяваме цветната роля според сумата
+            const newRank = await updateBountyRole(targetMember, amount);
+
+            let response = `💰 **${targetUser.username}**'s bounty set to **฿ ${amount.toLocaleString()}**!`;
+            if (newRank) response += `\n🎖️ New Rank: **${newRank}**`;
+            
+            return msg.channel.send(response);
         } catch (err) { return msg.reply("❌ DB Error setting bounty."); }
     }
 
-    // --- 9. КОМАНДА: !resetbounty (АДМИН) ---
+    // --- 9. КОМАНДА: !resetbounty (С МАХАНЕ НА РОЛИ) ---
     if (cmd === "!resetbounty") {
         if (!msg.member.permissions.has("Administrator")) return;
-        const target = msg.mentions.users.first();
-        if (!target) return msg.reply("❌ Usage: `!resetbounty @user` ");
+        const targetMember = msg.mentions.members.first();
+        if (!targetMember) return msg.reply("❌ Usage: `!resetbounty @user` ");
+        
         try {
-            await pool.query("DELETE FROM users WHERE user_id = $1", [target.id]);
-            return msg.channel.send(`🗑️ **${target.username}**'s bounty has been reset to 0.`);
+            await pool.query("DELETE FROM users WHERE user_id = $1", [targetMember.id]);
+            
+            // Махаме всички Bounty роли
+            await updateBountyRole(targetMember, 0);
+
+            return msg.channel.send(`🗑️ **${targetMember.user.username}**'s bounty reset to 0 and roles removed.`);
         } catch (err) { return msg.reply("❌ DB Error resetting bounty."); }
     }
 
