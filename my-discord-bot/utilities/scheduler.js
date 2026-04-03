@@ -41,7 +41,7 @@ function initSchedulers(client, pool) {
     }).catch(err => console.error("DB Scheduler Error:", err.message));
 
     // --- 3. ПУСКАНЕ НА СТРАТЕГИЯТА (19:25) ---
-    cron.schedule("10 18 * * *", async () => {
+    cron.schedule("25 19 * * *", async () => {
         if (!global.lastStrategyContent) return;
 
         client.guilds.cache.forEach(async (guild) => {
@@ -60,8 +60,8 @@ function initSchedulers(client, pool) {
         });
     }, { timezone: "Europe/London" });
 
-    // --- 4. ПРОВЕРКА И ПИНГ НА ЗАКЪСНЕЛИТЕ (20:00) ---
-    cron.schedule("15 18 * * *", async () => {
+    // --- 4. ПРОВЕРКА И ПИНГ НА ЗАКЪСНЕЛИТЕ (19:55) ---
+    cron.schedule("55 19 * * *", async () => {
         if (!strategyMsgObject) return;
 
         try {
