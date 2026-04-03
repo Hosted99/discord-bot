@@ -4,6 +4,9 @@ const { initSchedulers, captureStrategy } = require("./utilities/scheduler");
 const { handleCommands } = require("./utilities/commandHandler");
 const { handleSpecialChannels } = require("./utilities/specialChannels");
 const { handleNewMember, handleRoleCommands } = require("./utilities/roleHandler");
+const { logDeletedMessage } = require("./utilities/logger");
+
+});
 
 // Инициализация на клиента с нужните интенти
 const client = new Client({
@@ -48,7 +51,11 @@ client.on("messageCreate", async (msg) => {
         return await handleRoleCommands(msg, cmd, args);
     }
 
-    // 4. Всички стандартни команди (!hero, !remind, !help, !reminders, !allreminders, !clear, !delete)
+    // 4.Следене за изтрити съобщения
+client.on("messageDelete", async (message) => {
+    await logDeletedMessage(message);
+    
+    // 5. Всички стандартни команди (!hero, !remind, !help, !reminders, !allreminders, !clear, !delete)
     await handleCommands(msg, pool);
 });
 
