@@ -117,63 +117,38 @@ async function handleCommands(msg, pool) {
         } catch (err) { return msg.reply("❌ DB Error during deletion."); }
     }
 
-                // --- 7. КОМАНДА: !wanted (ФИКСИРАНА ВЕРСИЯ) ---
+               // --- 7. КОМАНДА: !wanted (УКРАСЕН ПЛАКАТ) ---
     if (cmd === "!wanted") {
         const target = msg.mentions.users.first() || msg.author;
-        
         try {
-            // Взимаме сумата от базата данни
             const res = await pool.query("SELECT bounty FROM users WHERE user_id = $1", [target.id]);
             const bounty = res.rows.length > 0 ? res.rows[0].bounty : 0;
-            const bountyText = `${parseInt(bounty).toLocaleString()} -`; 
 
-            // 7.1. Създаваме платното
-            const canvas = createCanvas(750, 1089);
-            const ctx = canvas.getContext("2d");
+            const embed = new EmbedBuilder()
+                .setTitle("☠️ W A N T E D ☠️") // По-голямо и ясно заглавие
+                .setAuthor({ 
+                    name: "MARINE HEADQUARTERS", 
+                    iconURL: "https://imgur.com" // Лого на маринците (можеш да смениш линка)
+                })
+                .setDescription(`\n**NAME:** ${target.username.toUpperCase()}\n━━━━━━━━━━━━━━━━━━`) // Линия за разделител
+                .addFields(
+                    { name: "💰 REWARD", value: `**฿ ${parseInt(bounty).toLocaleString()}**`, inline: true },
+                    { name: "📜 STATUS", value: "🔴 **DEAD OR ALIVE**", inline: true }
+                )
+                .setColor("#E67E22") // Пиратско оранжево
+                .setImage(target.displayAvatarURL({ dynamic: true, size: 512 })) // Голяма снимка вместо малка
+                .setFooter({ 
+                    text: "By order of the World Government", 
+                    iconURL: "https://imgur.com" 
+                })
+                .setTimestamp();
 
-            // 7.2. Важно: Форсираме аватара да е PNG и махаме динамичните разширения
-            const avatarUrl = target.displayAvatarURL({ extension: 'png', size: 1024 });
-            const templateUrl = "https://imgur.com";
-
-            // Зареждаме изображенията
-            const [avatar, template] = await Promise.all([
-                loadImage(avatarUrl),
-                loadImage(templateUrl)
-            ]);
-
-            // 7.3. Рисуваме аватара (ПОД рамката)
-            // Позиция: x=75, y=235, ширина=600, височина=450
-            ctx.drawImage(avatar, 75, 235, 600, 450); 
-
-            // 7.4. Рисуваме рамката ОТГОРЕ
-            ctx.drawImage(template, 0, 0, canvas.width, canvas.height);
-
-            // 7.5. Пишем името
-            ctx.font = "bold 85px serif"; 
-            ctx.fillStyle = "#3e2723";
-            ctx.textAlign = "center";
-            ctx.fillText(target.username.toUpperCase(), canvas.width / 2, 855);
-
-            // 7.6. Пишем сумата
-            ctx.font = "bold 55px serif";
-            ctx.fillText(bountyText, canvas.width / 2, 975);
-
-            // 7.7. Пращаме картинката
-            const attachment = new AttachmentBuilder(canvas.toBuffer(), { name: 'wanted.png' });
-
-            return msg.channel.send({ 
-                content: `🏴‍☠️ **A new bounty poster has been issued for ${target.username}!**`, 
-                files: [attachment] 
-            });
-
-        } catch (err) {
-            console.error("Canvas Error:", err);
-            // Ако все още има грешка, ботът ще върне текстово съобщение, за да не "мълчи"
-            return msg.reply("❌ Error generating the poster. Make sure your avatar is a standard image!");
+            return msg.channel.send({ embeds: [embed] });
+        } catch (err) { 
+            console.error(err);
+            return msg.reply("❌ Error fetching bounty data."); 
         }
     }
-
-
 
     // --- 8. КОМАНДА: !setbounty (С АВТОМАТИЧНА РОЛЯ) ---
     if (cmd === "!setbounty") {
