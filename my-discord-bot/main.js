@@ -6,7 +6,7 @@ const { handleSpecialChannels } = require("./utilities/specialChannels");
 const { handleNewMember, handleRoleCommands } = require("./utilities/roleHandler");
 const { logDeletedMessage } = require("./utilities/logger");
 
-});
+
 
 // Инициализация на клиента с нужните интенти
 const client = new Client({
@@ -54,7 +54,7 @@ client.on("messageCreate", async (msg) => {
     // 4.Следене за изтрити съобщения
 client.on("messageDelete", async (message) => {
     await logDeletedMessage(message);
-    
+}
     // 5. Всички стандартни команди (!hero, !remind, !help, !reminders, !allreminders, !clear, !delete)
     await handleCommands(msg, pool);
 });
