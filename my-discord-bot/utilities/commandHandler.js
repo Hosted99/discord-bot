@@ -116,20 +116,39 @@ async function handleCommands(msg, pool) {
         } catch (err) { return msg.reply("❌ DB Error during deletion."); }
     }
 
-    // --- 7. КОМАНДА: !wanted ---
+        // --- 7. КОМАНДА: !wanted (УКРАСЕН ПЛАКАТ) ---
     if (cmd === "!wanted") {
         const target = msg.mentions.users.first() || msg.author;
         try {
             const res = await pool.query("SELECT bounty FROM users WHERE user_id = $1", [target.id]);
             const bounty = res.rows.length > 0 ? res.rows[0].bounty : 0;
+
             const embed = new EmbedBuilder()
-                .setTitle("🏴‍☠️ WANTED").setDescription(`**${target.username.toUpperCase()}**`)
-                .addFields({ name: "REWARD", value: `฿ ${parseInt(bounty).toLocaleString()}` })
-                .setColor("#E67E22").setThumbnail(target.displayAvatarURL({ dynamic: true }))
-                .setFooter({ text: "DEAD OR ALIVE" });
+                .setTitle("☠️ W A N T E D ☠️") // По-голямо и ясно заглавие
+                .setAuthor({ 
+                    name: "MARINE HEADQUARTERS", 
+                    iconURL: "https://imgur.com" // Лого на маринците (можеш да смениш линка)
+                })
+                .setDescription(`\n**NAME:** ${target.username.toUpperCase()}\n━━━━━━━━━━━━━━━━━━`) // Линия за разделител
+                .addFields(
+                    { name: "💰 REWARD", value: `**฿ ${parseInt(bounty).toLocaleString()}**`, inline: true },
+                    { name: "📜 STATUS", value: "🔴 **DEAD OR ALIVE**", inline: true }
+                )
+                .setColor("#E67E22") // Пиратско оранжево
+                .setImage(target.displayAvatarURL({ dynamic: true, size: 512 })) // Голяма снимка вместо малка
+                .setFooter({ 
+                    text: "By order of the World Government", 
+                    iconURL: "https://imgur.com" 
+                })
+                .setTimestamp();
+
             return msg.channel.send({ embeds: [embed] });
-        } catch (err) { return msg.reply("❌ Error fetching bounty data."); }
+        } catch (err) { 
+            console.error(err);
+            return msg.reply("❌ Error fetching bounty data."); 
+        }
     }
+
 
     // --- 8. КОМАНДА: !setbounty (С АВТОМАТИЧНА РОЛЯ) ---
     if (cmd === "!setbounty") {
