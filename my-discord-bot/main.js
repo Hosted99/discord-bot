@@ -10,16 +10,18 @@ const client = new Client({
         GatewayIntentBits.Guilds, 
         GatewayIntentBits.GuildMessages, 
         GatewayIntentBits.MessageContent, 
-        GatewayIntentBits.GuildMembers // ТРЯБВА ДА Е ВКЛЮЧЕНО В ПОРТАЛА
+        GatewayIntentBits.GuildMembers
     ]
 });
 
+// Използваме clientReady за избягване на предупреждения в v14+
 client.once("clientReady", async () => {
     await initDB();
     initSchedulers(client, pool);
-    console.log(`🤖 Online as ${client.user.tag}`);
+    console.log(`🤖 Online and Ready as ${client.user.tag}`);
 });
 
+// Автоматична роля Rookies при влизане
 client.on("guildMemberAdd", async (member) => {
     await handleNewMember(member);
 });
@@ -27,9 +29,9 @@ client.on("guildMemberAdd", async (member) => {
 client.on("messageCreate", async (msg) => {
     if (msg.author.bot || !msg.guild) return;
 
-    // 1. Проверяваме за ключовата дума "mania-strategy"
+    // 1. Улавяне на стратегията (mania-strategy)
     if (captureStrategy(msg.content)) {
-        return msg.react("📥"); // Ботът реагира с входяща кутия, за да потвърди, че е запазил стратегията
+        return msg.react("📥"); 
     }
 
     // 2. Специални канали (repair-ship, photos-only)
@@ -39,12 +41,12 @@ client.on("messageCreate", async (msg) => {
     const args = content.split(/\s+/);
     const cmd = args.shift().toLowerCase();
 
-    // 3. Команди за РОЛИ
+    // 3. Команди за РОЛИ (!addrole, !removerole)
     if (cmd === "!addrole" || cmd === "!removerole") {
         return await handleRoleCommands(msg, cmd, args);
     }
 
-    // 4. Стандартни команди (!hero, !remind, !clear)
+    // 4. Всички останали команди (!hero, !remind, !reminders, !allreminders, !clear)
     await handleCommands(msg, pool);
 });
 
