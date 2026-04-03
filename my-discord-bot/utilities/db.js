@@ -1,18 +1,17 @@
 const { Pool } = require("pg");
 
-// Конфигурация на връзката (взима данните от Environment Variables)
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false } // Задължително за Neon
+  ssl: { rejectUnauthorized: false }
 });
 
-// Функция за създаване на таблицата, ако не съществува
 async function initDB() {
   try {
-    await pool.query("SELECT 1"); // Проверка на връзката
+    await pool.query("SELECT 1");
     console.log("✅ Connected to Neon/Postgres!");
 
-    const createTableQuery = `
+    // Таблица за напомняния (динамични)
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS reminders (
         id BIGINT PRIMARY KEY,
         cron VARCHAR(100),
@@ -20,11 +19,18 @@ async function initDB() {
         channel_id VARCHAR(50),
         owner_id VARCHAR(50)
       );
-    `;
-    await pool.query(createTableQuery);
+    `);
+
+    // Таблица за потребители и техните Bounty награди
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        user_id VARCHAR(50) PRIMARY KEY,
+        bounty BIGINT DEFAULT 0,
+        username TEXT
+      );
+    `);
   } catch (err) {
-    console.error("❌ Database connection error:", err.message);
-    process.exit(1); // Спира бота, ако няма връзка с базата
+    console.error("❌ Database initialization error:", err.message);
   }
 }
 
