@@ -7,7 +7,6 @@ const { handleNewMember, handleRoleCommands } = require("./utilities/roleHandler
 const { logDeletedMessage } = require("./utilities/logger");
 
 
-
 // Инициализация на клиента с нужните интенти
 const client = new Client({
     intents: [
@@ -28,6 +27,11 @@ client.once("clientReady", async () => {
 // Събитие: Когато нов член влезе в сървъра
 client.on("guildMemberAdd", async (member) => {
     await handleNewMember(member); // Дава роля Rookies и праща welcome съобщение
+});
+
+ // 4.Следене за изтрити съобщения
+client.on("messageDelete", async (message) => {
+    await logDeletedMessage(message);
 });
 
 // Събитие: При всяко ново съобщение в сървъра
@@ -51,11 +55,7 @@ client.on("messageCreate", async (msg) => {
         return await handleRoleCommands(msg, cmd, args);
     }
 
-    // 4.Следене за изтрити съобщения
-client.on("messageDelete", async (message) => {
-    await logDeletedMessage(message);
-}
-    // 5. Всички стандартни команди (!hero, !remind, !help, !reminders, !allreminders, !clear, !delete)
+    // 4. Всички стандартни команди (!hero, !remind, !help, !reminders, !allreminders, !clear, !delete)
     await handleCommands(msg, pool);
 });
 
