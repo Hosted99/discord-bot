@@ -2,20 +2,13 @@ const cron = require("node-cron");
 const { EmbedBuilder } = require("discord.js");
 const staticList = require("../data/staticReminders");
 
-// Глобални променливи за текущата стратегия
 global.lastStrategyContent = null;
 let strategyMsgObject = null; 
 
-/**
- * Проверка дали Cron форматът е валиден
- */
 const isValidCron = (expr) => typeof expr === "string" && cron.validate(expr);
 
-/**
- * Инициализация на всички таймери
- */
 function initSchedulers(client, pool) {
-    // --- 1. СТАТИЧНИ НАПОМНЯНИЯ (Mania, Shandora и т.н.) ---
+    // 1. СТАТИЧНИ (Mania, Shandora и т.н.)
     staticList.forEach(rem => {
         if (!isValidCron(rem.cron)) return;
         cron.schedule(rem.cron, () => {
@@ -29,7 +22,7 @@ function initSchedulers(client, pool) {
         }, { timezone: "Europe/London" });
     });
 
-    // --- 2. ДИНАМИЧНИ НАПОМНЯНИЯ (От базата данни) ---
+    // 2. ДИНАМИЧНИ (От базата данни)
     pool.query("SELECT * FROM reminders").then(res => {
         res.rows.forEach(rem => {
             if (!isValidCron(rem.cron)) return;
@@ -40,65 +33,52 @@ function initSchedulers(client, pool) {
         });
     }).catch(err => console.error("DB Scheduler Error:", err.message));
 
-    // --- 3. ПУСКАНЕ НА СТРАТЕГИЯТА (19:25) ---
+    // 3. ПУСКАНЕ НА СТРАТЕГИЯТА (19:25 London Time)
     cron.schedule("25 19 * * *", async () => {
         if (!global.lastStrategyContent) return;
-
         client.guilds.cache.forEach(async (guild) => {
             const channel = guild.channels.cache.find(c => c.name === "mania-reminder");
             if (channel) {
-                const strategyEmbed = new EmbedBuilder()
+                const embed = new EmbedBuilder()
                     .setTitle("📜 DAILY STRATEGY")
                     .setDescription(global.lastStrategyContent)
                     .setColor("#FF4500")
-                    .setFooter({ text: "React with ✅ to confirm you understand the plan!" })
+                    .setFooter({ text: "React with ✅ to confirm!" })
                     .setTimestamp();
 
-                strategyMsgObject = await channel.send({ content: "@everyone", embeds: [strategyEmbed] });
+                strategyMsgObject = await channel.send({ content: "@everyone", embeds: [embed] });
                 await strategyMsgObject.react("✅");
             }
         });
     }, { timezone: "Europe/London" });
 
-    // --- 4. ПРОВЕРКА И ПИНГ НА ЗАКЪСНЕЛИТЕ (19:55) ---
-    cron.schedule("55 19 * * *", async () => {
+    // 4. ПРОВЕРКА ЗА ЛИПСВАЩИ РЕАКЦИИ (20:00 London Time)
+    cron.schedule("00 20 * * *", async () => {
         if (!strategyMsgObject) return;
-
         try {
             const guild = strategyMsgObject.guild;
             const channel = strategyMsgObject.channel;
-
-            // Взимаме хората, които са реагирали
             const reaction = strategyMsgObject.reactions.cache.get("✅");
             let reactedIds = [];
             if (reaction) {
                 const users = await reaction.users.fetch();
                 reactedIds = users.map(u => u.id);
             }
-
-            // Взимаме всички членове (изисква Server Members Intent)
             const allMembers = await guild.members.fetch();
             const missing = allMembers.filter(m => !m.user.bot && !reactedIds.includes(m.id));
 
             if (missing.size > 0) {
                 const pings = missing.map(m => `<@${m.id}>`).join(" ");
-                await channel.send(`⚠️ **AWOL PIRATES!** The following members haven't confirmed the strategy:\n${pings}\n\nRead the plan and react with ✅ now!`);
+                await channel.send(`⚠️ **MISSING CONFIRMATION:**\n${pings}\n\nPlease react to the strategy!`);
             } else {
-                await channel.send("✅ **Full squad confirmed!** We are ready for battle. Good luck!");
+                await channel.send("✅ **Everyone is ready for battle!**");
             }
-
-            // Нулираме за следващия ден
             strategyMsgObject = null;
             global.lastStrategyContent = null;
-        } catch (err) {
-            console.error("Audit Error:", err);
-        }
+        } catch (err) { console.error("Audit Error:", err); }
     }, { timezone: "Europe/London" });
 }
 
-/**
- * Улавя текста на стратегията от чата
- */
 function captureStrategy(content) {
     if (content.toLowerCase().includes("mania-strategy")) {
         global.lastStrategyContent = content.replace(/mania-strategy/gi, "").trim();
@@ -107,9 +87,6 @@ function captureStrategy(content) {
     return false;
 }
 
-/**
- * Помощна функция за тагване
- */
 async function getMention(guild, target) {
     if (target === "@everyone" || target === "@here") return target;
     const role = guild.roles.cache.find(r => r.name.toLowerCase() === target.toLowerCase());
