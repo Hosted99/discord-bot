@@ -1,14 +1,22 @@
 const { EmbedBuilder } = require("discord.js");
 
-// Твоят списък с роли за контрол
+// --- КОНФИГУРАЦИЯ НА РОЛИТЕ ---
+
+// 1. Твоят списък с роли за ръчен контрол (!addrole)
 const managedRoles = [
     "Pirate King Crew", "Pirate King", "Whitebeard's", "Mini Whitebeard's", 
     "Team builder", "Whitebeard's Leader", "Whitebeard's Vice Leader", 
     "Mini Whitebeard's Leader", "Mini Whitebeard's Vice Leader", "Rookies"
 ];
 
+// 2. Генериране на автоматичните Bounty нива (от 900M надолу до 50M през 50M)
+const bountyTiers = [];
+for (let i = 900; i >= 50; i -= 50) {
+    bountyTiers.push({ min: i * 1000000, name: `Bounty: ${i}M+` });
+}
+
 /**
- * Автоматично посрещане и даване на роля Rookies
+ * Автоматично посрещане и даване на роля Rookies при влизане на нов член
  */
 async function handleNewMember(member) {
     try {
@@ -29,7 +37,7 @@ async function handleNewMember(member) {
 }
 
 /**
- * Контрол на ролите чрез команди !addrole и !removerole
+ * Контрол на специалните пиратски роли чрез команди !addrole и !removerole
  */
 async function handleRoleCommands(msg, cmd, args) {
     if (!msg.member.permissions.has("ManageRoles")) return;
@@ -41,7 +49,7 @@ async function handleRoleCommands(msg, cmd, args) {
         return msg.reply("❌ Usage: `!addrole @user RoleName`").then(m => setTimeout(() => m.delete(), 5000));
     }
 
-    // Проверка дали ролята е в твоя списък
+    // Проверка дали ролята е в твоя списък за ръчно управление
     const isManaged = managedRoles.some(r => r.toLowerCase() === roleName.toLowerCase());
     if (!isManaged) return msg.reply("⚠️ This role is not in the managed pirate list!");
 
@@ -73,4 +81,35 @@ async function handleRoleCommands(msg, cmd, args) {
     }
 }
 
-module.exports = { handleNewMember, handleRoleCommands };
+/**
+ * АВТОМАТИЧНА СМЯНА НА ЦВЕТНИТЕ BOUNTY РОЛИ (След !setbounty)
+ */
+async function updateBountyRole(member, amount) {
+    if (!member) return null;
+    try {
+        // Намираме най-високото ниво, което сумата покрива
+        const tier = bountyTiers.find(t => amount >= t.min);
+        const newRoleName = tier ? tier.name : null;
+
+        // Взимаме всички текущи Bounty роли на човека (за да ги изчистим)
+        const currentBountyRoles = member.roles.cache.filter(r => r.name.startsWith("Bounty: "));
+        
+        // Ако потребителят вече има правилната роля, не правим нищо
+        if (newRoleName && member.roles.cache.some(r => r.name === newRoleName)) return newRoleName;
+
+        // Махаме старите Bounty роли, за да не се дублират цветовете
+        if (currentBountyRoles.size > 0) await member.roles.remove(currentBountyRoles);
+
+        // Даваме новата роля според наградата
+        if (newRoleName) {
+            const roleToGive = member.guild.roles.cache.find(r => r.name === newRoleName);
+            if (roleToGive) {
+                await member.roles.add(roleToGive);
+                return newRoleName;
+            }
+        }
+    } catch (err) { console.error("Bounty Role Update Error:", err.message); }
+    return null;
+}
+
+module.exports = { handleNewMember, handleRoleCommands, updateBountyRole };
