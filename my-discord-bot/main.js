@@ -14,7 +14,7 @@ const client = new Client({
     ]
 });
 
-client.once("ready", async () => {
+client.once("clientReady", async () => {
     await initDB();
     initSchedulers(client, pool);
     console.log(`🤖 Online as ${client.user.tag}`);
