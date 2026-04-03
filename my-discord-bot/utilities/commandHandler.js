@@ -67,6 +67,23 @@ async function handleCommands(msg, pool) {
         return msg.reply({ embeds: [embed] });
     }
 
+     // --- КОМАНДА: !delete <id> ---
+    if (cmd === "!delete") {
+        const id = args[0]; // Взимаме първия аргумент след !delete
+        if (!id) return msg.reply("❌ Usage: `!delete <id>`");
+
+        try {
+            const res = await pool.query("DELETE FROM reminders WHERE id = $1", [id]);
+            if (res.rowCount === 0) {
+                return msg.reply("❌ ID not found. Use `!reminders` to check the correct ID.");
+            }
+            return msg.reply(`🗑️ Reminder with ID \`${id}\` has been deleted.`);
+        } catch (err) {
+            console.error("Delete Error:", err.message);
+            return msg.reply("❌ Database error during deletion.");
+        }
+    }
+
     // --- КОМАНДА: !clear ---
     if (cmd === "!clear" && msg.member.permissions.has("ManageMessages")) {
         const amount = parseInt(args[0]);
