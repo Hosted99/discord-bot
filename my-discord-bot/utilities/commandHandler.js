@@ -1,4 +1,5 @@
-const { EmbedBuilder } = require("discord.js");
+const { EmbedBuilder, AttachmentBuilder } = require("discord.js");
+const { createCanvas, loadImage } = require("canvas");
 const heroesData = require("../data/heroes.json");
 const staticReminders = require("../data/staticReminders");
 const { isValidCron } = require("./scheduler");
