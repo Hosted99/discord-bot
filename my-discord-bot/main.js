@@ -48,7 +48,7 @@ client.on("messageCreate", async (msg) => {
         return await handleRoleCommands(msg, cmd, args);
     }
 
-    // 4. Всички стандартни команди (!hero, !remind, !help, !reminders, !allreminders, !clear)
+    // 4. Всички стандартни команди (!hero, !remind, !help, !reminders, !allreminders, !clear, !delete)
     await handleCommands(msg, pool);
 });
 
