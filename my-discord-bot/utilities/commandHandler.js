@@ -116,7 +116,7 @@ async function handleCommands(msg, pool) {
         } catch (err) { return msg.reply("❌ DB Error during deletion."); }
     }
 
-        // --- 7. КОМАНДА: !wanted (УКРАСЕН ПЛАКАТ) ---
+            // --- 7. КОМАНДА: !wanted (ONE PIECE EDITION) ---
     if (cmd === "!wanted") {
         const target = msg.mentions.users.first() || msg.author;
         try {
@@ -124,30 +124,33 @@ async function handleCommands(msg, pool) {
             const bounty = res.rows.length > 0 ? res.rows[0].bounty : 0;
 
             const embed = new EmbedBuilder()
-                .setTitle("☠️ W A N T E D ☠️") // По-голямо и ясно заглавие
+                .setTitle("☠️  W A N T E D  ☠️")
+                .setDescription(`\n**${target.username.toUpperCase()}**\n\n**DEAD OR ALIVE**\n━━━━━━━━━━━━━━━━━━`)
+                .addFields(
+                    { 
+                        name: "💰 REWARD (BERRIES)", 
+                        value: `**฿ ${parseInt(bounty).toLocaleString()}-**`, 
+                        inline: false 
+                    }
+                )
+                .setColor("#D4AC0D") // Цвят на стара хартия / Златист
+                .setImage(target.displayAvatarURL({ dynamic: true, size: 1024 })) // Голям аватар в центъра
                 .setAuthor({ 
                     name: "MARINE HEADQUARTERS", 
-                    iconURL: "https://imgur.com" // Лого на маринците (можеш да смениш линка)
-                })
-                .setDescription(`\n**NAME:** ${target.username.toUpperCase()}\n━━━━━━━━━━━━━━━━━━`) // Линия за разделител
-                .addFields(
-                    { name: "💰 REWARD", value: `**฿ ${parseInt(bounty).toLocaleString()}**`, inline: true },
-                    { name: "📜 STATUS", value: "🔴 **DEAD OR ALIVE**", inline: true }
-                )
-                .setColor("#E67E22") // Пиратско оранжево
-                .setImage(target.displayAvatarURL({ dynamic: true, size: 512 })) // Голяма снимка вместо малка
-                .setFooter({ 
-                    text: "By order of the World Government", 
                     iconURL: "https://imgur.com" 
                 })
-                .setTimestamp();
+                .setFooter({ 
+                    text: "MARINE CORPS • WORLD GOVERNMENT", 
+                    iconURL: "https://imgur.com" 
+                });
 
             return msg.channel.send({ embeds: [embed] });
         } catch (err) { 
             console.error(err);
-            return msg.reply("❌ Error fetching bounty data."); 
+            return msg.reply("❌ Error generating the poster."); 
         }
     }
+
 
 
     // --- 8. КОМАНДА: !setbounty (С АВТОМАТИЧНА РОЛЯ) ---
