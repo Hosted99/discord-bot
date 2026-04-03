@@ -117,7 +117,7 @@ async function handleCommands(msg, pool) {
         } catch (err) { return msg.reply("❌ DB Error during deletion."); }
     }
 
-                // --- 7. КОМАНДА: !wanted (ONE PIECE CANVAS EDITION) ---
+                // --- 7. КОМАНДА: !wanted (ФИКСИРАНА ВЕРСИЯ) ---
     if (cmd === "!wanted") {
         const target = msg.mentions.users.first() || msg.author;
         
@@ -125,36 +125,41 @@ async function handleCommands(msg, pool) {
             // Взимаме сумата от базата данни
             const res = await pool.query("SELECT bounty FROM users WHERE user_id = $1", [target.id]);
             const bounty = res.rows.length > 0 ? res.rows[0].bounty : 0;
-            const bountyText = `${parseInt(bounty).toLocaleString()} -`; // Формат: 150,000,000 -
+            const bountyText = `${parseInt(bounty).toLocaleString()} -`; 
 
-            // 7.1. Създаваме платно (Canvas) с размерите на плаката
+            // 7.1. Създаваме платното
             const canvas = createCanvas(750, 1089);
             const ctx = canvas.getContext("2d");
 
-            // 7.2. Зареждаме шаблона на плаката и аватара на пирата
-            // Ползваме шаблон с празна среда
-            const template = await loadImage("https://imgur.com"); 
-            const avatar = await loadImage(target.displayAvatarURL({ extension: 'png', size: 1024 }));
+            // 7.2. Важно: Форсираме аватара да е PNG и махаме динамичните разширения
+            const avatarUrl = target.displayAvatarURL({ extension: 'png', size: 1024 });
+            const templateUrl = "https://imgur.com";
+
+            // Зареждаме изображенията
+            const [avatar, template] = await Promise.all([
+                loadImage(avatarUrl),
+                loadImage(templateUrl)
+            ]);
 
             // 7.3. Рисуваме аватара (ПОД рамката)
-            // Позиционираме го в квадратната дупка на шаблона
+            // Позиция: x=75, y=235, ширина=600, височина=450
             ctx.drawImage(avatar, 75, 235, 600, 450); 
 
-            // 7.4. Рисуваме рамката отгоре върху аватара
+            // 7.4. Рисуваме рамката ОТГОРЕ
             ctx.drawImage(template, 0, 0, canvas.width, canvas.height);
 
-            // 7.5. Настройваме шрифта за ИМЕТО (Центрирано)
-            ctx.font = "bold 85px Times New Roman";
-            ctx.fillStyle = "#3e2723"; // Тъмно кафяво/черно мастило
+            // 7.5. Пишем името
+            ctx.font = "bold 85px serif"; 
+            ctx.fillStyle = "#3e2723";
             ctx.textAlign = "center";
             ctx.fillText(target.username.toUpperCase(), canvas.width / 2, 855);
 
-            // 7.6. Настройваме шрифта за СУМАТА (Bounty)
-            ctx.font = "bold 55px Times New Roman";
+            // 7.6. Пишем сумата
+            ctx.font = "bold 55px serif";
             ctx.fillText(bountyText, canvas.width / 2, 975);
 
-            // 7.7. Превръщаме всичко в картинка за Discord
-            const attachment = new AttachmentBuilder(canvas.toBuffer(), { name: 'wanted-poster.png' });
+            // 7.7. Пращаме картинката
+            const attachment = new AttachmentBuilder(canvas.toBuffer(), { name: 'wanted.png' });
 
             return msg.channel.send({ 
                 content: `🏴‍☠️ **A new bounty poster has been issued for ${target.username}!**`, 
@@ -163,9 +168,11 @@ async function handleCommands(msg, pool) {
 
         } catch (err) {
             console.error("Canvas Error:", err);
-            return msg.reply("❌ Error generating the physical poster. Please try again later!");
+            // Ако все още има грешка, ботът ще върне текстово съобщение, за да не "мълчи"
+            return msg.reply("❌ Error generating the poster. Make sure your avatar is a standard image!");
         }
     }
+
 
 
     // --- 8. КОМАНДА: !setbounty (С АВТОМАТИЧНА РОЛЯ) ---
