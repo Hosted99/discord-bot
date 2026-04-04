@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits } = require("discord.js");
+const { Client, GatewayIntentBits, EmbedBuilder } = require("discord.js"); // Добавих EmbedBuilder тук
 const { pool, initDB } = require("./utilities/db");
 const { initSchedulers, captureStrategy } = require("./utilities/scheduler");
 const { handleCommands } = require("./utilities/commandHandler");
@@ -16,8 +16,7 @@ const client = new Client({
     ]
 });
 
-
-//  проблема с Render, без да пречи на Railway
+// Проблема с Render, без да пречи на Railway
 const http = require('http');
 const port = process.env.PORT || 3000;
 http.createServer((req, res) => {
@@ -27,12 +26,25 @@ http.createServer((req, res) => {
 
 console.log(`Monitoring server started on port ${port}`);
 
-
 // Събитие: Ботът е зареден и онлайн
 client.once("clientReady", async () => {
     await initDB(); // Свързване с Neon Postgres
     initSchedulers(client, pool); // Стартиране на таймерите (Mania, Strategy и т.н.)
     console.log(`🤖 Online as ${client.user.tag}`);
+
+    // --- СЪОБЩЕНИЕ "I AM ALIVE" ПРИ СТАРТИРАНЕ ---
+    client.guilds.cache.forEach(async (guild) => {
+        const botChannel = guild.channels.cache.find(ch => ch.name === "bot-only");
+        if (botChannel) {
+            const aliveEmbed = new EmbedBuilder()
+                .setTitle("📡 System Status: Online")
+                .setDescription("🏴‍☠️ **The Captain is back on the deck!**\nAll systems are operational and the seas are under watch.")
+                .setColor("#00ff00")
+                .setTimestamp();
+
+            await botChannel.send({ embeds: [aliveEmbed] }).catch(err => console.log("Error sending alive msg:", err.message));
+        }
+    });
 });
 
 // Събитие: Логване на изтрити съобщения в #admin-logs
