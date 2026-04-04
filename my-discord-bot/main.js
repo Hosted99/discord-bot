@@ -104,35 +104,38 @@ client.on("messageCreate", async (msg) => {
                 await msg.reply(`🇺🇸 **English:** ${data.translatedText}`);
             } 
             // Ако Е на английски, но имаме запомнен език за този човек
-            else if (msg.reference) {
-    try {
-        const repliedMessage = await msg.channel.messages.fetch(msg.reference.messageId);
+            if (msg.reference) {
+    console.log("Reply detected");
 
-        const res = await pool.query(
-            "SELECT last_lang FROM translation_cache WHERE user_id = $1 AND expires_at > NOW()",
-            [repliedMessage.author.id] // 💥 ТУК Е КЛЮЧЪТ
-        );
+    const repliedMessage = await msg.channel.messages.fetch(msg.reference.messageId);
 
-        if (res.rows.length === 0) return;
+    console.log("Replying to:", repliedMessage.author.id);
 
-        const targetLang = res.rows[0].last_lang;
+    const res = await pool.query(
+        "SELECT last_lang FROM translation_cache WHERE user_id = $1 AND expires_at > NOW()",
+        [repliedMessage.author.id]
+    );
 
-        const backResult = await groq.chat.completions.create({
-            messages: [
-                { 
-                    role: "system", 
-                    content: `Translate the message to ${targetLang}. Only return the translation.` 
-                },
-                { role: "user", content: msg.content }
-            ],
-            model: "llama-3.3-70b-versatile"
-        });
+    console.log("DB:", res.rows);
 
-        const translatedText = backResult.choices[0].message.content;
+    if (res.rows.length === 0) return;
 
-        await msg.reply(`🌍 **To ${targetLang}:** ${translatedText}`);
+    const targetLang = res.rows[0].last_lang;
 
-    } catch (err) {
+    const backResult = await groq.chat.completions.create({
+        messages: [
+            { role: "system", content: `Translate to ${targetLang}. Only translation.` },
+            { role: "user", content: msg.content }
+        ],
+        model: "llama-3.3-70b-versatile"
+    });
+
+    console.log("AI:", backResult.choices[0].message.content);
+
+    await msg.reply(backResult.choices[0].message.content);
+} 
+    
+    catch (err) {
         console.error("Reply translation error:", err.message);
     }
 }
