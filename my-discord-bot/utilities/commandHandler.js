@@ -47,49 +47,63 @@ if (cmd === "!help") {
     return msg.reply({ embeds: [helpEmbed] });
 }
 
-    // --- 2. КОМАНДА: !hero ---
+    // --- 2.1 КОМАНДА: !hero-list ---
+if (cmd === "!hero-list") {
+    // Проверка за канала (същата логика)
+    if (msg.channel.name !== "unit-build") {
+        const err = await msg.reply("❌ Use #unit-build for hero commands!");
+        return setTimeout(() => { err.delete().catch(()=>{}); msg.delete().catch(()=>{}); }, 5000);
+    }
+
+    // Вземаме пресните данни от JSON
+    const heroesData = getHeroes();
+    
+    // Събираме всички ключове (имена на герои) и ги сортираме
+    const heroNames = Object.keys(heroesData).sort().join(", ");
+
+    const listEmbed = new EmbedBuilder()
+        .setTitle("📜 Sailing Kingdom - Hero Roster")
+        .setColor("#00AE86")
+        .setDescription(`Current heroes in database:\n\n**${heroNames || "No heroes found."}**\n\nUse \`!hero <name>\` to see a specific guide!`)
+        .setFooter({ text: "Sailing Kingdom Wiki" })
+        .setTimestamp();
+
+    return msg.reply({ embeds: [listEmbed] });
+}
+
+// --- 2.2 КОМАНДА: !hero ---
 if (cmd === "!hero") {
-    // 1. Проверка за канала
     if (msg.channel.name !== "unit-build") {
         const err = await msg.reply("❌ This command only works in #unit-build!");
         return setTimeout(() => { err.delete().catch(()=>{}); msg.delete().catch(()=>{}); }, 5000);
     }
 
-    // 2.1Вземаме данните от JSON файла (ползваме функцията за презареждане)
-    const heroesData = getHeroes(); 
-
-    // 2.2. ПРОВЕРКА ЗА ПРАЗЕН АРГУМЕНТ:
-    // Използваме args.length === 0, за да разберем дали потребителят е написал само !hero
-    if (!args || args.length === 0 || !args[0]) {
-        const heroList = Object.keys(heroesData).sort().join(", ");
-        
-        const listEmbed = new EmbedBuilder()
-            .setTitle("📜 Available Heroes")
-            .setColor("#00AE86")
-            .setDescription(`Use \`!hero <name>\` for a guide.\n\n**List:** ${heroList}`)
-            .setFooter({ text: "Sailing Kingdom Database" });
-
-        return msg.reply({ embeds: [listEmbed] });
+    // Ако потребителят е написал само !hero без име
+    if (!args[0]) {
+        return msg.reply("⚠️ Please specify a hero name! Example: `!hero mihawk` (or use `!hero-list`).");
     }
 
-    // 2.3. ТЪРСЕНЕ НА ГЕРОЙ:
-    const heroName = args[0].toLowerCase(); // Вземаме първата дума след !hero
+    const heroesData = getHeroes();
+    const heroName = args[0].toLowerCase();
     const hero = heroesData[heroName];
 
+    // Ако героят не е намерен
     if (!hero) {
-        return msg.reply(`❌ Hero **${heroName}** not found! Type \`!hero\` for the full list.`);
+        return msg.reply(`❌ Hero **${heroName}** not found! Use \`!hero-list\` to see all available units.`);
     }
 
-    // 2.4. ПОКАЗВАНЕ НА ГЕРОЯ:
+    // Показване на пълния гайд с GIF
     const embed = new EmbedBuilder()
         .setTitle(hero.title)
-        .setImage(hero.image) // Тук сложи директен .gif линк в JSON-а!
+        .setImage(hero.image) // Трябва да е директен .gif линк!
         .setColor(hero.color || "#2b2d31")
         .addFields(
             { name: "Role", value: hero.role || "N/A", inline: true },
             { name: "Seals", value: hero.seals || "N/A", inline: false },
             { name: "Haki Rec", value: hero.haki || "N/A", inline: true }
-        );
+        )
+        .setFooter({ text: "Sailing Kingdom | Unit Guide" })
+        .setTimestamp();
 
     return msg.channel.send({ embeds: [embed] });
 }
