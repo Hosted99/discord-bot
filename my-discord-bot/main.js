@@ -102,7 +102,8 @@ client.on("messageCreate", async (msg) => {
 
             / Активиране на 5 секунди изчакване за този потребител
             translationCooldown.add(msg.author.id);
-            setTimeout(() => translationCooldown.delete(msg.author.id), 5000);
+            setTimeout(() => {
+                translationCooldown.delete(msg.author.id), 5000);
             
         } catch (err) {
             console.error("Translation Error:", err);
