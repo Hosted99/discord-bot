@@ -29,6 +29,16 @@ async function initDB() {
         username TEXT
       );
     `);
+
+    // --- НОВА ТАБЛИЦА ЗА ПРЕВОДАЧА (GEMINI) ---
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS translation_cache (
+        user_id VARCHAR(50) PRIMARY KEY,
+        last_lang TEXT,
+        expires_at TIMESTAMP
+      );
+    `);
+    
   } catch (err) {
     console.error("❌ Database initialization error:", err.message);
   }
