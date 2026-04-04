@@ -135,6 +135,22 @@ client.on("messageCreate", async (msg) => {
 
 
 
+        // --- ЛОГИКА ЗА ЛЕКА НОЩ ---
+    const nightWords = ["good night", "nighty night", "gn"];
+    // Проверяваме дали съобщението съдържа някоя от фразите (без значение малки/големи букви)
+    if (nightWords.some(word => msg.content.toLowerCase().includes(word))) {
+        const nightEmbed = new EmbedBuilder()
+            .setTitle(`🌙 Good night, ${msg.author.username}!`)
+            .setDescription("Rest well, pirate! The seas will be waiting for you tomorrow. 🏴‍☠️")
+            .setColor("#2c3e50")
+            // Ето един хубав One Piece GIF за лека нощ (Chopper или Luffy)
+            .setImage("https://giphy.com");
+
+        return msg.reply({ embeds: [nightEmbed] });
+    }
+
+    
+
     // --- ДРУГИ ФУНКЦИИ И КОМАНДИ ---
     if (captureStrategy(msg.content)) return msg.react("📥");
     if (await handleSpecialChannels(msg)) return;
