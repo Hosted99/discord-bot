@@ -63,6 +63,7 @@ client.on("guildMemberAdd", async (member) => {
 
 // 7. ОСНОВЕН СЛУШАТЕЛ
 client.on("messageCreate", async (msg) => {
+    console.log(`[DEBUG] Message in #${msg.channel.name}: "${msg.content}"`);
     if (msg.author.bot || !msg.guild) return;
 
         // --- ЛОГИКА ЗА ПРЕВОД ---
