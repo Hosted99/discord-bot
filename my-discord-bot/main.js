@@ -23,7 +23,7 @@ const client = new Client({
 
 // 3. Сървър за поддръжка на хостинга (Render/Railway Keep-alive)
 const http = require('http');
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 10000;
 http.createServer((req, res) => {
   res.writeHead(200);
   res.end('Bot is running!');
