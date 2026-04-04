@@ -92,63 +92,94 @@ client.on("messageCreate", async (msg) => {
 
             const data = JSON.parse(analysis.choices[0].message.content);
 
-            // Ако съобщението НЕ Е на английски
-            if (!data.isEnglish) {
-                const expireTime = new Date();
-                expireTime.setHours(expireTime.getHours() + 5);
+            // --- ЛОГИКА ЗА ПРЕВОД (САМО В КАНАЛ "ai-translator") ---
+if (msg.channel.name === 'ai-translator') {
+    if (translationCooldown.has(msg.author.id)) return;
 
-                await pool.query(
-                    "INSERT INTO translation_cache (user_id, last_lang, expires_at) VALUES ($1, $2, $3) ON CONFLICT (user_id) DO UPDATE SET last_lang = $2, expires_at = $3",
-                    [msg.author.id, data.detectedLang, expireTime]
+    try {
+        // Проверка за запомнен език в базата данни за последните 5 часа
+        const res = await pool.query(
+            "SELECT last_lang FROM translation_cache WHERE user_id = $1 AND expires_at > NOW()",
+            [msg.author.id]
+        );
+
+        // АНАЛИЗ И ПРЕВОД КЪМ АНГЛИЙСКИ
+        const analysis = await groq.chat.completions.create({
+            messages: [
+                { 
+                    role: "system", 
+                    content: "Analyze language. If NOT English, translate to English. Respond ONLY JSON: {\"isEnglish\": boolean, \"detectedLang\": \"Language Name\", \"translatedText\": \"...\"}" 
+                },
+                { role: "user", content: msg.content }
+            ],
+            model: "llama-3.3-70b-versatile",
+            response_format: { type: "json_object" }
+        });
+
+        const data = JSON.parse(analysis.choices[0].message.content);
+
+        // Ако съобщението НЕ Е на английски
+        if (!data.isEnglish) {
+            const expireTime = new Date();
+            expireTime.setHours(expireTime.getHours() + 5);
+
+            await pool.query(
+                "INSERT INTO translation_cache (user_id, last_lang, expires_at) VALUES ($1, $2, $3) ON CONFLICT (user_id) DO UPDATE SET last_lang = $2, expires_at = $3",
+                [msg.author.id, data.detectedLang, expireTime]
+            );
+
+            await msg.reply(`🇺🇸 **English:** ${data.translatedText}`);
+        } 
+        
+        // Ако е английски → проверяваме дали е reply
+        else if (msg.reference) {
+            console.log("Reply detected");
+
+            try {
+                const repliedMessage = await msg.channel.messages.fetch(msg.reference.messageId);
+
+                console.log("Replying to:", repliedMessage.author.id);
+
+                const res2 = await pool.query(
+                    "SELECT last_lang FROM translation_cache WHERE user_id = $1 AND expires_at > NOW()",
+                    [repliedMessage.author.id]
                 );
-                await msg.reply(`🇺🇸 **English:** ${data.translatedText}`);
-            } 
-            // Ако Е на английски, но имаме запомнен език за този човек
-            if (msg.reference) {
-    console.log("Reply detected");
 
-    const repliedMessage = await msg.channel.messages.fetch(msg.reference.messageId);
+                console.log("DB:", res2.rows);
 
-    console.log("Replying to:", repliedMessage.author.id);
+                if (res2.rows.length === 0) return;
 
-    const res = await pool.query(
-        "SELECT last_lang FROM translation_cache WHERE user_id = $1 AND expires_at > NOW()",
-        [repliedMessage.author.id]
-    );
+                const targetLang = res2.rows[0].last_lang;
 
-    console.log("DB:", res.rows);
+                const backResult = await groq.chat.completions.create({
+                    messages: [
+                        { role: "system", content: `Translate to ${targetLang}. Only translation.` },
+                        { role: "user", content: msg.content }
+                    ],
+                    model: "llama-3.3-70b-versatile"
+                });
 
-    if (res.rows.length === 0) return;
+                const translatedText = backResult.choices[0].message.content;
 
-    const targetLang = res.rows[0].last_lang;
+                console.log("AI:", translatedText);
 
-    const backResult = await groq.chat.completions.create({
-        messages: [
-            { role: "system", content: `Translate to ${targetLang}. Only translation.` },
-            { role: "user", content: msg.content }
-        ],
-        model: "llama-3.3-70b-versatile"
-    });
+                await msg.reply(`🌍 **To ${targetLang}:** ${translatedText}`);
 
-    console.log("AI:", backResult.choices[0].message.content);
-
-    await msg.reply(backResult.choices[0].message.content);
-} 
-    
-    catch (err) {
-        console.error("Reply translation error:", err.message);
-    }
-}
-
-            // Активиране на 5 секунди изчакване
-            translationCooldown.add(msg.author.id);
-            setTimeout(() => translationCooldown.delete(msg.author.id), 5000);
-
-        } catch (err) {
-            console.error("Грешка при Groq превод:", err.message);
+            } catch (err) {
+                console.error("Reply translation error:", err.message);
+            }
         }
-        return; // Спираме тук, за да не търсим команди в този канал
+
+        // Активиране на 5 секунди изчакване
+        translationCooldown.add(msg.author.id);
+        setTimeout(() => translationCooldown.delete(msg.author.id), 5000);
+
+    } catch (err) {
+        console.error("Грешка при Groq превод:", err.message);
     }
+
+    return; // Спираме тук, за да не търсим команди в този канал
+}
 
     // --- ДРУГИ ФУНКЦИИ И КОМАНДИ ---
     
