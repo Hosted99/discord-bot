@@ -77,6 +77,11 @@ client.on("messageCreate", async (msg) => {
                 [msg.author.id]
             );
 
+             // Създаваме messages масив
+            const messages = [
+                { role: "user", content: msg.content }
+            ];
+
             // АНАЛИЗ И ПРЕВОД КЪМ АНГЛИЙСКИ
             const analysis = await groq.chat.completions.create({
                 messages:,
