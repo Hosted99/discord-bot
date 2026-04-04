@@ -30,7 +30,7 @@ async function initDB() {
       );
     `);
 
-    // --- НОВА ТАБЛИЦА ЗА ПРЕВОДАЧА (GEMINI) ---
+    // --- НОВА ТАБЛИЦА ЗА ПРЕВОДАЧА (AI) ---
     await pool.query(`
       CREATE TABLE IF NOT EXISTS translation_cache (
         user_id VARCHAR(50) PRIMARY KEY,
@@ -38,6 +38,11 @@ async function initDB() {
         expires_at TIMESTAMP
       );
     `);
+
+    // --- НОВО: АВТОМАТИЧНО ПОЧИСТВАНЕ ПРИ СТАРТ ---
+    const deleteResult = await pool.query("DELETE FROM translation_cache WHERE expires_at < NOW()");
+    console.log(`🧹 Почистени са ${deleteResult.rowCount} стари записа от преводача.`);
+    
     
   } catch (err) {
     console.error("❌ Database initialization error:", err.message);
