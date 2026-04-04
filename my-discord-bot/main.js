@@ -66,7 +66,7 @@ client.on("guildMemberAdd", async (member) => {
 client.on("messageCreate", async (msg) => {
     if (msg.author.bot || !msg.guild) return;
 
-        // --- ЛОГИКА ЗА ПРЕВОД (САМО В КАНАЛ "ai-translator") ---
+           // --- ЛОГИКА ЗА ПРЕВОД (GEMINI) ---
     if (msg.channel.name === 'ai-translator') {
         if (translationCooldown.has(msg.author.id)) return;
 
@@ -78,8 +78,18 @@ client.on("messageCreate", async (msg) => {
 
             const prompt = `Analyze: "${msg.content}" 1. Identify language. 2. If NOT English, translate to English. Return ONLY JSON: {"isEnglish": boolean, "detectedLang": "name", "translatedText": "text"}`;
             const result = await model.generateContent(prompt);
-            const cleanJson = result.response.text().replace(/```json|```/g, "").trim();
-            const data = JSON.parse(cleanJson);
+            let responseText = result.response.text();
+
+            // Изчистване на евентуални markdown символи от Gemini
+            const cleanJson = responseText.replace(/```json|```/g, "").trim();
+
+            let data;
+            try {
+                data = JSON.parse(cleanJson);
+            } catch (e) {
+                console.error("Грешка при четене на JSON от Gemini:", cleanJson);
+                return; // Спираме, ако Gemini не върне валиден формат
+            }
 
             if (!data.isEnglish) {
                 const expireTime = new Date();
@@ -92,7 +102,7 @@ client.on("messageCreate", async (msg) => {
                 await msg.reply(`🇺🇸 **English:** ${data.translatedText}`);
 
             } else if (res.rows.length > 0) {
-                const targetLang = res.rows[0].last_lang;
+                const targetLang = res.rows[0].last_lang; // ВАЖНО: Добавено [0] тук!
                 const backResult = await model.generateContent(`Translate this to ${targetLang}: "${msg.content}". Return only the text.`);
                 await msg.reply(`🌍 **To ${targetLang}:** ${backResult.response.text()}`);
             }
@@ -101,7 +111,7 @@ client.on("messageCreate", async (msg) => {
             setTimeout(() => translationCooldown.delete(msg.author.id), 5000);
 
         } catch (err) {
-            console.error("Gemini Error:", err);
+            console.error("Gemini Error:", err.message);
         }
         return; 
     }
