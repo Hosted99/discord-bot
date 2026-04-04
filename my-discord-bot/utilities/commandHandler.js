@@ -1,5 +1,6 @@
 const { EmbedBuilder } = require("discord.js");
 const fs = require('fs'); 
+const path = require('path')
 const staticReminders = require("../data/staticReminders");
 const { isValidCron } = require("./scheduler");
 const { updateBountyRole } = require("./roleHandler");
@@ -7,11 +8,13 @@ const { updateBountyRole } = require("./roleHandler");
 // --- ФУНКЦИЯ ЗА ЗАРЕЖДАНЕ НА ГЕРОИТЕ (Hot Reload) ---
 function getHeroes() {
     try {
-        const data = fs.readFileSync('./data/heroes.json', 'utf8');
+        // Използваме path.join, за да сме сигурни, че намира папката 'data'
+        const filePath = path.join(__dirname, "../data/heroes.json"); 
+        const data = fs.readFileSync(filePath, 'utf8');
         return JSON.parse(data);
     } catch (err) {
-        console.error("Error reading heroes.json:", err.message);
-        return {};
+        console.error("❌ ГРЕШКА ПРИ ЧЕТЕНЕ НА heroes.json:", err.message);
+        return {}; // Връща празен обект, за да не крашне бота
     }
 }
 
@@ -64,7 +67,8 @@ async function handleCommands(msg, pool) {
         const heroesData = getHeroes();
         const heroNames = Object.keys(heroesData).sort().join(", ");
         const listEmbed = new EmbedBuilder()
-            .setTitle("📜 Hero Roster").setColor("#00AE86")
+            .setTitle("📜 Hero Roster")
+            .setColor("#00AE86")
             .setDescription(`Available heroes:\n**${heroNames || "None"}**`);
         return msg.reply({ embeds: [listEmbed] });
     }
