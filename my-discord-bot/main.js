@@ -117,8 +117,8 @@ client.on("messageCreate", async (msg) => {
                     ],
                     model: "llama-3.3-70b-versatile"
                 });
-                
-                await msg.reply(`🌍 **To ${targetLang}:** ${backResult.choices[0].message.content}`);
+                const translatedText = backResult.choices[0].message.content;
+                await msg.reply(`🌍 **To ${targetLang}:** ${translatedText}`);
             }
 
             // Активиране на 5 секунди изчакване
