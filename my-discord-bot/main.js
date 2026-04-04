@@ -67,18 +67,17 @@ client.on("guildMemberAdd", async (member) => {
 client.on("messageCreate", async (msg) => {
     if (msg.author.bot || !msg.guild) return;
 
-          // --- ЛОГИКА ЗА ПРЕВОД (САМО В КАНАЛ "ai-translator") ---
+         // --- ЛОГИКА ЗА ПРЕВОД (САМО В КАНАЛ "ai-translator") ---
     if (msg.channel.name === 'ai-translator') {
         if (translationCooldown.has(msg.author.id)) return;
 
         try {
-            // Проверка за запомнен език
             const res = await pool.query(
                 "SELECT last_lang FROM translation_cache WHERE user_id = $1 AND expires_at > NOW()",
                 [msg.author.id]
             );
 
-            // 1. Първо анализираме езика на съобщението
+            // 1. Анализ на езика
             const analysis = await groq.chat.completions.create({
                 messages:,
                 model: "llama-3.3-70b-versatile",
@@ -87,32 +86,26 @@ client.on("messageCreate", async (msg) => {
 
             const data = JSON.parse(analysis.choices[0].message.content);
 
-            // КАЗУС А: Съобщението НЕ Е на английски -> Превеждаме на английски и ЗАПОМНЯМЕ езика
             if (!data.isEnglish) {
                 const expireTime = new Date();
                 expireTime.setHours(expireTime.getHours() + 5);
-
                 await pool.query(
                     "INSERT INTO translation_cache (user_id, last_lang, expires_at) VALUES ($1, $2, $3) ON CONFLICT (user_id) DO UPDATE SET last_lang = $2, expires_at = $3",
                     [msg.author.id, data.detectedLang, expireTime]
                 );
                 await msg.reply(`🇺🇸 **English:** ${data.translatedText}`);
             } 
-            // КАЗУС Б: Съобщението Е на английски, но ИМАМЕ запомнен език -> Превеждаме ОБРАТНО
             else if (res.rows.length > 0) {
-                const targetLang = res.rows[0].last_lang; // Вземаме първия резултат [0]
-                
+                const targetLang = res.rows[0].last_lang;
                 const backResult = await groq.chat.completions.create({
                     messages:,
                     model: "llama-3.3-70b-versatile"
                 });
-                
                 await msg.reply(`🌍 **To ${targetLang}:** ${backResult.choices[0].message.content}`);
             }
 
             translationCooldown.add(msg.author.id);
             setTimeout(() => translationCooldown.delete(msg.author.id), 5000);
-
         } catch (err) {
             console.error("Грешка при Groq:", err.message);
         }
