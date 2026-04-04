@@ -108,13 +108,20 @@ client.on("messageCreate", async (msg) => {
                 // ТУК БЕШЕ ГРЕШКАТА: Трябва да вземем първия ред от масива
                 const targetLang = res.rows[0].last_lang;
                 
-                const backResult = await groq.chat.completions.create({
-                    messages:,
-                    model: "llama-3.3-70b-versatile"
-                });
-                
-                await msg.reply(`🌍 **To ${targetLang}:** ${backResult.choices[0].message.content}`);
-            }
+               const backResult = await groq.chat.completions.create({
+                messages: [
+                { 
+                    role: "system", 
+                    content: `You are a translator. Translate the user's message to ${targetLang}. Provide ONLY the translation.` 
+                },
+                { role: "user", content: msg.content }
+            ],
+        model: "llama-3.3-70b-versatile"
+});
+
+// Тук също трябва индекс [0], за да вземеш текста
+          await msg.reply(`🌍 **To ${targetLang}:** ${backResult.choices[0].message.content}`);
+    
 
             translationCooldown.add(msg.author.id);
             setTimeout(() => translationCooldown.delete(msg.author.id), 5000);
