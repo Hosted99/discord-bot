@@ -103,7 +103,15 @@ if (msg.channel.name === 'ai-translator') {
             [msg.author.id]
         );
 
-        // АНАЛИЗ И ПРЕВОД КЪМ АНГЛИЙСКИ
+        if (msg.channel.name === 'ai-translator') {
+    if (translationCooldown.has(msg.author.id)) return;
+
+    try {
+        const res = await pool.query(
+            "SELECT last_lang FROM translation_cache WHERE user_id = $1 AND expires_at > NOW()",
+            [msg.author.id]
+        );
+
         const analysis = await groq.chat.completions.create({
             messages: [
                 { 
@@ -118,7 +126,7 @@ if (msg.channel.name === 'ai-translator') {
 
         const data = JSON.parse(analysis.choices[0].message.content);
 
-        // Ако съобщението НЕ Е на английски
+        // ===== НЕ Е АНГЛИЙСКИ =====
         if (!data.isEnglish) {
             const expireTime = new Date();
             expireTime.setHours(expireTime.getHours() + 5);
@@ -131,21 +139,15 @@ if (msg.channel.name === 'ai-translator') {
             await msg.reply(`🇺🇸 **English:** ${data.translatedText}`);
         } 
         
-        // Ако е английски → проверяваме дали е reply
+        // ===== АНГЛИЙСКИ + REPLY =====
         else if (msg.reference) {
-            console.log("Reply detected");
-
             try {
                 const repliedMessage = await msg.channel.messages.fetch(msg.reference.messageId);
-
-                console.log("Replying to:", repliedMessage.author.id);
 
                 const res2 = await pool.query(
                     "SELECT last_lang FROM translation_cache WHERE user_id = $1 AND expires_at > NOW()",
                     [repliedMessage.author.id]
                 );
-
-                console.log("DB:", res2.rows);
 
                 if (res2.rows.length === 0) return;
 
@@ -159,26 +161,22 @@ if (msg.channel.name === 'ai-translator') {
                     model: "llama-3.3-70b-versatile"
                 });
 
-                const translatedText = backResult.choices[0].message.content;
-
-                console.log("AI:", translatedText);
-
-                await msg.reply(`🌍 **To ${targetLang}:** ${translatedText}`);
+                await msg.reply(`🌍 **To ${targetLang}:** ${backResult.choices[0].message.content}`);
 
             } catch (err) {
                 console.error("Reply translation error:", err.message);
             }
         }
 
-        // Активиране на 5 секунди изчакване
+        // cooldown
         translationCooldown.add(msg.author.id);
         setTimeout(() => translationCooldown.delete(msg.author.id), 5000);
 
     } catch (err) {
-        console.error("Грешка при Groq превод:", err.message);
+        console.error("Groq error:", err.message);
     }
 
-    return; // Спираме тук, за да не търсим команди в този канал
+    return;
 }
 
     // --- ДРУГИ ФУНКЦИИ И КОМАНДИ ---
