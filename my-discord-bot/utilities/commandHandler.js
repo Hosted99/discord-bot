@@ -118,7 +118,15 @@ async function handleCommands(msg, pool) {
 
                // --- 7. КОМАНДА: !wanted (УКРАСЕН ПЛАКАТ) ---
     if (cmd === "!wanted") {
+        // Намираме канала "bounties" в сървъра
+        const bountyChannel = msg.guild.channels.cache.find(ch => ch.name === "bounties");
+
+        if (!bountyChannel) {
+            return msg.reply("❌ Error: Channel named `bounties` not found! Please create it first.");
+        }
+        
         const target = msg.mentions.users.first() || msg.author;
+        
         try {
             const res = await pool.query("SELECT bounty FROM users WHERE user_id = $1", [target.id]);
             const bounty = res.rows.length > 0 ? res.rows[0].bounty : 0;
