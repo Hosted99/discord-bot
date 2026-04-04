@@ -9,38 +9,43 @@ async function handleCommands(msg, pool) {
     const args = content.split(/\s+/);
     const cmd = args.shift().toLowerCase();
 
-    // --- 1. КОМАНДА: !help ---
-    if (cmd === "!help") {
-        const helpEmbed = new EmbedBuilder()
-            .setTitle("🏴‍☠️ Sailing Kingdom - Full Help Menu")
-            .setDescription("List of all available pirate commands and their usage:")
-            .setColor("#00AE86")
-            .addFields(
-                { 
-                    name: "💰 Bounty System", 
-                    value: "`!wanted [@user]` - Show wanted poster.\n`!setbounty @user <amt>` - Set reward & role (Admin).\n`!resetbounty @user` - Reset reward & role (Admin)." 
-                },
-                { 
-                    name: "⚔️ Heroes & Guides", 
-                    value: "`!hero <name>` - Get guide (Only in #unit-build)." 
-                },
-                { 
-                    name: "⏰ Reminders", 
-                    value: "`!remind <cron> <msg>` - Set custom reminder.\n`!reminders` - List your reminders.\n`!allreminders` - View all schedules.\n`!delete <id>` - Remove reminder (Admin)." 
-                },
-                { 
-                    name: "🎖️ Role Management (Admin)", 
-                    value: "`!addrole @user <Role>` - Assign crew role.\n`!removerole @user <Role>` - Remove crew role." 
-                },
-                { 
-                    name: "🧹 Moderation", 
-                    value: "`!clear <1-100>` - Bulk delete messages." 
-                }
-            )
-            .setFooter({ text: "Sailing Kingdom | London Time" })
-            .setTimestamp();
-        return msg.reply({ embeds: [helpEmbed] });
-    }
+   // --- 1. КОМАНДА: !help ---
+if (cmd === "!help") {
+    const helpEmbed = new EmbedBuilder()
+        .setTitle("🏴‍☠️ Sailing Kingdom - Command Manual")
+        .setDescription("Welcome aboard! Here are all the tools available to our crew:")
+        .setColor("#00AE86") // Зеленият цвят, който ползваш
+        .addFields(
+            { 
+                name: "🌐 AI Translation System", 
+                value: "• **Auto:** Write in any language in `#ai-translator` for 🇺🇸 English.\n• **Reply:** Reply to a message in English to translate it back.\n• *Available in: #ai-translator*" 
+            },
+            { 
+                name: "💰 Bounty System", 
+                value: "• `!wanted [@user]` - Show wanted poster.\n• `!setbounty @user <amt>` - Set reward & role (Admin).\n• `!resetbounty @user` - Reset reward & role (Admin)." 
+            },
+            { 
+                name: "⚔️ Heroes & Guides", 
+                value: "• `!hero <name>` - Get guide (Only in `#unit-build`)." 
+            },
+            { 
+                name: "⏰ Reminders", 
+                value: "• `!remind <cron> <msg>` - Set custom reminder.\n• `!reminders` - List your reminders.\n• `!allreminders` - View all schedules.\n• `!delete <id>` - Remove reminder (Admin)." 
+            },
+            { 
+                name: "🎖️ Role Management (Admin)", 
+                value: "• `!addrole @user <Role>` - Assign crew role.\n• `!removerole @user <Role>` - Remove crew role." 
+            },
+            { 
+                name: "🧹 Moderation", 
+                value: "• `!clear <1-100>` - Bulk delete messages (Admin)." 
+            }
+        )
+        .setFooter({ text: "Sailing Kingdom | Official Bot Guide" })
+        .setTimestamp();
+
+    return msg.reply({ embeds: [helpEmbed] });
+}
 
     // --- 2. КОМАНДА: !hero ---
     if (cmd === "!hero") {
