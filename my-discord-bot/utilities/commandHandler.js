@@ -62,7 +62,7 @@ if (cmd === "!hero") {
     // 2. ПРОВЕРКА: Ако потребителят е написал само !hero без име
     if (!args[0]) {
         // Вземаме всички ключове (имена на герои) от обекта heroesData
-        const availableHeroes = Object.keys(heroesData).join(", ");
+        const availableHeroes = Object.keys(heroes).join(", ");
         
         const listEmbed = new EmbedBuilder()
             .setTitle("📜 Available Heroes")
