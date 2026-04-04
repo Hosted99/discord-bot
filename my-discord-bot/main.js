@@ -57,7 +57,7 @@ client.on("messageDelete", async (message) => {
     await logDeletedMessage(message);
 });
 
-// 6. Събитие: Посрещане на нови членове
+// 6. Събитие: Посрещане на нови членове (Welcome + Rookies role)
 client.on("guildMemberAdd", async (member) => {
     await handleNewMember(member);
 });
