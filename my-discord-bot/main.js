@@ -104,22 +104,38 @@ client.on("messageCreate", async (msg) => {
                 await msg.reply(`🇺🇸 **English:** ${data.translatedText}`);
             } 
             // Ако Е на английски, но имаме запомнен език за този човек
-            else if (res.rows.length > 0) {
-                const targetLang = res.rows[0].last_lang;
-                
-                const backResult = await groq.chat.completions.create({
-                    messages: [
-                        { 
-                            role: "system", 
-                            content: `You are a translator. Translate the user's message to ${targetLang}. Provide ONLY the translation.` 
-                        },
-                        { role: "user", content: msg.content }
-                    ],
-                    model: "llama-3.3-70b-versatile"
-                });
-                const translatedText = backResult.choices[0].message.content;
-                await msg.reply(`🌍 **To ${targetLang}:** ${translatedText}`);
-            }
+            else if (msg.reference) {
+    try {
+        const repliedMessage = await msg.channel.messages.fetch(msg.reference.messageId);
+
+        const res = await pool.query(
+            "SELECT last_lang FROM translation_cache WHERE user_id = $1 AND expires_at > NOW()",
+            [repliedMessage.author.id] // 💥 ТУК Е КЛЮЧЪТ
+        );
+
+        if (res.rows.length === 0) return;
+
+        const targetLang = res.rows[0].last_lang;
+
+        const backResult = await groq.chat.completions.create({
+            messages: [
+                { 
+                    role: "system", 
+                    content: `Translate the message to ${targetLang}. Only return the translation.` 
+                },
+                { role: "user", content: msg.content }
+            ],
+            model: "llama-3.3-70b-versatile"
+        });
+
+        const translatedText = backResult.choices[0].message.content;
+
+        await msg.reply(`🌍 **To ${targetLang}:** ${translatedText}`);
+
+    } catch (err) {
+        console.error("Reply translation error:", err.message);
+    }
+}
 
             // Активиране на 5 секунди изчакване
             translationCooldown.add(msg.author.id);
