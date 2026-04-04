@@ -11,7 +11,7 @@ const { logDeletedMessage } = require("./utilities/logger");
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 const translationCooldown = new Set();
 
-// 2. Инициализация на клиента с всички нужни права (Intents)
+// 2. Инициализация на клиента с всички нужни права (Intents)a
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds, 
