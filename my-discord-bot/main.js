@@ -8,7 +8,6 @@ const { handleNewMember, handleRoleCommands } = require("./utilities/roleHandler
 const { logDeletedMessage } = require("./utilities/logger");
 
 // 1. Конфигурация на Groq AI (взема ключа от Environment Variables)
-const Groq = require("groq-sdk");
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 const translationCooldown = new Set(); // Система за изчакване (5 секунди)
 
