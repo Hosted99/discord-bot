@@ -66,10 +66,12 @@ async function handleCommands(msg, pool) {
         if (msg.channel.name !== "unit-build") return msg.reply("❌ Use #unit-build!");
         const heroesData = getHeroes();
         const heroNames = Object.keys(heroesData).sort().join(", ");
+        console.log("Намерени герои:", heroNames); // Виж в конзолата дали излиза нещо
+        
         const listEmbed = new EmbedBuilder()
             .setTitle("📜 Hero Roster")
             .setColor("#00AE86")
-            .setDescription(`Available heroes:\n**${heroNames || "None"}**`);
+            .setDescription(`Available heroes:\n**${heroNames || "No heroes found in JSON file!"}**`);
         return msg.reply({ embeds: [listEmbed] });
     }
 
