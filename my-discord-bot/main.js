@@ -9,8 +9,9 @@ const { logDeletedMessage } = require("./utilities/logger");
 
 // Инициализация на Gemini AI
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-const translationCooldown = new Set(); // ВАЖНО!!!!!!!!
+const model = genAI.getGenerativeModel({ 
+    model: "gemini-1.5-flash" 
+}, { apiVersion: "v1" }); // ТУК Е КЛЮЧЪТ: Сменяме v1beta с v1
 
 // Инициализация на клиента с всички нужни права
 const client = new Client({
