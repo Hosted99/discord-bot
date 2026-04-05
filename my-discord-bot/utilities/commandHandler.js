@@ -93,17 +93,30 @@ async function handleCommands(msg, pool) {
     }
 
     // --- 3. КОМАНДА: !remind ---
-    if (cmd === "!remind") {
-        const targetCh = msg.guild.channels.cache.find(ch => ch.name === "reminders");
-        if (!targetCh || args.length < 5) return msg.reply("❌ Usage: `!remind 0 12 * * * Message` ");
-        const cronExpr = args.slice(0, 5).join(" ");
-        const text = args.slice(5).join(" ");
-        if (!isValidCron(cronExpr)) return msg.reply("❌ Invalid Cron!");
-        try {
-            await pool.query("INSERT INTO reminders (id, cron, message, channel_id, owner_id) VALUES ($1, $2, $3, $4, $5)",);
-            msg.reply("✅ Reminder set!");
-        } catch (err) { msg.reply("❌ DB Error."); }
+if (cmd === "!remind") {
+    const targetCh = msg.guild.channels.cache.find(ch => ch.name === "reminders");
+    if (!targetCh || args.length < 6) return msg.reply("❌ Usage: `!remind 0 12 * * * Message` ");
+    
+    const cronExpr = args.slice(0, 5).join(" ");
+    const text = args.slice(5).join(" ");
+    
+    if (!isValidCron(cronExpr)) return msg.reply("❌ Invalid Cron!");
+
+    try {
+        // Генерираме уникално ID, за да не се повтарят
+        const id = Date.now(); 
+
+        // ТУК ДОБАВЯМЕ МАСИВА С ДАННИТЕ СЛЕД ЗАЯВКАТА
+        await pool.query(
+            "INSERT INTO reminders (id, cron, message, channel_id, owner_id) VALUES ($1, $2, $3, $4, $5)", // ТОВА ЛИПСВАШЕ
+        );
+
+        msg.reply(`✅ Reminder set for <#${targetCh.id}>!`);
+    } catch (err) { 
+        console.error("DB Error:", err.message); // Това ще ти каже в Railway ако има друг проблем
+        msg.reply("❌ DB Error."); 
     }
+}
 
     // --- 4. КОМАНДА: !reminders ---
     if (cmd === "!reminders") {
