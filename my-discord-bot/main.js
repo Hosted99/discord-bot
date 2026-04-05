@@ -169,7 +169,7 @@ if (msg.author.bot || !msg.guild) return;
     }
 
     // --- ДРУГИ ФУНКЦИИ И КОМАНДИ ---
-    if (captureStrategy(msg.content)) return msg.react("📥");
+    if (await captureStrategy(msg, pool)) return msg.react("📥"); 
     if (await handleSpecialChannels(msg)) return;
 
     const content = msg.content.trim();
