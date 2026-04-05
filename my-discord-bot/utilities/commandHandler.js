@@ -199,6 +199,8 @@ if (cmd === "!wanted") {
     // --- 8. BOUNTY КОМАНДА: !setbounty <user> <amount> (ADMIN) ---
 // ---------------------- !setbounty ----------------------
 if (cmd === "!setbounty") {
+    // ИЗТРИВАМЕ  КОМАНДА ВЕДНАГА
+    msg.delete().catch(() => {}); 
     const target = msg.mentions.members.first();
     const amount = args[1];
 
@@ -232,6 +234,8 @@ if (cmd === "!setbounty") {
 }
     // --- 9. BOUNTY КОМАНДА: !resetbounty (ADMIN) ---
     if (cmd === "!resetbounty") {
+        // ИЗТРИВАМЕ ТВОЯТА КОМАНДА ВЕДНАГА
+        msg.delete().catch(() => {}); 
         if (!msg.member.permissions.has("Administrator")) return msg.reply("❌ Admirals only!");
         const target = msg.mentions.members.first();
         if (!target) return msg.reply("❌ Mention a user!");
