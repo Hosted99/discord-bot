@@ -168,6 +168,10 @@ if (msg.author.bot || !msg.guild) return;
         return msg.reply({ embeds: [nightEmbed] });
     }
 
+    // --- ЛОГИКА ЗА СПЕЦИАЛНИ КАНАЛИ ---
+const specialHandled = await handleSpecialChannels(msg, pool);
+if (specialHandled) return; // Ако функцията е обработила съобщението, спираме по-нататъшна обработка
+
     // --- ДРУГИ ФУНКЦИИ И КОМАНДИ ---
     const strategyEmbed = await captureStrategy(msg, pool);
     if (strategyEmbed) {
