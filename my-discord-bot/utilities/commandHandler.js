@@ -130,14 +130,11 @@ async function handleCommands(msg, pool) {
         return msg.reply(`🗑️ Deleted reminder \`${id}\`.`);
     }
 
-    // --- 7. BOUNTY КОМАНДА: !wanted ---
+    // --- 7. BOUNTY КОМАНДА: !wanted (СТИЛИЗИРАН ПЛАКАТ) ---
 if (cmd === "!wanted") {
-    // 7.1. Намираме канала "bounties"
+    // 1. Намираме канала "bounties"
     const bountyChannel = msg.guild.channels.cache.find(ch => ch.name === "bounties");
-    
-    if (!bountyChannel) {
-        return msg.reply("❌ Error: Channel `bounties` not found! Please create it first.");
-    }
+    if (!bountyChannel) return msg.reply("❌ Error: Channel `bounties` not found!");
 
     const target = msg.mentions.users.first() || msg.author;
     
@@ -145,32 +142,46 @@ if (cmd === "!wanted") {
         const res = await pool.query("SELECT bounty FROM users WHERE user_id = $1", [target.id]);
         const bounty = res.rows.length > 0 ? res.rows[0].bounty : 0;
 
-        // 7.2. Създаваме плаката (Embed)
+        // 2. СЪЗДАВАМЕ ЕМБЕДА 
         const wantedEmbed = new EmbedBuilder()
-            .setTitle("☠️ W A N T E D ☠️")
-            .setColor("#f1c40f")
-            .setThumbnail(target.displayAvatarURL())
-            .setDescription(`**${target.username}**\n\nReward:\n💰 **${Number(bounty).toLocaleString()}** Beli`)
-            .setFooter({ text: "Marine Headquarters | Grand Line" })
+            .setAuthor({ name: "MARINE HEADQUARTERS" }) // Заглавието най-отгоре
+            .setTitle("☠️ W A N T E D ☠️") // Подзаглавието
+            .setDescription(`**NAME: ${target.username.toUpperCase()}**\n---------------------------------`)
+            .setColor("#e67e22") // Оранжев цвят за линията отстрани
+            .addFields(
+                { 
+                    name: "💰 REWARD", 
+                    value: `฿ **${Number(bounty).toLocaleString()}**`, 
+                    inline: true 
+                },
+                { 
+                    name: "📜 STATUS", 
+                    value: "🔴 **DEAD OR ALIVE**", 
+                    inline: true 
+                }
+            )
+            // 3. ТУК СЛАГАМЕ КАРТИНКАТА С ЛУФИ (или аватара на човека)
+            .setImage("https://imgur.com") // Можеш да сложиш твоя картинка тук
+            .setFooter({ text: "By order of the World Government" })
             .setTimestamp();
 
-        // 7.3. ПРАЩАМЕ ПЛАКАТА В КАНАЛ #BOUNTIES
+        // 4. ИЗПРАЩАМЕ В #BOUNTIES
         await bountyChannel.send({ content: `${target}`, embeds: [wantedEmbed] });
 
-        // 7.4. ОТГОВАРЯМЕ В ТЕКУЩИЯ КАНАЛ (Кратко съобщение)
-        const response = await msg.reply(`✅ Your Wanted poster is ready! Check it out here: <#${bountyChannel.id}>`);
+        // 5. КРАТЪК ОТГОВОР В ТЕКУЩИЯ КАНАЛ
+        const reply = await msg.reply(`✅ Your Wanted poster has been created in <#${bountyChannel.id}>!`);
         
-        // Опционално: Изтриваме командата и отговора след 10 секунди, за да не пълним чата
+        // Почистваме командата след 10 секунди
         setTimeout(() => {
             msg.delete().catch(() => {});
-            response.delete().catch(() => {});
+            reply.delete().catch(() => {});
         }, 10000);
 
     } catch (err) {
-        console.error("Bounty fetch error:", err.message);
-        return msg.reply("❌ Error fetching bounty from database.");
+        console.error("Wanted error:", err.message);
     }
 }
+
 
 
     // --- 8. BOUNTY КОМАНДА: !setbounty (ADMIN) ---
@@ -194,14 +205,42 @@ if (cmd === "!wanted") {
         return msg.reply(`✅ Bounty for **${target.user.username}** has been reset.`);
     }
 
-    // --- 10. МОДЕРАЦИЯ: !clear ---
-    if (cmd === "!clear") {
-        if (!msg.member.permissions.has("ManageMessages")) return msg.reply("❌ No permission!");
-        const amt = parseInt(args[0]);
-        if (isNaN(amt) || amt < 1 || amt > 100) return msg.reply("❌ Enter 1-100.");
-        await msg.channel.bulkDelete(amt, true);
-        return msg.channel.send(`🧹 Deleted ${amt} messages.`).then(m => setTimeout(() => m.delete(), 3000));
+    // --- 10. МОДЕРАЦИЯ: !clear (ДОСТЪПНА НАВСЯКЪДЕ) ---
+if (cmd === "!clear") {
+    // 1. ПРОВЕРКА ЗА ПРАВА: Само потребители с право "Manage Messages" или "Administrator"
+    if (!msg.member.permissions.has("ManageMessages") && !msg.member.permissions.has("Administrator")) {
+        const err = await msg.reply("❌ Only Admirals have the authority to clean the deck!");
+        // Изтриваме грешката автоматично след 5 секунди
+        return setTimeout(() => { 
+            err.delete().catch(()=>{}); 
+            msg.delete().catch(()=>{}); 
+        }, 5000);
+    }
+
+    // 2. Вземаме броя съобщения (първия аргумент)
+    const amount = parseInt(args[0]);
+
+    // 3. Проверка дали числото е валидно (Discord позволява триене на 1-100 съобщения наведнъж)
+    if (isNaN(amount) || amount < 1 || amount > 100) {
+        return msg.reply("⚠️ Please specify a number between 1 and 100. Example: `!clear 50`").then(m => {
+            setTimeout(() => { m.delete().catch(()=>{}); msg.delete().catch(()=>{}); }, 5000);
+        });
+    }
+
+    // 4. ИЗПЪЛНЕНИЕ: Триене на съобщенията
+    try {
+        // Изтриваме командата на потребителя + посочения брой съобщения
+        await msg.channel.bulkDelete(amount + 1, true);
+        
+        // Пращаме потвърждение, което се самоизтрива
+        const success = await msg.channel.send(`🧹 **Cleaning complete!** Deleted ${amount} messages.`);
+        setTimeout(() => success.delete().catch(()=>{}), 3000);
+        
+    } catch (err) {
+        console.error("Clear error:", err.message);
+        msg.reply("❌ Failed to delete messages. (Note: Discord cannot delete messages older than 14 days).");
     }
 }
+
 
 module.exports = { handleCommands };
