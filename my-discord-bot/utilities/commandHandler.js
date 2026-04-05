@@ -261,9 +261,6 @@ if (cmd === "!setbounty") {
         
                 await adminLog.send({ embeds: [logEmbed] }).catch(err => console.log("Log error:", err.message));
             }
-/////////
-
-            
             // Нулираме ролята (ще му даде най-ниската или ще махне всички Bounty роли)
             await updateBountyRole(target, 0); 
             return msg.channel.send(`🧹 **Cleaning the Deck:** Bounty for **${target.user.username}** has been reset to ฿0.`);    
@@ -272,8 +269,7 @@ if (cmd === "!setbounty") {
             //  бота да продължи, вместо да се изключи
             return msg.reply("❌ Error resetting bounty. Check database connection.");
     }
-    }
-
+}
     // --- 10. МОДЕРАЦИЯ: !clear (ДОСТЪПНА НАВСЯКЪДЕ) ---
 if (cmd === "!clear") {
     // 1. ПРОВЕРКА ЗА ПРАВА: Проверяваме дали потребителят е Админ или има право да трие съобщения
