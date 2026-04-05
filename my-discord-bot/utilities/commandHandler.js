@@ -271,6 +271,49 @@ if (cmd === "!clear") {
         msg.reply("❌ Failed to delete messages. (Note: Discord cannot delete messages older than 14 days).");
     }
 }
+    // --- COMMAND: !cron (English Guide) ---
+if (cmd === "!cron" || cmd === "!cronhelp") {
+    // Getting current server time to avoid time zone confusion
+    const serverTime = new Date().toLocaleTimeString("en-GB", { 
+        timeZone: "Europe/London", 
+        hour: '2-digit', 
+        minute: '2-digit' 
+    });
+
+    const cronEmbed = new EmbedBuilder()
+        .setTitle("📜 Pirate's Timing Manual (Cron Guide)")
+        .setDescription(`Use this format for \`!remind\` and strategy scheduling.\n**Current Server Time (London):** \`${serverTime}\``)
+        .setColor("#3498db")
+        .setThumbnail("https://imgur.com") // Optional: a clock or compass icon
+        .addFields(
+            { 
+                name: "⏳ The 5-Star Format: `* * * * *`", 
+                value: 
+                    "1️⃣ **Minute** (0-59)\n" +
+                    "2️⃣ **Hour** (0-23)\n" +
+                    "3️⃣ **Day** of Month (1-31)\n" +
+                    "4️⃣ **Month** (1-12)\n" +
+                    "5️⃣ **Day of Week** (0-6, 0=Sunday)" 
+            },
+            { 
+                name: "💡 Practical Examples:", 
+                value: 
+                    "• `0 12 * * *` — Every day at **12:00**\n" +
+                    "• `30 19 * * 1-5` — Every weekday at **19:30**\n" +
+                    "• `*/15 * * * *` — Every **15 minutes**\n" +
+                    "• `0 12-20/2 * * *` — From 12:00 to 20:00, **every 2 hours**"
+            },
+            {
+                name: "⚓ Pro-Tip",
+                value: "Use [crontab.guru](https://crontab.guru) to test your expressions before setting them in the bot!"
+            }
+        )
+        .setFooter({ text: "Example: !remind 0 21 * * * It's time for the Boss Raid!" })
+        .setTimestamp();
+
+    return msg.channel.send({ embeds: [cronEmbed] });
+}
+
 }
 
 
