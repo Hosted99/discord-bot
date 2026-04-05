@@ -1,97 +1,99 @@
-const cron = require("node-cron");
-const { EmbedBuilder } = require("discord.js");
-const staticList = require("../data/staticReminders");
+const cron = require("node-cron"); // Импортираме cron библиотеката за scheduling
+const { EmbedBuilder } = require("discord.js"); // Импортираме EmbedBuilder за красиви Discord съобщения
+const staticList = require("../data/staticReminders"); // Зареждаме статичните напомняния
 
-global.lastStrategyContent = null;
-let strategyMsgObject = null; 
+global.lastStrategyContent = null; // Глобална променлива за последната стратегия (не се ползва активно тук)
+let strategyMsgObject = null; // Ще пазим последното изпратено съобщение със стратегия
 
-// Проверка на Cron формата
+// Проверка дали cron изразът е валиден
 const isValidCron = (expr) => typeof expr === "string" && cron.validate(expr);
 
 function initSchedulers(client, pool) {
-    // 1. СТАТИЧНИ НАПОМНЯНИЯ (Mania, Shandora и т.н.)
-    staticList.forEach(rem => {
-        if (!isValidCron(rem.cron)) return;
-        cron.schedule(rem.cron, () => {
-            client.guilds.cache.forEach(async (guild) => {
-                const ch = guild.channels.cache.find(c => c.name === "reminders");
+    // 1. СТАТИЧНИ НАПОМНЯНИЯ
+    staticList.forEach(rem => { // Минаваме през всяко статично напомняне
+        if (!isValidCron(rem.cron)) return; // Ако cron форматът не е валиден – пропускаме
+
+        cron.schedule(rem.cron, () => { // Създаваме scheduler
+            client.guilds.cache.forEach(async (guild) => { // За всеки сървър
+                const ch = guild.channels.cache.find(c => c.name === "reminders"); // Търсим канал "reminders"
                 if (ch) {
-                    const mention = await getMention(guild, rem.target);
-                    ch.send(`${mention} ${rem.message}`);
+                    const mention = await getMention(guild, rem.target); // Вземаме mention (role или everyone)
+                    ch.send(`${mention} ${rem.message}`); // Пращаме съобщението
                 }
             });
-        }, { timezone: "Europe/London" });
+        }, { timezone: "Europe/London" }); // Задаваме timezone
     });
 
-    // 2. ДИНАМИЧНИ НАПОМНЯНИЯ (От базата данни)
-    pool.query("SELECT * FROM reminders").then(res => {
-        res.rows.forEach(rem => {
-            if (!isValidCron(rem.cron)) return;
-            cron.schedule(rem.cron, () => {
-                const ch = client.channels.cache.get(rem.channel_id);
-                if (ch) ch.send(rem.message);
+    // 2. ДИНАМИЧНИ НАПОМНЯНИЯ (от база данни)
+    pool.query("SELECT * FROM reminders").then(res => { // Вземаме всички reminders от DB
+        res.rows.forEach(rem => { // За всяко напомняне
+            if (!isValidCron(rem.cron)) return; // Проверка за валиден cron
+
+            cron.schedule(rem.cron, () => { // Създаваме scheduler
+                const ch = client.channels.cache.get(rem.channel_id); // Вземаме канала по ID
+                if (ch) ch.send(rem.message); // Пращаме съобщението
             }, { timezone: "Europe/London" });
         });
     });
 
-    // --- 3. ПУСКАНЕ НА СТРАТЕГИЯТА (19:25 London Time) ---
-    cron.schedule("15 19 * * *", async () => {
+    // --- 3. ПУСКАНЕ НА СТРАТЕГИЯТА (19:15 London Time) ---
+    cron.schedule("31 20 * * *", async () => { // Всеки ден в 19:15
         try {
-            // Взимаме записаната стратегия от базата
-            const res = await pool.query("SELECT value FROM global_vars WHERE key = 'last_strategy'");
-            if (res.rows.length === 0) return;
+            const res = await pool.query("SELECT value FROM global_vars WHERE key = 'last_strategy'"); // Вземаме стратегията от DB
+            if (res.rows.length === 0) return; // Ако няма запис – излизаме
 
-            const strategyText = res.rows[0].value;
+            const strategyText = res.rows[0].value; // Вземаме текста на стратегията
 
-            for (const guild of client.guilds.cache.values()) {
-                const channel = guild.channels.cache.find(c => c.name === "mania-reminder");
+            for (const guild of client.guilds.cache.values()) { // За всеки сървър
+                const channel = guild.channels.cache.find(c => c.name === "mania-reminder"); // Търсим канал
                 if (channel) {
-                    // ПОЧИСТВАНЕ: Изтриваме старите съобщения в канала
-                    const oldMsgs = await channel.messages.fetch({ limit: 20 });
-                    if (oldMsgs.size > 0) await channel.bulkDelete(oldMsgs, true).catch(() => {});
+                    const oldMsgs = await channel.messages.fetch({ limit: 20 }); // Вземаме последните 20 съобщения
+                    if (oldMsgs.size > 0) await channel.bulkDelete(oldMsgs, true).catch(() => {}); // Изтриваме ги
 
-                    // СЪЗДАВАНЕ НА ЕМБЕДА
-                    const embed = new EmbedBuilder()
-                        .setTitle("📜 DAILY BATTLE STRATEGY")
-                        .setDescription(strategyText)
-                        .setColor("#FF4500")
-                        .setThumbnail("https://imgur.com") // Сложи линк към лого
-                        .setFooter({ text: "Confirm your presence with ✅ before 19:50!" })
-                        .setTimestamp();
+                    const embed = new EmbedBuilder() // Създаваме embed
+                        .setTitle("📜 DAILY BATTLE STRATEGY") // Заглавие
+                        .setDescription(strategyText) // Описание
+                        .setColor("#FF4500") // Цвят
+                        .setThumbnail("https://imgur.com") // Thumbnail (тук трябва реален линк)
+                        .setFooter({ text: "Confirm your presence with ✅ before 19:50!" }) // Footer
+                        .setTimestamp(); // Timestamp
 
-                    strategyMsgObject = await channel.send({ content: "@everyone 🏴‍☠️ **NEW STRATEGY ISSUED!**", embeds: [embed] });
-                    await strategyMsgObject.react("✅");
+                    strategyMsgObject = await channel.send({ // Пращаме съобщението
+                        content: "@everyone 🏴‍☠️ **NEW STRATEGY ISSUED!**",
+                        embeds: [embed]
+                    });
+
+                    await strategyMsgObject.react("✅"); // Добавяме реакция
                 }
             }
-        } catch (err) { console.error("Post Strategy Error:", err.message); }
+        } catch (err) {
+            console.error("Post Strategy Error:", err.message); // Логваме грешка
+        }
     }, { timezone: "Europe/London" });
 
-    // --- 4. ПРОВЕРКА НА ДИСЦИПЛИНАТА (19:50 London Time) ---
-    cron.schedule("16 19 * * *", async () => {
-        if (!strategyMsgObject) return;
+    // --- 4. ПРОВЕРКА НА ДИСЦИПЛИНАТА (19:16 London Time) ---
+    cron.schedule("32 20 * * *", async () => { // 1 минута по-късно
+        if (!strategyMsgObject) return; // Ако няма стратегия – излизаме
 
         try {
-            const guild = strategyMsgObject.guild;
-            const channel = strategyMsgObject.channel;
+            const guild = strategyMsgObject.guild; // Вземаме guild
+            const channel = strategyMsgObject.channel; // Вземаме channel
+            const reaction = strategyMsgObject.reactions.cache.get("✅"); // Вземаме реакцията
+            const users = reaction ? await reaction.users.fetch() : new Map(); // Вземаме всички, които са реагирали
+            const reactedIds = users.map(u => u.id); // Взимаме ID-тата им
 
-            // Кой е реагирал?
-            const reaction = strategyMsgObject.reactions.cache.get("✅");
-            const users = reaction ? await reaction.users.fetch() : new Map();
-            const reactedIds = users.map(u => u.id);
-
-            // Взимаме всички хора с поне една роля (без ботове)
-            const allMembers = await guild.members.fetch();
-            const missing = allMembers.filter(m => 
-                !m.user.bot && 
-                m.roles.cache.size > 1 && 
-                !reactedIds.includes(m.id)
+            const allMembers = await guild.members.fetch(); // Взимаме всички членове
+            const missing = allMembers.filter(m =>
+                !m.user.bot && // Не е бот
+                m.roles.cache.size > 1 && // Има роля
+                !reactedIds.includes(m.id) // Не е реагирал
             );
 
             if (missing.size > 0) {
-                const pings = missing.map(m => `<@${m.id}>`).join(" ");
+                const pings = missing.map(m => `<@${m.id}>`).join(" "); // Създаваме списък с ping-ове
 
-                const missingEmbed = new EmbedBuilder()
-                    .setTitle("🚨 URGENT: DISCIPLINE CHECK")
+                const missingEmbed = new EmbedBuilder() // Създаваме embed
+                    .setTitle("🚨 URGENT: CHECK")
                     .setDescription("The following pirates have NOT confirmed their positions!")
                     .setColor("#FF0000")
                     .addFields(
@@ -100,40 +102,73 @@ function initSchedulers(client, pool) {
                     )
                     .setTimestamp();
 
-                await channel.send({ content: "⚠️ **ATTENTION CREW!**", embeds: [missingEmbed] });
+                await channel.send({ // Пращаме предупреждението
+                    content: "⚠️ **ATTENTION CREW!**",
+                    embeds: [missingEmbed]
+                });
             }
 
-            // ИЗЧИСТВАМЕ стратегията от БД за следващия ден
-            await pool.query("DELETE FROM global_vars WHERE key = 'last_strategy'");
-            strategyMsgObject = null;
-        } catch (err) { console.error("Discipline Check Error:", err.message); }
+            await pool.query("DELETE FROM global_vars WHERE key = 'last_strategy'"); // Трием стратегията от DB
+            strategyMsgObject = null; // Нулираме променливата
+
+        } catch (err) {
+            console.error("Discipline Check Error:", err.message); // Логваме грешка
+        }
     }, { timezone: "Europe/London" });
 }
 
 // --- ФУНКЦИЯ ЗА УЛАВЯНЕ НА СТРАТЕГИЯТА ---
 async function captureStrategy(msg, pool) {
-    if (msg.content.toLowerCase().includes("mania-strategy")) {
-        // Форматиране: Правим босовете Bold и добавяме мечове
-        let raw = msg.content.replace(/mania-strategy/gi, "").trim();
-        let formatted = raw.split('\n')
-            .map(line => line.includes('-') ? `**⚔️ ${line.split('-')[0].trim().toUpperCase()}:** ${line.split('-')[1].trim()}` : line)
-            .join('\n');
+    if (msg.content.toLowerCase().includes("mania-strategy")) { // Проверяваме дали съобщението съдържа ключова дума
+        try {
+            let raw = msg.content.replace(/mania-strategy/gi, "").trim(); // Махаме ключовата дума
+            const lines = raw.split('\n'); // Разделяме по редове
 
-        // Записваме в БД
-        await pool.query(
-            "INSERT INTO global_vars (key, value) VALUES ('last_strategy', $1) ON CONFLICT (key) DO UPDATE SET value = $1",
-            [formatted]
-        );
-        return true;
+            const previewEmbed = new EmbedBuilder() // Preview embed
+                .setTitle("🏴‍☠️ BATTLE FORMATION CAPTURED")
+                .setDescription(`**Strategist:** ${msg.author}\n*Stand by for deployment at 19:15!*`)
+                .setColor("#2b2d31")
+                .setImage("https://imgur.com") // Тук също трябва реална картинка
+                .setTimestamp();
+
+            let formattedForDB = ""; // Ще пазим форматирания текст за DB
+
+            lines.forEach(line => {
+                if (line.includes('-')) { // Проверяваме за формат boss - players
+                    const parts = line.split('-');
+                    const boss = parts[0].trim().toUpperCase(); // Име на боса
+                    const players = parts[1].trim(); // Играчите
+
+                    previewEmbed.addFields({ // Добавяме поле в embed
+                        name: `🛰️ ${boss}`,
+                        value: players.replace(/\s+/g, '\n'), // Всеки играч на нов ред
+                        inline: true
+                    });
+
+                    formattedForDB += `**⚔️ ${boss}:**\n${players.replace(/\s+/g, '\n')}\n\n`; // Формат за DB
+                }
+            });
+
+            await pool.query( // Записваме в DB
+                "INSERT INTO global_vars (key, value) VALUES ('last_strategy', $1) ON CONFLICT (key) DO UPDATE SET value = $1",
+                [formattedForDB.trim()]
+            );
+
+            return previewEmbed; // Връщаме embed-а
+        } catch (err) {
+            console.error("Capture Error:", err.message); // Логваме грешка
+            return null;
+        }
     }
-    return false;
+    return false; // Ако няма ключова дума
 }
 
+// Функция за взимане на mention (role или everyone)
 async function getMention(guild, target) {
-    if (target === "@everyone" || target === "@here") return target;
-    const role = guild.roles.cache.find(r => r.name.toLowerCase() === target.toLowerCase());
-    if (role) return `<@&${role.id}>`;
-    return target;
+    if (target === "@everyone" || target === "@here") return target; // Ако е глобално mention
+    const role = guild.roles.cache.find(r => r.name.toLowerCase() === target.toLowerCase()); // Търсим роля
+    if (role) return `<@&${role.id}>`; // Връщаме role mention
+    return target; // Ако няма – връщаме текста
 }
 
-module.exports = { initSchedulers, isValidCron, captureStrategy };
+module.exports = { initSchedulers, isValidCron, captureStrategy }; // Експортираме функциите
