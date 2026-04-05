@@ -222,7 +222,11 @@ async function gracefulShutdown() {
 }
 
 // Слушатели за спиране
-process.on('SIGTERM', gracefulShutdown); // За хостинг (Render/Railway)
+// Това е сигналът, който Railway праща при рестарт или спиране
+process.on('SIGTERM', async () => {
+    console.log("Railway is stopping the bot... Starting graceful shutdown.");
+    await gracefulShutdown();
+});
 process.on('SIGINT', gracefulShutdown);  // За ръчно спиране с Ctrl+C
 
 // 8. Логване на бота
