@@ -1,6 +1,6 @@
 const repairMessages = require("../data/repairMessages");
 
-const allowedShips = ["@mugi-ship", "@goat-ship", "@ati-ship","@mari-ship"];
+const allowedShips = ["@mugi-ship", "@goat-ship", "@ati-ship", "@mari-ship"];
 const noShipMessages = [
     "🚫 Hmm, **{user}**? This ship is not in our registry.",
     "🔍 We searched everywhere, but couldn't find **{user}**.",
