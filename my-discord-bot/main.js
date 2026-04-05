@@ -183,34 +183,47 @@ if (msg.author.bot || !msg.guild) return;
     await handleCommands(msg, pool);
 });
 
-// 6. SHUTDOWN ЛОГИКА
+// 6. SHUTDOWN ЛОГИКА (ОПТИМИЗИРАНА)
 async function sendFarewell(client) {
-    try {
-        // Търсим канал с име 'bot-only' във всички сървъри
-        for (const guild of client.guilds.cache.values()) {
-            const logChannel = guild.channels.cache.find(ch => ch.name === "bot-only");
-            if (logChannel) {
-                await logChannel.send("⚓ **Captain's leaving the deck...** The ship is anchored. Offline.");
-            }
+    const promises = [];
+    console.log("🔍 Searching for bot-only channels...");
+
+    for (const guild of client.guilds.cache.values()) {
+        const logChannel = guild.channels.cache.find(ch => ch.name === "bot-only");
+        if (logChannel) {
+            // Събираме всички съобщения за пращане в масив
+            promises.push(
+                logChannel.send("⚓ **Captain's leaving the deck...** The ship is anchored. Offline.")
+                .catch(err => console.error(`❌ Failed to send to ${guild.name}:`, err.message))
+            );
         }
-    } catch (err) {
-        console.error("Farewell error:", err.message);
     }
+    // Изчакваме всички съобщения да бъдат изпратени едновременно
+    return Promise.all(promises);
 }
 
 async function gracefulShutdown() {
-    console.log("Stopping bot...");
-    await sendFarewell(client);
+    console.log("🛑 Stopping bot sequence started...");
     
-    // Даваме 2 секунди на Discord да достави съобщението
+    try {
+        // Изчакваме изпращането на съобщенията
+        await sendFarewell(client);
+        console.log("✅ Farewell messages sent successfully.");
+    } catch (err) {
+        console.error("⚠️ Error during farewell:", err.message);
+    }
+    
+    // Малко изчакване за сигурност и изключване
     setTimeout(() => {
+        console.log("🔌 Connection destroyed. Process exiting.");
         client.destroy();
         process.exit(0);
     }, 2000);
 }
 
-process.on('SIGTERM', gracefulShutdown);
-process.on('SIGINT', gracefulShutdown);
+// Слушатели за спиране
+process.on('SIGTERM', gracefulShutdown); // За хостинг (Render/Railway)
+process.on('SIGINT', gracefulShutdown);  // За ръчно спиране с Ctrl+C
 
 // 8. Логване на бота
 client.login(process.env.DISCORD_TOKEN);
