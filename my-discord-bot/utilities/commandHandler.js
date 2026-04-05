@@ -135,14 +135,14 @@ if (cmd === "!wanted") {
     const bountyChannel = msg.guild.channels.cache.find(ch => ch.name === "bounties");
     if (!bountyChannel) return msg.reply("❌ Error: Channel `bounties` not found!");
 
-    // 1. Дефинираме таргета (споменат или автора)
+    // 7.1. Дефинираме таргета (споменат или автора)
     const target = msg.mentions.users.first() || msg.author;
     
     try {
         const res = await pool.query("SELECT bounty FROM users WHERE user_id = $1", [target.id]);
         const bounty = res.rows.length > 0 ? res.rows[0].bounty : 0;
 
-        // 2. СЪЗДАВАМЕ ЕМБЕДА 
+        // 7.2. СЪЗДАВАМЕ ЕМБЕДА 
         const wantedEmbed = new EmbedBuilder()
             .setAuthor({ name: "⚓ MARINE HEADQUARTERS" })
             .setTitle("☠️ W A N T E D ☠️")
@@ -157,10 +157,10 @@ if (cmd === "!wanted") {
             .setFooter({ text: "By order of the World Government" })
             .setTimestamp();
 
-        // 3. ИЗПРАЩАМЕ В #BOUNTIES
+        // 7.3. ИЗПРАЩАМЕ В #BOUNTIES
         await bountyChannel.send({ content: `📜 New Bounty Issued for ${target}!`, embeds: [wantedEmbed] });
 
-        // 4. КРАТЪК ОТГОВОР И ПОЧИСТВАНЕ
+        // 7.4. КРАТЪК ОТГОВОР И ПОЧИСТВАНЕ
         const reply = await msg.reply(`✅ Your Wanted poster has been created in <#${bountyChannel.id}>!`);
         
         setTimeout(() => {
@@ -177,8 +177,7 @@ if (cmd === "!wanted") {
 
 
 
-    // --- 8. BOUNTY КОМАНДА: !setbounty (ADMIN) ---
-    // --- 7. BOUNTY КОМАНДА: !setbounty <user> <amount> ---
+    // --- 8. BOUNTY КОМАНДА: !setbounty <user> <amount> (ADMIN) ---
 if (cmd === "!setbounty") {
     const target = msg.mentions.users.first();
     const amount = args[1]; // Вземаме сумата (втория аргумент след тага)
@@ -186,9 +185,9 @@ if (cmd === "!setbounty") {
     if (!target || isNaN(amount)) {
         return msg.reply("❌ Usage: `!setbounty @user <amount>`"); }
     try {
-        // 1. Запис в базата данни
+        // 8.1. Запис в базата данни
         await pool.query("INSERT INTO users (user_id, bounty) VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET bounty = $2", [target.id, amount]);
-        // 2. ПОЗДРАВЛЕНИЕ ЗА НОВ РАНГ (АНГЛИЙСКА ВЕРСИЯ С МЕДАЛ)
+        // 8.2. ПОЗДРАВЛЕНИЕ ЗА НОВ РАНГ 
         const promoEmbed = new EmbedBuilder()
             .setTitle("🎖️ New Rank: Bounty Update") // Твоето медалче
             .setDescription(`🎊 Congratulations ${target}! Your status has been updated by the Marine Headquarters.`)
