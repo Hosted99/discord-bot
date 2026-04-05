@@ -5,6 +5,7 @@ const { initSchedulers, captureStrategy } = require("./utilities/scheduler");
 const { handleCommands } = require("./utilities/commandHandler");
 const { handleSpecialChannels } = require("./utilities/specialChannels");
 const { handleNewMember, handleRoleCommands } = require("./utilities/roleHandler");
+const { sendBotManual } = require("./utilities/infoHandler");
 const { logDeletedMessage } = require("./utilities/logger");
 
 // 1. Конфигурация на Groq AI и Cooldown система
@@ -38,6 +39,10 @@ client.once("ready", async () => {
     console.log(`🤖 Онлайн като: ${client.user.tag}`);
 
     client.guilds.cache.forEach(async (guild) => {
+        // --- 1. ПЪЛНО РЪКОВОДСТВО (В #bot-info) ---
+        await sendBotManual(guild).catch(err => console.log("Грешка при Manual msg:", err.message));
+
+        // --- 2. SYSTEM STATUS (В #bot-only) ---
         const botChannel = guild.channels.cache.find(ch => ch.name === "bot-only");
         if (botChannel) {
             const aliveEmbed = new EmbedBuilder()
