@@ -142,7 +142,7 @@ client.on("messageCreate", async (msg) => {
             .setDescription("Rest well, pirate! The seas will be waiting for you tomorrow. 🏴‍☠️")
             .setColor("#2c3e50")
             // Ето един хубав One Piece GIF за лека нощ (Chopper или Luffy)
-            .setImage("https://tenor.com/bg/gif-maker?caption_item_id=15413086096180864098&utm_source=gif-caption&utm_medium=internal&utm_campaign=gif-maker-entrypoints.gif");
+            .setImage("https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXl2amYzcXZxcml3Nm04dWJtN25qaGY2bWU0dmN3NmthcmdrOXZtMCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/F6bEXu79gwCENplJcB/giphy.gif");
 
         return msg.reply({ embeds: [nightEmbed] });
     }
