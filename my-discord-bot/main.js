@@ -155,9 +155,9 @@ if (msg.author.bot || !msg.guild) return;
     }
 
         // --- ЛОГИКА ЗА ЛЕКА НОЩ ---
-    const nightWords = ["good night", "nighty night", "gn"];
+    const nightRegex = /\b(good night|nighty night|gn)\b/i;
     // Проверяваме дали съобщението съдържа някоя от фразите (без значение малки/големи букви)
-    if (nightWords.some(word => msg.content.toLowerCase().includes(word))) {
+    if (nightRegex.test(msg.content.toLowerCase())) {
         const nightEmbed = new EmbedBuilder()
             .setTitle(`🌙 Good night, ${msg.author.username}!`)
             .setDescription("Rest well, pirate! The seas will be waiting for you tomorrow. 🏴‍☠️")
