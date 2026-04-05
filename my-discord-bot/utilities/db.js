@@ -39,6 +39,15 @@ async function initDB() {
       );
     `);
 
+    // --- ТАБЛИЦА ЗА ГЛОБАЛНИ ПРОМЕНЛИВИ (Стратегии и др.) ---
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS global_vars (
+    key TEXT PRIMARY KEY,
+    value TEXT
+    );
+  `);
+   console.log("✅ Таблицата global_vars е готова.");
+
     // --- НОВО: АВТОМАТИЧНО ПОЧИСТВАНЕ ПРИ СТАРТ ---
     const deleteResult = await pool.query("DELETE FROM translation_cache WHERE expires_at < NOW()");
     console.log(`🧹 Почистени са ${deleteResult.rowCount} стари записа от преводача.`);
