@@ -234,14 +234,27 @@ if (cmd === "!setbounty") {
 }
     // --- 9. BOUNTY КОМАНДА: !resetbounty (ADMIN) ---
     if (cmd === "!resetbounty") {
-        // ИЗТРИВАМЕ ТВОЯТА КОМАНДА ВЕДНАГА
+        // ИЗТРИВАМЕ КОМАНДА ВЕДНАГА
         msg.delete().catch(() => {}); 
-        if (!msg.member.permissions.has("Administrator")) return msg.reply("❌ Admirals only!");
+        // 2. Проверка за права
+        if (!msg.member.permissions.has("Administrator")) {
+            return msg.reply("❌ Admirals only!").then(m => setTimeout(() => m.delete().catch(() => {}), 5000));
+        }
         const target = msg.mentions.members.first();
         if (!target) return msg.reply("❌ Mention a user!");
-        await pool.query("UPDATE users SET bounty = 0 WHERE user_id = $1", [target.id]);
-        await updateBountyRole(target, 0); 
-        return msg.reply(`✅ Bounty for **${target.user.username}** has been reset.`);
+        
+        //     . ОБГРАЖДАМЕ С TRY-CATCH (За да не умира бота при грешка)
+        try {
+            // Нулираме в базата данни
+            await pool.query("UPDATE users SET bounty = 0 WHERE user_id = $1", [target.id]);
+            // Нулираме ролята (ще му даде най-ниската или ще махне всички Bounty роли)
+            await updateBountyRole(target, 0); 
+            return msg.channel.send(`🧹 **Cleaning the Deck:** Bounty for **${target.user.username}** has been reset to ฿0.`);    
+        } catch (err) {
+            console.error("ResetBounty error:", err.message);
+            //  бота да продължи, вместо да се изключи
+            return msg.reply("❌ Error resetting bounty. Check database connection.");
+    }
     }
 
     // --- 10. МОДЕРАЦИЯ: !clear (ДОСТЪПНА НАВСЯКЪДЕ) ---
