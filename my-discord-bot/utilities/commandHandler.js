@@ -197,30 +197,34 @@ if (cmd === "!wanted") {
 
 
     // --- 8. BOUNTY КОМАНДА: !setbounty <user> <amount> (ADMIN) ---
+// ---------------------- !setbounty ----------------------
 if (cmd === "!setbounty") {
-    const targetMember = msg.mentions.members.first();
-    const amount = args[1]; // Вземаме сумата (втория аргумент след тага)
+    const target = msg.mentions.members.first();
+    const amount = args[1];
 
-    if (!targetmember || isNaN(amount)) {
-        return msg.reply("❌ Usage: `!setbounty @user <amount>`"); }
+    if (!target || isNaN(amount)) return msg.reply("❌ Usage: `!setbounty @user <amount>`");
+
     try {
-        // 8.1. Запис в базата данни
-        await pool.query("INSERT INTO users (user_id, bounty, username) VALUES ($1, $2, $3) ON CONFLICT (user_id) DO UPDATE SET bounty = $2, username = $3", [target.id, amount, target.username]);
-        // 8.2. 🔥 ТУК СЕ СЛУЧВА МАГИЯТА: Извикваме функцията за ролите
-        const assignedRank = await updateBountyRole(targetMember, amount);
-        
-        // 8.3. ПОЗДРАВЛЕНИЕ ЗА НОВ РАНГ 
-        const promoEmbed = new EmbedBuilder()
-            .setTitle("🎖️ New Rank: Bounty Update") // Твоето медалче
-            .setDescription(`🎊 Congratulations ${targetmember}! Your status has been updated by the Marine Headquarters.`)
-            .addFields({ name: "💰 New Bounty", value: `฿ **${Number(amount).toLocaleString()}**`, inline: true },
-                       { name: "📈 Rank Status", value: "🚀 **Bounty: 150M+**", inline: true } )
-            .setThumbnail(targetmember.displayAvatarURL({ dynamic: true }))
-            .setColor("#f1c40f") // Златисто
+        await pool.query(
+            "INSERT INTO users (user_id, bounty, username) VALUES ($1, $2, $3) ON CONFLICT (user_id) DO UPDATE SET bounty = $2, username = $3",
+            [target.id, amount, target.user.username]
+        );
+
+        await updateBountyRole(target, amount);
+
+        const embed = new EmbedBuilder()
+            .setTitle("🎖️ New Rank: Bounty Update")
+            .setDescription(`🎊 Congratulations ${target.user.username}! Your status has been updated.`)
+            .addFields(
+                { name: "💰 New Bounty", value: `฿ **${Number(amount).toLocaleString()}**`, inline: true },
+                { name: "📈 Rank Status", value: "🚀 **Bounty: 150M+**", inline: true }
+            )
+            .setThumbnail(target.user.displayAvatarURL({ dynamic: true }))
+            .setColor("#f1c40f")
             .setFooter({ text: "The World Government is watching you..." })
             .setTimestamp();
-        // Пращаме го в текущия канал
-        await msg.channel.send({ embeds: [promoEmbed] });
+
+        await msg.channel.send({ embeds: [embed] });
     } catch (err) {
         console.error("SetBounty error:", err.message);
         msg.reply("❌ Error updating bounty.");
