@@ -37,7 +37,7 @@ function initSchedulers(client, pool) {
     });
 
     // --- 3. ПУСКАНЕ НА СТРАТЕГИЯТА (19:15 London Time) ---
-    cron.schedule("45 20 * * *", async () => { // Всеки ден в 19:15
+    cron.schedule("03 21 * * *", async () => { // Всеки ден в 19:15
         try {
             const res = await pool.query("SELECT value FROM global_vars WHERE key = 'last_strategy'"); // Вземаме стратегията от DB
             if (res.rows.length === 0) return; // Ако няма запис – излизаме
@@ -72,7 +72,7 @@ function initSchedulers(client, pool) {
     }, { timezone: "Europe/London" });
 
     // --- 4. ПРОВЕРКА НА ДИСЦИПЛИНАТА (19:16 London Time) ---
-    cron.schedule("47 20 * * *", async () => { // 1 минута по-късно
+    cron.schedule("05 21 * * *", async () => { // 1 минута по-късно
         if (!strategyMsgObject) return; // Ако няма стратегия – излизаме
 
         try {
