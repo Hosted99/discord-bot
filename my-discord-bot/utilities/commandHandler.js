@@ -198,7 +198,7 @@ if (cmd === "!wanted") {
 
     // --- 8. BOUNTY КОМАНДА: !setbounty <user> <amount> (ADMIN) ---
 if (cmd === "!setbounty") {
-    const targetmember = msg.mentions.members.first();
+    const targetMember = msg.mentions.members.first();
     const amount = args[1]; // Вземаме сумата (втория аргумент след тага)
 
     if (!target || isNaN(amount)) {
