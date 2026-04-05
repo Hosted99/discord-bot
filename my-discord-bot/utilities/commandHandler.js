@@ -114,7 +114,8 @@ if (cmd === "!remind") {
         // ТУК Е ПОПРАВКАТА: Добавяме масива с данните СЛЕД заявката
         await pool.query(
             "INSERT INTO reminders (id, cron, message, channel_id, owner_id) VALUES ($1, $2, $3, $4, $5)",
-        );
+        [reminderId, cronExpr, text, targetCh.id, msg.author.id]
+    );
 
         msg.reply(`✅ Reminder set for <#${targetCh.id}> at \`${cronExpr}\`!`);
     } catch (err) { 
