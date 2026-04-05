@@ -183,104 +183,6 @@ if (msg.author.bot || !msg.guild) return;
     await handleCommands(msg, pool);
 });
 
-const Groq = require("groq-sdk");
-const { Client, GatewayIntentBits, EmbedBuilder } = require("discord.js");
-const { pool, initDB } = require("./utilities/db");
-const { initSchedulers, captureStrategy } = require("./utilities/scheduler");
-const { handleCommands } = require("./utilities/commandHandler");
-const { handleSpecialChannels } = require("./utilities/specialChannels");
-const { handleNewMember, handleRoleCommands } = require("./utilities/roleHandler");
-const { sendBotManual } = require("./utilities/infoHandler");
-const { logDeletedMessage } = require("./utilities/logger");
-
-// 1. Конфигурация
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-const translationCooldown = new Set();
-
-const client = new Client({
-    intents: [
-        GatewayIntentBits.Guilds, 
-        GatewayIntentBits.GuildMessages, 
-        GatewayIntentBits.MessageContent, 
-        GatewayIntentBits.GuildMembers
-    ]
-});
-
-// 2. HTTP Server за Keep-alive
-const http = require('http');
-const port = process.env.PORT || 10000;
-http.createServer((req, res) => {
-  res.writeHead(200);
-  res.end('Bot is running!');
-}).listen(port);
-
-// 3. Събитие: Ready
-client.once("ready", async () => {
-    await initDB();
-    initSchedulers(client, pool);
-    console.log(`🤖 Онлайн като: ${client.user.tag}`);
-
-    client.guilds.cache.forEach(async (guild) => {
-        await sendBotManual(guild).catch(err => console.log("Manual error:", err.message));
-        
-        const botChannel = guild.channels.cache.find(ch => ch.name === "bot-only");
-        if (botChannel) {
-            const aliveEmbed = new EmbedBuilder()
-                .setTitle("📡 System Status: Online")
-                .setDescription("🏴‍☠️ **The Captain is back on the deck!**\nAll systems are operational.")
-                .setColor("#00ff00")
-                .setTimestamp();
-            await botChannel.send({ embeds: [aliveEmbed] }).catch(() => {});
-        }
-    });
-});
-
-// 4. Логване и Нови членове
-client.on("messageDelete", async (msg) => await logDeletedMessage(msg));
-client.on("guildMemberAdd", async (member) => await handleNewMember(member));
-
-// 5. ОСНОВЕН СЛУШАТЕЛ
-client.on("messageCreate", async (msg) => {
-    if (msg.author.bot || !msg.guild) return;
-
-    // --- А: СПЕЦИАЛНИ КАНАЛИ (REPAIR / PHOTOS) ---
-    // Важно е да е тук, за да хване "repair @role" преди всичко друго
-    if (await handleSpecialChannels(msg)) return;
-
-    // --- Б: КОМАНДИ С "!" ---
-    if (msg.content.startsWith("!")) {
-        const args = msg.content.trim().split(/\s+/);
-        const cmd = args.shift().toLowerCase();
-
-        if (cmd === "!addrole" || cmd === "!removerole") {
-            return await handleRoleCommands(msg, cmd, args);
-        }
-        return await handleCommands(msg, pool);
-    }
-
-    // --- В: AI ПРЕВОДАЧ ---
-    if (msg.channel.name === 'ai-translator') {
-        if (translationCooldown.has(msg.author.id)) return;
-        // ... (твоята логика за Groq тук) ...
-        // (запази си същия код за преводача, който имаше)
-        return;
-    }
-
-    // --- Г: ЛЕКА НОЩ ---
-    const nightWords = ["good night", "nighty night", "gn"];
-    if (nightWords.some(word => msg.content.toLowerCase().includes(word))) {
-        const nightEmbed = new EmbedBuilder()
-            .setTitle(`🌙 Good night, ${msg.author.username}!`)
-            .setDescription("Rest well, pirate! 🏴‍☠️")
-            .setColor("#2c3e50")
-            .setImage("https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXl2amYzcXZxcml3Nm04dWJtN25qaGY2bWU0dmN3NmthcmdrOXZtMCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/F6bEXu79gwCENplJcB/giphy.gif");
-        return msg.reply({ embeds: [nightEmbed] });
-    }
-
-    // --- Д: СТРАТЕГИИ ---
-    if (captureStrategy(msg.content)) return msg.react("📥");
-});
-
 // 6. SHUTDOWN ЛОГИКА
 async function sendFarewell(client) {
     try {
@@ -309,9 +211,6 @@ async function gracefulShutdown() {
 
 process.on('SIGTERM', gracefulShutdown);
 process.on('SIGINT', gracefulShutdown);
-
-
-
 
 // 8. Логване на бота
 client.login(process.env.DISCORD_TOKEN);
