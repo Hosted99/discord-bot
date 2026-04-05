@@ -217,7 +217,7 @@ if (cmd === "!setbounty") {
             .setDescription(`🎊 Congratulations ${target.user.username}! Your status has been updated.`)
             .addFields(
                 { name: "💰 New Bounty", value: `฿ **${Number(amount).toLocaleString()}**`, inline: true },
-                { name: "📈 Rank Status", value: `🚀 **Bounty: ${Number(amount).toLocaleString()}**`, }
+                { name: "📈 Status", value: `🚀 **New Role: ${assignedRank || "Updated"}**`, inline: true }
             )
             .setThumbnail(target.user.displayAvatarURL({ dynamic: true }))
             .setColor("#f1c40f")
