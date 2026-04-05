@@ -201,7 +201,7 @@ if (cmd === "!setbounty") {
     const targetMember = msg.mentions.members.first();
     const amount = args[1]; // Вземаме сумата (втория аргумент след тага)
 
-    if (!target || isNaN(amount)) {
+    if (!targetmember || isNaN(amount)) {
         return msg.reply("❌ Usage: `!setbounty @user <amount>`"); }
     try {
         // 8.1. Запис в базата данни
@@ -212,10 +212,10 @@ if (cmd === "!setbounty") {
         // 8.3. ПОЗДРАВЛЕНИЕ ЗА НОВ РАНГ 
         const promoEmbed = new EmbedBuilder()
             .setTitle("🎖️ New Rank: Bounty Update") // Твоето медалче
-            .setDescription(`🎊 Congratulations ${target}! Your status has been updated by the Marine Headquarters.`)
+            .setDescription(`🎊 Congratulations ${targetmember}! Your status has been updated by the Marine Headquarters.`)
             .addFields({ name: "💰 New Bounty", value: `฿ **${Number(amount).toLocaleString()}**`, inline: true },
                        { name: "📈 Rank Status", value: "🚀 **Bounty: 150M+**", inline: true } )
-            .setThumbnail(target.displayAvatarURL({ dynamic: true }))
+            .setThumbnail(targetmember.displayAvatarURL({ dynamic: true }))
             .setColor("#f1c40f") // Златисто
             .setFooter({ text: "The World Government is watching you..." })
             .setTimestamp();
