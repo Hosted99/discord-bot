@@ -47,7 +47,7 @@ client.once("ready", async () => {
         if (botChannel) {
             const aliveEmbed = new EmbedBuilder()
                 .setTitle("📡 System Status: Online")
-                .setDescription("🏴‍☠️ **The Captain is back on the deck!**\nAll systems are operational.")
+                .setDescription("🏴‍☠️ **The Captain is back on the deck!**\nAll systems are operational and the seas are under watch..")
                 .setColor("#00ff00")
                 .setTimestamp();
 
@@ -166,6 +166,17 @@ client.on("messageCreate", async (msg) => {
 
     await handleCommands(msg, pool);
 });
+
+async function gracefulShutdown() {
+    console.log("⚓ Captain's leaving the deck... Sending farewell...");
+    await sendFarewell(client);
+    client.destroy(); // Изключва бота от Discord
+    process.exit(0); // Спира процеса на Node.js
+}
+
+// Улавяне на сигнали за спиране (Render/Railway ползват SIGTERM)
+process.on('SIGTERM', gracefulShutdown);
+process.on('SIGINT', gracefulShutdown); // За ръчно спиране с Ctrl+C
 
 // 8. Логване на бота
 client.login(process.env.DISCORD_TOKEN);
