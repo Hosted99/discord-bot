@@ -9,31 +9,34 @@ const noShipMessages = [
 ];
 
 async function handleSpecialChannels(msg) {
-    // --- 1. Логика за REPAIR-SHIP ---
     if (msg.channel.name === "repair-ship") {
         const content = msg.content.trim();
         const lowerContent = content.toLowerCase();
 
         if (lowerContent.startsWith("repair ")) {
             const target = content.slice(7).trim();
-            if (!target) return true;
+            const targetLower = target.toLowerCase();
 
-            if (allowedShips.includes(target.toLowerCase())) {
-                const randomMsg = repairMessages[Math.floor(Math.random() * repairMessages.length)];
+            // Проверяваме дали този кораб съществува в нашия списък със съобщения
+            if (repairMessages[targetLower]) {
+                const shipSpecificMessages = repairMessages[targetLower];
+                const randomMsg = shipSpecificMessages[Math.floor(Math.random() * shipSpecificMessages.length)];
+                
                 msg.channel.send(randomMsg.replace("{user}", target));
             } else {
+                // Ако корабът не е в списъка
                 const randomNoShip = noShipMessages[Math.floor(Math.random() * noShipMessages.length)];
                 msg.channel.send(randomNoShip.replace("{user}", target));
             }
         } else {
-            // Изтриване на всичко, което не е команда за ремонт
+            // Изтриване на грешни команди
             try {
                 await msg.delete();
                 const warning = await msg.channel.send(`⚠️ ${msg.author}, only repair commands are allowed here!`);
                 setTimeout(() => warning.delete().catch(() => {}), 5000);
-            } catch (err) { console.error("Special channel cleanup error:", err.message); }
+            } catch (err) { console.error("Error:", err.message); }
         }
-        return true; // Спираме обработката тук
+        return true;
     }
 
     // --- 2. Логика САМО ЗА СНИМКИ (Photos Only) ---
