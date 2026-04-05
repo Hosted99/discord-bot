@@ -206,7 +206,10 @@ if (cmd === "!setbounty") {
     try {
         // 8.1. Запис в базата данни
         await pool.query("INSERT INTO users (user_id, bounty, username) VALUES ($1, $2, $3) ON CONFLICT (user_id) DO UPDATE SET bounty = $2, username = $3", [target.id, amount, target.username]);
-        // 8.2. ПОЗДРАВЛЕНИЕ ЗА НОВ РАНГ 
+        // 8.2. 🔥 ТУК СЕ СЛУЧВА МАГИЯТА: Извикваме функцията за ролите
+        const assignedRank = await updateBountyRole(targetMember, amount);
+        
+        // 8.3. ПОЗДРАВЛЕНИЕ ЗА НОВ РАНГ 
         const promoEmbed = new EmbedBuilder()
             .setTitle("🎖️ New Rank: Bounty Update") // Твоето медалче
             .setDescription(`🎊 Congratulations ${target}! Your status has been updated by the Marine Headquarters.`)
