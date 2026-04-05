@@ -1,26 +1,25 @@
 module.exports = {
     "@mugi-ship": [
-        "🔥My dick is on fire🔥!!",
-        "🔥Who clogged the toilet🔥?!",
-        "🔥Hot and wet Nami needs help🔥!!",
+        "**{user}**!🔥My dick is on fire🔥!!",
+        "**{user}**!🔥Who clogged the toilet🔥?!",
+        "**{user}**!🔥Hot and wet Nami needs help🔥!!",
         
     ],
     "@goat-ship": [
-        "🔥The goats are on fire🔥!!",
-        "🔥No! Not the beer 🔥!!",
-        "🔥Scheiße! We're down 🔥!!",
+        "**{user}**!🔥The goats are on fire🔥!!",
+        "**{user}**!🔥No! Not the beer 🔥!!",
+        "**{user}**!🔥Scheiße! We're down 🔥!!",
         
     ],
     "@ati-ship": [
-        "🔥It's a little too hot in here🔥!!",
-        "🔥We're drowning here🔥!!",
-        "🔥The treasure fell out🔥!!",
+        "**{user}**!🔥It's a little too hot in here🔥!!",
+        "**{user}**!🔥We're drowning here🔥!!",
+        "**{user}**!🔥The treasure fell out🔥!!",
         
     ],
     "@mari-ship": [
-        "🔥My ass is on fire🔥!! ",
-        "🔥My fake tits fell out🔥!! ",
-        "🔥Get me out of this water🔥!!",
-        "⚡ Светкавичен ремонт за **{user}**! Вятърът е във вашите платна!"
+        "**{user}**!🔥My ass is on fire🔥!! ",
+        "**{user}**!🔥My fake tits fell out🔥!! ",
+        "**{user}**!🔥Get me out of this water🔥!!",
     ]
 };
