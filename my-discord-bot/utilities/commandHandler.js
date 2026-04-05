@@ -210,7 +210,7 @@ if (cmd === "!setbounty") {
             [target.id, amount, target.user.username]
         );
 
-        await updateBountyRole(target, amount);
+        const assignedRank = await updateBountyRole(target, amount);
 
         const embed = new EmbedBuilder()
             .setTitle("🎖️ New Rank: Bounty Update")
