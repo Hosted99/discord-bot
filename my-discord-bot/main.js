@@ -69,11 +69,7 @@ client.on("messageCreate", async (msg) => {
 
     console.log(`[DEBUG] Message in #${msg.channel.name}: "${msg.content}"`);
 
-    // --- 1. Специални канали ---
-    const specialHandled = await handleSpecialChannels(msg, pool);
-    if (specialHandled) return;
-
-    // --- 2. Команди (!addrole / !removerole / други) ---
+    // --- 1. Команди (!addrole / !removerole / други) ---
     if (msg.content.startsWith("!")) {
         const content = msg.content.trim();
         const args = content.split(/\s+/);
@@ -85,6 +81,10 @@ client.on("messageCreate", async (msg) => {
 
         return await handleCommands(msg, pool);
     }
+
+    // --- 2. Специални канали ---
+    const specialHandled = await handleSpecialChannels(msg, pool);
+    if (specialHandled) return;
 
     // --- 3. Преводач (ai-translator канал) ---
     if (msg.channel.name === 'ai-translator') {
