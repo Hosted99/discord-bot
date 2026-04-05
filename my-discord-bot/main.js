@@ -71,6 +71,22 @@ client.on("messageCreate", async (msg) => {
     console.log(`[DEBUG] Message in #${msg.channel.name}: "${msg.content}"`);
     if (msg.author.bot || !msg.guild) return;
 
+if (msg.author.bot || !msg.guild) return;
+
+    // --- 1. ПРОВЕРКА ЗА КОМАНДИ (СЛАГАМЕ Я НАЙ-ОТГОРЕ) ---
+    // Ако съобщението започва с "!", ботът веднага отива към командите и ПРЕСКАЧА преводача
+    if (msg.content.startsWith("!")) {
+        const content = msg.content.trim();
+        const args = content.split(/\s+/);
+        const cmd = args.shift().toLowerCase();
+
+        if (cmd === "!addrole" || cmd === "!removerole") {
+            return await handleRoleCommands(msg, cmd, args);
+        }
+
+        return await handleCommands(msg, pool); // Тук се изпълнява !clear
+    }
+    
         // --- ЛОГИКА ЗА ПРЕВОД ---
     if (msg.channel.name === 'ai-translator') {
         if (translationCooldown.has(msg.author.id)) return;
