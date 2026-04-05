@@ -247,6 +247,23 @@ if (cmd === "!setbounty") {
         try {
             // Нулираме в базата данни
             await pool.query("UPDATE users SET bounty = 0 WHERE user_id = $1", [target.id]);
+////
+
+            
+            // 2. ЕТО ТУК СЛАГАШ ЦЕЛИЯ БЛОК (НОВОТО)
+            const adminLog = msg.guild.channels.cache.find(ch => ch.name === "admin-logs");
+            if (adminLog) {
+                const logEmbed = new EmbedBuilder()
+                .setTitle("🧹 Bounty Reset Log")
+                .setDescription(`**Admin:** ${msg.author}\n**Target:** ${target}\n**Action:** Bounty reset to ฿0`)
+                .setColor("#ff0000")
+                .setTimestamp();
+        
+                await adminLog.send({ embeds: [logEmbed] }).catch(err => console.log("Log error:", err.message));
+            }
+/////////
+
+            
             // Нулираме ролята (ще му даде най-ниската или ще махне всички Bounty роли)
             await updateBountyRole(target, 0); 
             return msg.channel.send(`🧹 **Cleaning the Deck:** Bounty for **${target.user.username}** has been reset to ฿0.`);    
