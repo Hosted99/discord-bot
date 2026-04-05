@@ -131,15 +131,47 @@ async function handleCommands(msg, pool) {
     }
 
     // --- 7. BOUNTY КОМАНДА: !wanted ---
-    if (cmd === "!wanted") {
-        const target = msg.mentions.users.first() || msg.author;
+if (cmd === "!wanted") {
+    // 7.1. Намираме канала "bounties"
+    const bountyChannel = msg.guild.channels.cache.find(ch => ch.name === "bounties");
+    
+    if (!bountyChannel) {
+        return msg.reply("❌ Error: Channel `bounties` not found! Please create it first.");
+    }
+
+    const target = msg.mentions.users.first() || msg.author;
+    
+    try {
         const res = await pool.query("SELECT bounty FROM users WHERE user_id = $1", [target.id]);
         const bounty = res.rows.length > 0 ? res.rows[0].bounty : 0;
-        const embed = new EmbedBuilder()
-            .setTitle("☠️ W A N T E D ☠️").setColor("#f1c40f").setThumbnail(target.displayAvatarURL())
-            .setDescription(`**${target.username}**\n\nReward:\n💰 **${Number(bounty).toLocaleString()}** Beli`);
-        return msg.reply({ embeds: [embed] });
+
+        // 7.2. Създаваме плаката (Embed)
+        const wantedEmbed = new EmbedBuilder()
+            .setTitle("☠️ W A N T E D ☠️")
+            .setColor("#f1c40f")
+            .setThumbnail(target.displayAvatarURL())
+            .setDescription(`**${target.username}**\n\nReward:\n💰 **${Number(bounty).toLocaleString()}** Beli`)
+            .setFooter({ text: "Marine Headquarters | Grand Line" })
+            .setTimestamp();
+
+        // 7.3. ПРАЩАМЕ ПЛАКАТА В КАНАЛ #BOUNTIES
+        await bountyChannel.send({ content: `${target}`, embeds: [wantedEmbed] });
+
+        // 7.4. ОТГОВАРЯМЕ В ТЕКУЩИЯ КАНАЛ (Кратко съобщение)
+        const response = await msg.reply(`✅ Your Wanted poster is ready! Check it out here: <#${bountyChannel.id}>`);
+        
+        // Опционално: Изтриваме командата и отговора след 10 секунди, за да не пълним чата
+        setTimeout(() => {
+            msg.delete().catch(() => {});
+            response.delete().catch(() => {});
+        }, 10000);
+
+    } catch (err) {
+        console.error("Bounty fetch error:", err.message);
+        return msg.reply("❌ Error fetching bounty from database.");
     }
+}
+
 
     // --- 8. BOUNTY КОМАНДА: !setbounty (ADMIN) ---
     if (cmd === "!setbounty") {
