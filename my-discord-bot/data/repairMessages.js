@@ -16,7 +16,7 @@ module.exports = {
         "🔥We're drowning here🔥!!",
         "🔥The treasure fell out🔥!!",
         
-    ]
+    ],
     "@mari-ship": [
         "🔥My ass is on fire🔥!! ",
         "🔥My fake tits fell out🔥!! ",
