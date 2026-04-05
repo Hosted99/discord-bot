@@ -69,6 +69,30 @@ const sendBotManual = async (guild) => {
         .setFooter({ text: "Sailing Kingdom Engine • v2.7 • Automatically updated on startup" })
         .setTimestamp();
 
+    // Функция за сбогуване
+const sendFarewell = async (client) => {
+    // Обхождаме всички сървъри, в които е ботът
+    const guilds = client.guilds.cache;
+    
+    for (const [id, guild] of guilds) {
+        const botChannel = guild.channels.cache.find(ch => ch.name === "bot-only");
+        if (botChannel) {
+            const farewellEmbed = new EmbedBuilder()
+                .setTitle("📡 System Status: Offline")
+                .setDescription("🌅 **Farewell, pirates! I'm heading to port for maintenance. I will be back soon!**")
+                .setColor("#ff4444") // Червено за офлайн
+                .setTimestamp();
+
+            // Използваме 'await', за да сме сигурни, че съобщението е пратено преди стопа
+            await botChannel.send({ embeds: [farewellEmbed] }).catch(() => {});
+        }
+    }
+};
+
+// Не забравяй да я добавиш в exports!
+module.exports = { sendBotManual, sendFarewell };
+    
+
     // 4. Изпращаме финалното съобщение
     await infoChannel.send({ embeds: [manualEmbed] });
 };
