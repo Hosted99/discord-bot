@@ -43,30 +43,40 @@ async function handleRoleCommands(msg, cmd, args) {
     if (!msg.member.permissions.has("ManageRoles")) return;
 
     const targetUser = msg.mentions.members.first();
-    const roleName = args.slice(1).join(" ");
+    // 1. Проверяваме дали е тагната роля или е написана като текст
+    const mentionedRole = msg.mentions.roles.first();
+    
+    // Ако има тагната роля, взимаме нейното име, иначе взимаме текста след потребителя
+    let roleName = mentionedRole ? mentionedRole.name : args.slice(1).join(" ").trim();
 
     if (!targetUser || !roleName) {
-        return msg.reply("❌ Usage: `!addrole @user RoleName`").then(m => setTimeout(() => m.delete(), 5000));
+        return msg.reply("❌ Usage: `!addrole @user RoleName`").then(m => setTimeout(() => m.delete().catch(() => {}), 5000));
     }
 
-    // Проверка дали ролята е в твоя списък за ръчно управление
-    const isManaged = managedRoles.some(r => r.toLowerCase() === roleName.toLowerCase());
-    if (!isManaged) return msg.reply("⚠️ This role is not in the managed pirate list!");
+    // 2. Проверка в списъка (managedRoles трябва да е дефиниран в същия файл или подаден)
+    const isManaged = managedRoles.some(r => r.toLowerCase().trim() === roleName.toLowerCase().trim());
+    
+    if (!isManaged) {
+        console.log(`[DEBUG] Role rejected: "${roleName}"`); // За да видиш в Railway какво точно се проваля
+        return msg.reply(`⚠️ The role "**${roleName}**" is not in the managed pirate list!`);
+    }
 
-    const role = msg.guild.roles.cache.find(r => r.name.toLowerCase() === roleName.toLowerCase());
-    if (!role) return msg.reply(`❌ Role "**${roleName}**" not found!`);
+    // 3. Намиране на обекта на ролята в сървъра
+    const role = mentionedRole || msg.guild.roles.cache.find(r => r.name.toLowerCase() === roleName.toLowerCase());
+
+    if (!role) return msg.reply(`❌ Role "**${roleName}**" not found in this server!`);
 
     try {
         if (cmd === "!addrole") {
             await targetUser.roles.add(role);
             
-            // Специален поздрав за високи рангове
+            // Специален поздрав за лидери
             if (roleName.toLowerCase().includes("leader") || roleName.toLowerCase().includes("king")) {
                 const promo = new EmbedBuilder()
                     .setTitle("🎖️ New Promotion!")
                     .setDescription(`Everyone salute! ${targetUser} has been promoted to **${role.name}**!`)
                     .setColor("#FFD700")
-                    .setThumbnail(targetUser.user.displayAvatarURL());
+                    .setThumbnail(targetUser.user.displayAvatarURL({ dynamic: true }));
                 return msg.channel.send({ embeds: [promo] });
             }
             return msg.reply(`✅ **${role.name}** assigned to ${targetUser.user.username}.`);
@@ -77,7 +87,8 @@ async function handleRoleCommands(msg, cmd, args) {
             return msg.reply(`🗑️ **${role.name}** removed from ${targetUser.user.username}.`);
         }
     } catch (err) {
-        return msg.reply("❌ Hierarchy error! Move my role **HIGHER** than the pirate roles.");
+        console.error(err);
+        return msg.reply("❌ **Hierarchy Error!** Go to Server Settings -> Roles and move my bot role **HIGHER** than the pirate roles.");
     }
 }
 
