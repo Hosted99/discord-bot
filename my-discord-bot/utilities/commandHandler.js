@@ -243,7 +243,7 @@ if (cmd === "!clear") {
         msg.reply("❌ Failed to delete messages. (Note: Discord cannot delete messages older than 14 days).");
     }
 }
-
+}
 
 
 module.exports = { handleCommands };
