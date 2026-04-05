@@ -178,16 +178,33 @@ if (cmd === "!wanted") {
 
 
     // --- 8. BOUNTY КОМАНДА: !setbounty (ADMIN) ---
-    if (cmd === "!setbounty") {
-        if (!msg.member.permissions.has("Administrator")) return msg.reply("❌ Admirals only!");
-        const target = msg.mentions.members.first();
-        const amount = parseInt(args[1]); // args[0] е меншъна, args[1] е сумата
-        if (!target || isNaN(amount)) return msg.reply("❌ Usage: `!setbounty @user 50000` ");
-        await pool.query("INSERT INTO users (user_id, bounty, username) VALUES ($1, $2, $3) ON CONFLICT (user_id) DO UPDATE SET bounty = $2", [target.id, amount, target.user.username]);
-        await updateBountyRole(target, amount); 
-        return msg.reply(`✅ **${target.user.username}** now has a bounty of **${amount.toLocaleString()}** Beli!`);
-    }
+    // --- 7. BOUNTY КОМАНДА: !setbounty <user> <amount> ---
+if (cmd === "!setbounty") {
+    const target = msg.mentions.users.first();
+    const amount = args[1]; // Вземаме сумата (втория аргумент след тага)
 
+    if (!target || isNaN(amount)) {
+        return msg.reply("❌ Usage: `!setbounty @user <amount>`"); }
+    try {
+        // 1. Запис в базата данни
+        await pool.query("INSERT INTO users (user_id, bounty) VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET bounty = $2", [target.id, amount]);
+        // 2. ПОЗДРАВЛЕНИЕ ЗА НОВ РАНГ (АНГЛИЙСКА ВЕРСИЯ С МЕДАЛ)
+        const promoEmbed = new EmbedBuilder()
+            .setTitle("🎖️ New Rank: Bounty Update") // Твоето медалче
+            .setDescription(`🎊 Congratulations ${target}! Your status has been updated by the Marine Headquarters.`)
+            .addFields({ name: "💰 New Bounty", value: `฿ **${Number(amount).toLocaleString()}**`, inline: true },
+                       { name: "📈 Rank Status", value: "🚀 **Bounty: 150M+**", inline: true } )
+            .setThumbnail(target.displayAvatarURL({ dynamic: true }))
+            .setColor("#f1c40f") // Златисто
+            .setFooter({ text: "The World Government is watching you..." })
+            .setTimestamp();
+        // Пращаме го в текущия канал
+        await msg.channel.send({ embeds: [promoEmbed] });
+    } catch (err) {
+        console.error("SetBounty error:", err.message);
+        msg.reply("❌ Error updating bounty.");
+    }
+}
     // --- 9. BOUNTY КОМАНДА: !resetbounty (ADMIN) ---
     if (cmd === "!resetbounty") {
         if (!msg.member.permissions.has("Administrator")) return msg.reply("❌ Admirals only!");
