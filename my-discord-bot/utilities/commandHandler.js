@@ -132,10 +132,10 @@ async function handleCommands(msg, pool) {
 
     // --- 7. BOUNTY КОМАНДА: !wanted (СТИЛИЗИРАН ПЛАКАТ) ---
 if (cmd === "!wanted") {
-    // 1. Намираме канала "bounties"
     const bountyChannel = msg.guild.channels.cache.find(ch => ch.name === "bounties");
     if (!bountyChannel) return msg.reply("❌ Error: Channel `bounties` not found!");
 
+    // 1. Дефинираме таргета (споменат или автора)
     const target = msg.mentions.users.first() || msg.author;
     
     try {
@@ -144,26 +144,25 @@ if (cmd === "!wanted") {
 
         // 2. СЪЗДАВАМЕ ЕМБЕДА 
         const wantedEmbed = new EmbedBuilder()
-            .setAuthor({ name: "MARINE HEADQUARTERS" }) // Заглавието най-отгоре
-            .setTitle("☠️ W A N T E D ☠️") // Подзаглавието
+            .setAuthor({ name: "⚓ MARINE HEADQUARTERS" })
+            .setTitle("☠️ W A N T E D ☠️")
             .setDescription(`**NAME: ${target.username.toUpperCase()}**\n---------------------------------`)
-            .setColor("#e67e22") // Оранжев цвят за линията отстрани
+            .setColor("#e67e22") 
             .addFields(
                 { name: "💰 REWARD", value: `฿ **${Number(bounty).toLocaleString()}**`, inline: true },
                 { name: "📜 STATUS", value: "🔴 **DEAD OR ALIVE**", inline: true }
             )
-            // 3. ТУК СЛАГАМЕ КАРТИНКАТА С ЛУФИ (или аватара на човека)
-            .setImage(targetUser.displayAvatarURL({ dynamic: true, size: 1024 })) // Можеш да сложиш твоя картинка тук
+            // ПОПРАВКА ТУК: Използваме 'target', а не 'targetUser'
+            .setImage(target.displayAvatarURL({ extension: 'png', dynamic: true, size: 1024 }))
             .setFooter({ text: "By order of the World Government" })
             .setTimestamp();
 
-        // 4. ИЗПРАЩАМЕ В #BOUNTIES
-        await bountyChannel.send({ content: `${target}`, embeds: [wantedEmbed] });
+        // 3. ИЗПРАЩАМЕ В #BOUNTIES
+        await bountyChannel.send({ content: `📜 New Bounty Issued for ${target}!`, embeds: [wantedEmbed] });
 
-        // 5. КРАТЪК ОТГОВОР В ТЕКУЩИЯ КАНАЛ
+        // 4. КРАТЪК ОТГОВОР И ПОЧИСТВАНЕ
         const reply = await msg.reply(`✅ Your Wanted poster has been created in <#${bountyChannel.id}>!`);
         
-        // Почистваме командата след 10 секунди
         setTimeout(() => {
             msg.delete().catch(() => {});
             reply.delete().catch(() => {});
@@ -171,8 +170,10 @@ if (cmd === "!wanted") {
 
     } catch (err) {
         console.error("Wanted error:", err.message);
+        msg.reply("❌ Something went wrong while creating the poster.");
     }
 }
+
 
 
 
