@@ -4,9 +4,9 @@ const { EmbedBuilder } = require("discord.js");
 
 // 1. Твоят списък с роли за ръчен контрол (!addrole)
 const managedRoles = [
-    "Pirate King Crew", "Pirate King", "Whitebeard's", "Mini Whitebeard's", 
-    "Team builder", "Whitebeard's Leader", "Whitebeard's Vice Leader", 
-    "Mini Whitebeard's Leader", "Mini Whitebeard's Vice Leader", "Rookies"
+    "@Pirate King Crew", "@Pirate King", "@Whitebeard's", "@Mini Whitebeard's", 
+    "@Team builder", "@Whitebeard's Leader", "@Whitebeard's Vice Leader", 
+    "@Mini Whitebeard's Leader", "@Mini Whitebeard's Vice Leader", "@Rookies"
 ];
 
 // 2. Генериране на автоматичните Bounty нива (от 900M надолу до 50M през 50M)
