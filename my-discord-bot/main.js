@@ -12,7 +12,7 @@ const { logDeletedMessage } = require("./utilities/logger");
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 const translationCooldown = new Set();
 
-// 2. Инициализация на клиента с всички нужни права (Intents)a
+// 2. Инициализация на клиента
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds, 
@@ -22,27 +22,24 @@ const client = new Client({
     ]
 });
 
-// 3. Сървър за поддръжка на хостинга (Render/Railway Keep-alive)
+// 3. Keep-alive сървър
 const http = require('http');
 const port = process.env.PORT || 10000;
 http.createServer((req, res) => {
-  res.writeHead(200);
-  res.end('Bot is running!');
+    res.writeHead(200);
+    res.end('Bot is running!');
 }).listen(port);
-
 console.log(`Monitoring server started on port ${port}`);
 
-// 4. Събитие: Ботът е зареден и онлайн
+// 4. Ботът е онлайн
 client.once("ready", async () => {
-    await initDB(); // Свързване с базата данни
-    initSchedulers(client, pool); // Стартиране на таймерите
+    await initDB();
+    initSchedulers(client, pool);
     console.log(`🤖 Онлайн като: ${client.user.tag}`);
 
     client.guilds.cache.forEach(async (guild) => {
-        // --- 1. ПЪЛНО РЪКОВОДСТВО (В #bot-info) ---
         await sendBotManual(guild).catch(err => console.log("Грешка при Manual msg:", err.message));
 
-        // --- 2. SYSTEM STATUS (В #bot-only) ---
         const botChannel = guild.channels.cache.find(ch => ch.name === "bot-only");
         if (botChannel) {
             const aliveEmbed = new EmbedBuilder()
@@ -56,25 +53,27 @@ client.once("ready", async () => {
     });
 });
 
-// 5. Събитие: Логване на изтрити съобщения
+// 5. Логване на изтрити съобщения
 client.on("messageDelete", async (message) => {
     await logDeletedMessage(message);
 });
 
-// 6. Събитие: Посрещане на нови членове
+// 6. Нови членове
 client.on("guildMemberAdd", async (member) => {
     await handleNewMember(member);
 });
 
-// 7. ОСНОВЕН СЛУШАТЕЛ
+// 7. Основен слушател
 client.on("messageCreate", async (msg) => {
-    console.log(`[DEBUG] Message in #${msg.channel.name}: "${msg.content}"`);
     if (msg.author.bot || !msg.guild) return;
 
-if (msg.author.bot || !msg.guild) return;
+    console.log(`[DEBUG] Message in #${msg.channel.name}: "${msg.content}"`);
 
-    // --- 1. ПРОВЕРКА ЗА КОМАНДИ (СЛАГАМЕ Я НАЙ-ОТГОРЕ) ---
-    // Ако съобщението започва с "!", ботът веднага отива към командите и ПРЕСКАЧА преводача
+    // --- 1. Специални канали ---
+    const specialHandled = await handleSpecialChannels(msg, pool);
+    if (specialHandled) return;
+
+    // --- 2. Команди (!addrole / !removerole / други) ---
     if (msg.content.startsWith("!")) {
         const content = msg.content.trim();
         const args = content.split(/\s+/);
@@ -84,10 +83,10 @@ if (msg.author.bot || !msg.guild) return;
             return await handleRoleCommands(msg, cmd, args);
         }
 
-        return await handleCommands(msg, pool); // Тук се изпълнява !clear
+        return await handleCommands(msg, pool);
     }
-    
-        // --- ЛОГИКА ЗА ПРЕВОД ---
+
+    // --- 3. Преводач (ai-translator канал) ---
     if (msg.channel.name === 'ai-translator') {
         if (translationCooldown.has(msg.author.id)) return;
 
@@ -120,13 +119,11 @@ if (msg.author.bot || !msg.guild) return;
             else if (msg.reference) {
                 try {
                     const repliedMessage = await msg.channel.messages.fetch(msg.reference.messageId);
-
                     const res = await pool.query(
                         "SELECT last_lang FROM translation_cache WHERE user_id = $1 AND expires_at > NOW()",
                         [repliedMessage.author.id]
                     );
 
-                    // ВАЖНО: res.rows[0], защото е масив
                     if (res.rows.length > 0) {
                         const targetLang = res.rows[0].last_lang;
 
@@ -154,88 +151,49 @@ if (msg.author.bot || !msg.guild) return;
         return;
     }
 
-        // --- ЛОГИКА ЗА ЛЕКА НОЩ ---
+    // --- 4. Лека нощ ---
     const nightRegex = /\b(good night|nighty night|gn)\b/i;
-    // Проверяваме дали съобщението съдържа някоя от фразите (без значение малки/големи букви)
     if (nightRegex.test(msg.content.toLowerCase())) {
         const nightEmbed = new EmbedBuilder()
             .setTitle(`🌙 Good night, ${msg.author.username}!`)
             .setDescription("Rest well, pirate! The seas will be waiting for you tomorrow. 🏴‍☠️")
             .setColor("#2c3e50")
-            // Ето един хубав One Piece GIF за лека нощ (Chopper или Luffy)
             .setImage("https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXl2amYzcXZxcml3Nm04dWJtN25qaGY2bWU0dmN3NmthcmdrOXZtMCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/F6bEXu79gwCENplJcB/giphy.gif");
 
         return msg.reply({ embeds: [nightEmbed] });
     }
 
-    // --- ЛОГИКА ЗА СПЕЦИАЛНИ КАНАЛИ ---
-const specialHandled = await handleSpecialChannels(msg, pool);
-if (specialHandled) return; // Ако функцията е обработила съобщението, спираме по-нататъшна обработка
-
-    // --- ДРУГИ ФУНКЦИИ И КОМАНДИ ---
+    // --- 5. Capture strategy ---
     const strategyEmbed = await captureStrategy(msg, pool);
     if (strategyEmbed) {
-    await msg.react("📥");
-    return msg.channel.send({ embeds: [strategyEmbed] }); // Това праща картинката и босовете веднага
-}
-
-
-    const content = msg.content.trim();
-    const args = content.split(/\s+/);
-    const cmd = args.shift().toLowerCase();
-
-    if (cmd === "!addrole" || cmd === "!removerole") {
-        return await handleRoleCommands(msg, cmd, args);
+        await msg.react("📥");
+        return msg.channel.send({ embeds: [strategyEmbed] });
     }
-
-    await handleCommands(msg, pool);
 });
 
-// 6. SHUTDOWN ЛОГИКА (ОПТИМИЗИРАНА)
+// 8. Graceful shutdown
 async function sendFarewell(client) {
     const promises = [];
-    console.log("🔍 Searching for bot-only channels...");
-
     for (const guild of client.guilds.cache.values()) {
         const logChannel = guild.channels.cache.find(ch => ch.name === "bot-only");
         if (logChannel) {
-            // Събираме всички съобщения за пращане в масив
             promises.push(
                 logChannel.send("⚓ **Captain's leaving the deck...** The ship is anchored. Offline.")
-                .catch(err => console.error(`❌ Failed to send to ${guild.name}:`, err.message))
+                    .catch(err => console.error(`❌ Failed to send to ${guild.name}:`, err.message))
             );
         }
     }
-    // Изчакваме всички съобщения да бъдат изпратени едновременно
     return Promise.all(promises);
 }
 
 async function gracefulShutdown() {
-    console.log("🛑 Stopping bot sequence started...");
-    
-    try {
-        // Изчакваме изпращането на съобщенията
-        await sendFarewell(client);
-        console.log("✅ Farewell messages sent successfully.");
-    } catch (err) {
-        console.error("⚠️ Error during farewell:", err.message);
-    }
-    
-    // Малко изчакване за сигурност и изключване
-    setTimeout(() => {
-        console.log("🔌 Connection destroyed. Process exiting.");
-        client.destroy();
-        process.exit(0);
-    }, 2000);
+    console.log("🛑 Stopping bot sequence...");
+    try { await sendFarewell(client); } catch (err) { console.error(err); }
+    setTimeout(() => { client.destroy(); process.exit(0); }, 2000);
 }
 
-// Слушатели за спиране
-// Това е сигналът, който Railway праща при рестарт или спиране
-process.on('SIGTERM', async () => {
-    console.log("Railway is stopping the bot... Starting graceful shutdown.");
-    await gracefulShutdown();
-});
-process.on('SIGINT', gracefulShutdown);  // За ръчно спиране с Ctrl+C
+process.on('SIGTERM', gracefulShutdown);
+process.on('SIGINT', gracefulShutdown);
 
-// 8. Логване на бота
+// 9. Логване на бота
 client.login(process.env.DISCORD_TOKEN);
