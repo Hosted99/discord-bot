@@ -169,8 +169,12 @@ if (msg.author.bot || !msg.guild) return;
     }
 
     // --- ДРУГИ ФУНКЦИИ И КОМАНДИ ---
-    if (await captureStrategy(msg, pool)) return msg.react("📥"); 
-    if (await handleSpecialChannels(msg)) return;
+    const strategyEmbed = await captureStrategy(msg, pool);
+    if (strategyEmbed) {
+    await msg.react("📥");
+    return msg.channel.send({ embeds: [strategyEmbed] }); // Това праща картинката и босовете веднага
+}
+
 
     const content = msg.content.trim();
     const args = content.split(/\s+/);
