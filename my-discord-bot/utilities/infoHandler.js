@@ -63,7 +63,8 @@ const sendBotManual = async (guild) => {
                 name: "🛡️ 8. Admin Control & Security", 
                 value: "• **#admin-logs:** Hidden logs for deleted messages (who wrote what).\n" +
                        "• `!clear <1-100>` — Bulk delete messages to keep the chat clean.\n" +
-                       "• `!help` — Quick access to this command manual."
+                       "• `!help` — Quick access to this command manual.\n" +
+                       "• `!cron` — Show the timing & cron guide."
             }
         )
         .setFooter({ text: "Sailing Kingdom Engine • v2.7 • Automatically updated on startup" })
