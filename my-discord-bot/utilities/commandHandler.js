@@ -149,19 +149,11 @@ if (cmd === "!wanted") {
             .setDescription(`**NAME: ${target.username.toUpperCase()}**\n---------------------------------`)
             .setColor("#e67e22") // Оранжев цвят за линията отстрани
             .addFields(
-                { 
-                    name: "💰 REWARD", 
-                    value: `฿ **${Number(bounty).toLocaleString()}**`, 
-                    inline: true 
-                },
-                { 
-                    name: "📜 STATUS", 
-                    value: "🔴 **DEAD OR ALIVE**", 
-                    inline: true 
-                }
+                { name: "💰 REWARD", value: `฿ **${Number(bounty).toLocaleString()}**`, inline: true },
+                { name: "📜 STATUS", value: "🔴 **DEAD OR ALIVE**", inline: true }
             )
             // 3. ТУК СЛАГАМЕ КАРТИНКАТА С ЛУФИ (или аватара на човека)
-            .setImage("https://imgur.com") // Можеш да сложиш твоя картинка тук
+            .setImage(targetUser.displayAvatarURL({ dynamic: true, size: 1024 })) // Можеш да сложиш твоя картинка тук
             .setFooter({ text: "By order of the World Government" })
             .setTimestamp();
 
