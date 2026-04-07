@@ -64,7 +64,7 @@ module.exports = [
 
   //BELLY RUSH !!!
   // Ще изпраща съобщението в 12:00, 16:00 и 20:00 във вторник (2) и петък (5) и  в 10:00, сряда и събота това е съобщението където вече плаваме!
-  { cron: "0 12,16,20 * * 2,5", message: "Belly Rush ports open today go kidnap NAKAMA to sail together!!", target: "everyone"},
+  { cron: "0 12,16,20 * * 2,5", message: "Belly Rush ports are  open  go kidnap NAKAMA to sail together!!", target: "everyone"},
   { cron: "0 10 * * 3,6", message: "Belly Rush. The time we sail is today (at some point) :D", target: "everyone" },
 
   // --- GUILD WARS (With Random Messages) !!!
