@@ -82,10 +82,9 @@ module.exports = [
   { cron: "0 20 * * 3,5,0", message: () => random(ghostStart),target: "everyone" },
  
   // --- SUNDAY SPECIAL (Guild Battle) ---
-  { cron: "0 10 * * 0", message: "⚔️ Sunday Prep is LIVE! Start supporting the crew NOW! Don't wait for the battle to sharpen your blades. MOVE! 🛡️", target: "everyone" },
+  { cron: "0 10 * * 0", message: "⚔️ Sunday Prep is LIVE! Let's not disappoint our leader and get them SUPER backup!!", target: "everyone" },
   { cron: "0 12 * * 0", message: "🧭 Only 1 hour until the battle starts! Did you support the crew yet? Don't make me come find you... I'm already lost anyway! 🗡️", target: "everyone" },
   { cron: "0 13 * * 0", message: "🔥 THE BATTLE IS ON! The preparation is over, now it's time for blood! Santoryu: OGI... SANZEN SEKAI! 🌪️🗡️", target: "everyone" },
 
-  
 
 ];
