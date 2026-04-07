@@ -135,9 +135,13 @@ if (cmd === "!remind") {
     if (cmd === "!allreminders") {
         const res = await pool.query("SELECT * FROM reminders ORDER BY id ASC");
         const dynamicList = res.rows.map(r => `ID: \`${r.id}\` | \`${r.cron}\` | ${r.message}`).join("\n") || "None";
-        const staticList = staticReminders.map((r, i) => `Static ${i + 1} | \`${r.cron}\` | ${r.message}`).join("\n");
+        const staticList = staticReminders.map((r, i) => {
+        // Ако message е функция, я изпълняваме, за да получим текст. 
+        // Ако е обикновен текст, го оставяме така.
+        const messageText = typeof r.message === 'function' ? r.message() : r.message;
+            return `Static ${i + 1} | \`${r.cron}\` | ${messageText}`;}).join("\n") || "No static reminders";
         const embed = new EmbedBuilder().setTitle("📋 All Scheduled Events").addFields({ name: "📌 Static", value: staticList }, { name: "⏰ Dynamic", value: dynamicList });
-        return msg.reply({ embeds: [embed] });
+            return msg.reply({ embeds: [embed] });
     }
 
     // --- 6. КОМАНДА: !delete ---
