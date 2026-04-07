@@ -124,12 +124,23 @@ if (cmd === "!remind") {
     }
 }
 
-    // --- 4. КОМАНДА: !reminders ---
+     // --- 4. КОМАНДА: !reminders ---
     if (cmd === "!reminders") {
-        const res = await pool.query("SELECT * FROM reminders ORDER BY id ASC");
-        const list = res.rows.map(r => `ID: \`${r.id}\` | \`${r.cron}\` | ${r.message}`).join("\n") || "None.";
-        return msg.reply("📋 **Dynamic Reminders:**\n" + list);
+        try {
+            const res = await pool.query("SELECT * FROM reminders ORDER BY id ASC"); 
+            if (res.rows.length === 0) {
+            return msg.reply("📋 **Dynamic Reminders:** None.");
+            }
+            let list = res.rows.map(r => `ID: \`${r.id}\` | \`${r.cron}\` | ${r.message}`).join("\n");
+            // Проверка за лимита от 2000 символа на Discord
+            if (list.length > 1950) {
+                list = list.substring(0, 1947) + "...";
+            }     return msg.reply("📋 **Dynamic Reminders:**\n" + list);
+        }         catch (err) {console.error(err);
+                return msg.reply("❌ Грешка при четене от базата данни.");
+        }
     }
+
     
     // 5. КОМАНДА: !allreminders ---
     if (cmd === "!allreminders") {
