@@ -130,27 +130,46 @@ if (cmd === "!remind") {
         const list = res.rows.map(r => `ID: \`${r.id}\` | \`${r.cron}\` | ${r.message}`).join("\n") || "None.";
         return msg.reply("📋 **Dynamic Reminders:**\n" + list);
     }
-
-    // --- 5. КОМАНДА: !allreminders ---
+    
+    // 5. КОМАНДА: !allreminders ---
     if (cmd === "!allreminders") {
     try {
         const res = await pool.query("SELECT * FROM reminders ORDER BY id ASC");
+        // 5.1. Обработка на ДИНАМИЧНИ напомняния
         const dynamicList = res.rows.map(r => `ID: \`${r.id}\` | \`${r.cron}\` | ${r.message}`).join("\n") || "None";
-        // Тук е важната промяна:
-        const staticList = staticReminders.map((r, i) => {
-            // Проверяваме: ако съобщението е функция, я изпълняваме, за да вземем текст.
-            // Ако не е функция, си го ползваме като обикновен текст.
-            const displayMsg = typeof r.message === 'function' ? r.message() : r.message;
-             return `Static ${i + 1} | \`${r.cron}\` | ${displayMsg}`;}).join("\n");
-        // Проверка дали дължината не надвишава лимита на Discord (4096 символа за Field)
-        const safeStaticList = staticList.length > 1024 ? staticList.substring(0, 1021) + "..." : staticList;
+        // 5.2. Обработка на СТАТИЧНИ напомняния (Важно!)
+        let staticListRaw = staticReminders.map((r, i) => {
+            // Извикваме функцията, ако е такава, за да вземем чист текст
+            const msgText = typeof r.message === 'function' ? r.message() : r.message;
+            return `\`${r.cron}\` | ${msgText}`;
+        });
+        // 5.3. Създаваме Ембеда
         const embed = new EmbedBuilder()
             .setTitle("📋 All Scheduled Events")
-            .setColor("#00ff00")
-            .addFields({ name: "📌 Static", value: safeStaticList || "No static reminders" },{ name: "⏰ Dynamic", value: dynamicList.substring(0, 1024) });
-            return msg.reply({ embeds: [embed] });} 
-            catch (err) {console.error(err);
-            return msg.reply("Грешка при извличане на напомнянията.");
+            .setColor("#F1C40F");
+        // 5.4. Тъй като статичният списък е огромен, го разделяме на части (chunks)
+        // Discord позволява до 1024 символа на field.value
+        let currentFieldContent = "";
+        let fieldCount = 1;
+        for (const item of staticListRaw) {
+            // Ако добавянето на новия ред ще премине лимита от 1000 символа, правим нов field
+            if ((currentFieldContent + item).length > 1000) {
+                embed.addFields({ name: `📌 Static (Part ${fieldCount})`, value: currentFieldContent });
+                currentFieldContent = "";
+                fieldCount++;
+            }    currentFieldContent += item + "\n";
+        }
+         // Добавяме последната част от статичните, ако има останало
+        if (currentFieldContent) {
+        embed.addFields({ name: `📌 Static (Part ${fieldCount})`, value: currentFieldContent });
+        }
+        // 5.5. Добавяме динамичните накрая (режем ги на 1024, ако са много)
+        const safeDynamic = dynamicList.length > 1024 ? dynamicList.substring(0, 1021) + "..." : dynamicList;
+        embed.addFields({ name: "⏰ Dynamic", value: safeDynamic });
+        return msg.reply({ embeds: [embed] });} 
+        catch (err) {
+        console.error("CRASH PREVENTED:", err);
+        return msg.reply("❌ Грешка при показване на списъка. Провери конзолата!");
     }
 }
 
