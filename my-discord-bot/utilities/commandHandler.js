@@ -79,22 +79,33 @@ async function handleCommands(msg, pool) {
         return msg.reply({ embeds: [listEmbed] });
     }
 
-    // --- 2.2 КОМАНДА: !hero ---
+        // --- 2.2 КОМАНДА: !hero ---
     if (cmd === "!hero") {
         if (msg.channel.name !== "unit-build") return msg.reply("❌ Use #unit-build!");
         if (!args[0]) return msg.reply("⚠️ Specify hero! Example: `!hero mihawk`.");
+
         const heroesData = getHeroes();
         const hero = heroesData[args[0].toLowerCase()];
+        
         if (!hero) return msg.reply("❌ Hero not found! Use `!hero-list`.");
+
         const embed = new EmbedBuilder()
-            .setTitle(hero.title).setImage(hero.image).setColor(hero.color || "#2b2d31")
+            .setTitle(hero.title)
+            .setImage(hero.image)
+            .setColor(hero.color || "#2b2d31")
             .addFields(
-                { name: "Role", value: hero.role || "N/A", inline: true },
-                { name: "Seals", value: hero.seals || "N/A", inline: false },
-                { name: "Haki Rec", value: hero.haki || "N/A", inline: true }
+                { name: "⚔️ Role", value: hero.role || "N/A", inline: true },
+                { name: "🛡️ Equipment", value: hero.equipment || "N/A", inline: true },
+                { name: "🧬 Haki Rec", value: hero.haki || "N/A", inline: true },
+                { name: "📜 Seals", value: hero.seals || "N/A", inline: false },
+                { name: "✨ Extras", value: hero.extras || "N/A", inline: false },
+                { name: "🍎 Devil Fruit", value: hero.devil_fruit || "N/A", inline: false },
+                { name: "🍊 Secondary", value: hero.secondary_fruit || "N/A", inline: false }
             );
+
         return msg.channel.send({ embeds: [embed] });
     }
+
 
     // --- 3. КОМАНДА: !remind ---
 if (cmd === "!remind") {
