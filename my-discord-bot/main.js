@@ -182,7 +182,7 @@ client.on("messageCreate", async (msg) => {
 
     const morningEmbed = new EmbedBuilder()
         .setTitle(`☀️ Good morning!`)
-        .setDescription("The sun is rising over the Grand Line! Ready for a new adventure? ⚓")
+        .setDescription("Is your ass woken up yet? Because mine is! ⚓")
         .setColor("#f1c40f")
         .setImage(randomGif);
 
