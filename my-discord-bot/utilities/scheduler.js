@@ -18,7 +18,8 @@ function initSchedulers(client, pool) {
                 const ch = guild.channels.cache.find(c => c.name === "reminders"); // Търсим канал "reminders"
                 if (ch) {
                     const mention = await getMention(guild, rem.target); // Вземаме mention (role или everyone)
-                    ch.send(`${mention} ${rem.message}`); // Пращаме съобщението
+                   const finalMsg = typeof rem.message === 'function' ? rem.message() : rem.message;
+                   ch.send(`${mention} ${finalMsg}`);
                 }
             });
         }, { timezone: "Europe/London" }); // Задаваме timezone
