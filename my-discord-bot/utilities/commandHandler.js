@@ -35,6 +35,10 @@ async function handleCommands(msg, pool) {
                     value: "• **Auto:** Write in any language in `#ai-translator` for 🇺🇸 English.\n• **Reply:** Reply to a message in English to translate it back." 
                 },
                 { 
+                    name: "📢 Communication (Admin)", 
+                    value: "• `!say <msg>` - Send a message through the bot.\n• `!sendto #channel <msg>` - Send a message to a specific channel." 
+                },
+                { 
                     name: "💰 Bounty System", 
                     value: "• `!wanted [@user]` - Show wanted poster.\n• `!setbounty @user <amt>` - Set reward & role (Admin).\n• `!resetbounty @user` - Reset reward & role (Admin)." 
                 },
@@ -184,6 +188,60 @@ if (cmd === "!remind") {
     }
 }
 
+    // --- КОМАНДА: !say ---
+    if (cmd === "!say") {
+        // Проверка за администраторски права
+        if (!msg.member.permissions.has("Administrator")) {
+            return msg.reply("🏴‍☠️ Only the Captain (Administrator) can use this command!");
+        }
+
+        // Вземане на текста след командата
+        const content = args.join(" ");
+
+        if (!content) {
+            return msg.reply("❌ You need to write a message! Example: `!say Hello Pirates!`");
+        }
+
+        // Изтриване на съобщението на потребителя
+        try {
+            await msg.delete();
+        } catch (err) {
+            console.log("Missing permissions to delete messages.");
+        }
+
+        // Ботът изпраща съобщението
+        return msg.channel.send(content);
+    }
+
+    // --- КОМАНДА: !sendto ---
+    if (cmd === "!sendto") {
+        // Проверка за администраторски права
+        if (!msg.member.permissions.has("Administrator")) {
+            return msg.reply("🏴‍☠️ Only the Captain can redirect messages!");
+        }
+
+        // Вземане на тагнатия канал
+        const targetChannel = msg.mentions.channels.first();
+        
+        // Вземане на текста след тага на канала
+        const content = args.slice(1).join(" ");
+
+        if (!targetChannel) {
+            return msg.reply("❌ You must tag a channel! Example: `!sendto #general Hello everyone!`");
+        }
+        if (!content) {
+            return msg.reply("❌ Please provide a message after the channel tag!");
+        }
+
+        // Изпращане на съобщението в целевия канал
+        try {
+            await targetChannel.send(content);
+            return msg.reply(`✅ Message successfully sent to ${targetChannel}`);
+        } catch (err) {
+            console.error(err);
+            return msg.reply("❌ I cannot send messages to that channel (check bot permissions)!");
+        }
+    }
 
     // --- 6. КОМАНДА: !delete ---
     if (cmd === "!delete") {
