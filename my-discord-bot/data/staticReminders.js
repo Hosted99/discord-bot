@@ -49,7 +49,6 @@ const ghostStart = [
 
 module.exports = [
   { cron: "0 12 * * 2,4", message: "Shandora is open!", target: "everyone" },
-  { cron: "0 12 * * 2,5", message: "Belly Rush today!", target: "everyone" },
   { cron: "0 12 * * 3,5,0", message: "Mania today!", target: "@everyone" },
   { cron: "45 19 * * 3,5,0", message: "15 min until Mania starts!", target: "@everyone" },
   { cron: "0 20 * * 3,5,0", message: "Mania is open!", target: "@everyone" },
@@ -57,15 +56,16 @@ module.exports = [
 
   //SHANDORA !!!
   // 1. Повтаря съобщението за отворено състояние през 3 часа (до 21:00 включително)
-  { cron: "0 12,15,18,21 * * 2,4", message: "Shandora is open!", target: "everyone"},
+  { cron: "0 12,15,18,21 * * 2,4", message: "Shandora is open! Watch out or Enel is going to FRY you ⚡!! ", target: "everyone"},
   // 2. ПРЕДУПРЕЖДЕНИЕ: Изпраща се в 23:50 (10 минути преди края) във вторник и четвъртък
   { cron: "50 23 * * 2,4", message: "Shandora is closing soon! 10 minutes left.", target: "everyone"},
   // 2. Изпраща финално съобщение за затваряне точно в 00:00 (сряда и петък сутрин)
   { cron: "0 0 * * 3,5", message: "Shandora is now CLOSED!", target: "everyone" },
 
   //BELLY RUSH !!!
-  // Ще изпраща съобщението в 12:00, 16:00 и 20:00 във вторник (2) и петък (5)
-  { cron: "0 12,16,20 * * 2,5", message: "Belly Rush today!", target: "everyone"},
+  // Ще изпраща съобщението в 12:00, 16:00 и 20:00 във вторник (2) и петък (5) и  в 10:00, сряда и събота това е съобщението където вече плаваме!
+  { cron: "0 12,16,20 * * 2,5", message: "Belly Rush ports open today go kidnap NAKAMA to sail together!!", target: "everyone"},
+  { cron: "0 10 * * 3,6", message: "Belly Rush. The time we sail is today (at some point) :D", target: "everyone" },
 
   // --- GUILD WARS (With Random Messages) !!!
   { cron: "0 11 * * 1,3,5", message: () => random(warHype), target: "everyone" },
@@ -79,9 +79,12 @@ module.exports = [
   { cron: "0 10 * * *", message: () => random(ghostStart),target: "everyone" },
   // SPECIAL FOR HOSTED 
   { cron: "0 10 * * *", message: "The event has started! Get your ass in the Ghost Trial! 💀", target: "@Hosted" },
-
-
-
+  { cron: "0 20 * * 3,5,0", message: () => random(ghostStart),target: "everyone" },
+ 
+  // --- SUNDAY SPECIAL (Guild Battle) ---
+  { cron: "0 10 * * 0", message: "⚔️ Sunday Prep is LIVE! Start supporting the crew NOW! Don't wait for the battle to sharpen your blades. MOVE! 🛡️", target: "everyone" },
+  { cron: "0 12 * * 0", message: "🧭 Only 1 hour until the battle starts! Did you support the crew yet? Don't make me come find you... I'm already lost anyway! 🗡️", target: "everyone" },
+  { cron: "0 13 * * 0", message: "🔥 THE BATTLE IS ON! The preparation is over, now it's time for blood! Santoryu: OGI... SANZEN SEKAI! 🌪️🗡️", target: "everyone" },
 
   
 
