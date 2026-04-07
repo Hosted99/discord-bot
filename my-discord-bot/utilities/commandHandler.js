@@ -133,16 +133,27 @@ if (cmd === "!remind") {
 
     // --- 5. КОМАНДА: !allreminders ---
     if (cmd === "!allreminders") {
+    try {
         const res = await pool.query("SELECT * FROM reminders ORDER BY id ASC");
         const dynamicList = res.rows.map(r => `ID: \`${r.id}\` | \`${r.cron}\` | ${r.message}`).join("\n") || "None";
+        // Тук е важната промяна:
         const staticList = staticReminders.map((r, i) => {
-        // Ако message е функция, я изпълняваме, за да получим текст. 
-        // Ако е обикновен текст, го оставяме така.
-        const messageText = typeof r.message === 'function' ? r.message() : r.message;
-            return `Static ${i + 1} | \`${r.cron}\` | ${messageText}`;}).join("\n") || "No static reminders";
-        const embed = new EmbedBuilder().setTitle("📋 All Scheduled Events").addFields({ name: "📌 Static", value: staticList }, { name: "⏰ Dynamic", value: dynamicList });
-            return msg.reply({ embeds: [embed] });
+            // Проверяваме: ако съобщението е функция, я изпълняваме, за да вземем текст.
+            // Ако не е функция, си го ползваме като обикновен текст.
+            const displayMsg = typeof r.message === 'function' ? r.message() : r.message;
+             return `Static ${i + 1} | \`${r.cron}\` | ${displayMsg}`;}).join("\n");
+        // Проверка дали дължината не надвишава лимита на Discord (4096 символа за Field)
+        const safeStaticList = staticList.length > 1024 ? staticList.substring(0, 1021) + "..." : staticList;
+        const embed = new EmbedBuilder()
+            .setTitle("📋 All Scheduled Events")
+            .setColor("#00ff00")
+            .addFields({ name: "📌 Static", value: safeStaticList || "No static reminders" },{ name: "⏰ Dynamic", value: dynamicList.substring(0, 1024) });
+            return msg.reply({ embeds: [embed] });} 
+            catch (err) {console.error(err);
+            return msg.reply("Грешка при извличане на напомнянията.");
     }
+}
+
 
     // --- 6. КОМАНДА: !delete ---
     if (cmd === "!delete") {
