@@ -1,8 +1,12 @@
 {
-  "mihawk": {
+ "mihawk_ssr_plus": {
     "title": "Legendary Mihawk (SSR+)",
-    "role": "Warrior / Burst Combo",
-    "seals": "Physical Combso | Fury | Force | Pierce | Lifesteal",
+    "role": "Warrior / Burst Combo / BanHealing",
+    "seals": "Physical Combo | Fury | Force | Pierce | Lifesteal",
+    "extras": "Pursuit | Raid | Assault | ArmorPen | Flexibility | Annihilation | Rage",
+    "devil_fruit": "Rumble Rumble, Elaph Elaph, Fish Fish, Fort Fort",
+    "secondary_fruit": "Squeeze Squeeze, Time Time, Glint-Glint",
+    "equipment": "Conqueror Set / Samurai Set",
     "haki": "1-3-6-9-4-2-7-5-8",
     "image": "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExZWNmd2J6OGVodjMzNHdsdmE5b2s2c2Rwd2cxb3ltdjAxeHd3dzVnMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/b1yxeuOXI8nVS/giphy.gif",
     "color": "#2b2d31"
