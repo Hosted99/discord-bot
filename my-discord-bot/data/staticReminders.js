@@ -77,9 +77,9 @@ module.exports = [
   { cron: "0 23 * * 0", message: () => random(ghostLastCall), target: "everyone" },
   // GHOST TRIAL (START reiminder - everyday at 10:00)
   { cron: "0 10 * * *", message: () => random(ghostStart),target: "everyone" },
-  // SPECIAL FOR HOSTED 
+  // SPECIAL FOR HOSTED  тва моето в 10:00 всеки ден 
   { cron: "0 10 * * *", message: "The event has started! Get your ass in the Ghost Trial! 💀", target: "@Hosted" },
-  { cron: "0 20 * * 3,5,0", message: () => random(ghostStart),target: "everyone" },
+  { cron: "0 23 * * 0", message: () => random(ghostStart),target: "everyone" },
  
   // --- SUNDAY SPECIAL (Guild Battle) ---
   { cron: "0 10 * * 0", message: "⚔️ Sunday Prep is LIVE! Let's not disappoint our leader and get them SUPER backup!!", target: "everyone" },
