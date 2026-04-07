@@ -155,7 +155,7 @@ client.on("messageCreate", async (msg) => {
     const nightRegex = /\b(good night|nighty night|gn)\b/i;
     if (nightRegex.test(msg.content.toLowerCase())) {
         const nightEmbed = new EmbedBuilder()
-            .setTitle(`🌙 Good night, ${msg.author.username}!`)
+            .setTitle(`🌙 Good night!`)
             .setDescription("Rest well, pirate! The seas will be waiting for you tomorrow. 🏴‍☠️")
             .setColor("#2c3e50")
             .setImage("https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXl2amYzcXZxcml3Nm04dWJtN25qaGY2bWU0dmN3NmthcmdrOXZtMCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/F6bEXu79gwCENplJcB/giphy.gif");
@@ -163,7 +163,31 @@ client.on("messageCreate", async (msg) => {
         return msg.reply({ embeds: [nightEmbed] });
     }
 
-    // --- 5. Capture strategy ---
+    // --- 5. Добро утро ---
+    const morningRegex = /\b(good morning|morning|gm|добро утро)\b/i;
+
+    if (morningRegex.test(msg.content.toLowerCase())) {
+    // Списък с различни GIF-ове
+    const morningGifs = [
+        "https://tenor.com",
+        "https://tenor.com",
+        "https://tenor.com"
+    ];
+
+    // Избираме случаен GIF
+    const randomGif = morningGifs[Math.floor(Math.random() * morningGifs.length)];
+
+    const morningEmbed = new EmbedBuilder()
+        .setTitle(`☀️ Good morning!`)
+        .setDescription("The sun is rising over the Grand Line! Ready for a new adventure? ⚓")
+        .setColor("#f1c40f")
+        .setImage(randomGif);
+
+    return msg.reply({ embeds: [morningEmbed] });
+}
+
+
+    // --- 6. Capture strategy ---
     const strategyEmbed = await captureStrategy(msg, pool);
     if (strategyEmbed) {
         await msg.react("📥");
@@ -171,7 +195,7 @@ client.on("messageCreate", async (msg) => {
     }
 });
 
-// 8. Graceful shutdown
+// 7. Graceful shutdown
 async function sendFarewell(client) {
     const promises = [];
     for (const guild of client.guilds.cache.values()) {
