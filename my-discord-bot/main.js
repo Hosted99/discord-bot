@@ -169,9 +169,12 @@ client.on("messageCreate", async (msg) => {
     if (morningRegex.test(msg.content.toLowerCase())) {
     // Списък с различни GIF-ове
     const morningGifs = [
-        "https://tenor.com",
-        "https://tenor.com",
-        "https://tenor.com"
+        "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExZThydTQ4ZHE0NnpiNnRxODRsanZ5ZmZxaHZzY3owYWhtajV2cmcyNyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/12PFj4kepMjH51mp7d/giphy.gif",
+        "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExcm04NGFyeXl1Y3p1NzJ6Y2tvY3gzcGYzaW5rMmhwejNyM25kdWhzbCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/mChteTAmcjCZq5p9Az/giphy.gif",
+        "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExZHg3emxudmRqZ2x4eG9nZ3FsYWFuZDZoeHF3MHVwbWI3a3Nod3ZuNyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/dlKxhG0vaPkXr6R4Da/giphy.gif",
+        "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXVqb2drZjVucngybzJiNHhycnRueDJ4OGpja2h6NW4zOXYzMTJwaCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/mSb6D6bfTToa6JAUXD/giphy.gif",
+        "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExdG83eW4xemhrOHJjdXhiODBkYmppMHRuanJmbWR1bjJjZnpwYnpvMSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/K7HP8vmRFmHdkQwgGU/giphy.gif",
+        "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExMWVmcXliMGlsNWtkbnBzOTN6ZHlsNW55d25ucTh3aWtlbnphMWxkMSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/BjSp5w6ed5uQpihCAL/giphy.gif"
     ];
 
     // Избираме случаен GIF
