@@ -39,7 +39,7 @@ async function initDB() {
       );
     `);
 
-    // --- ТАБЛИЦА ЗА ГЛОБАЛНИ ПРОМЕНЛИВИ (Стратегии и др.) ---
+   /*  --- ТАБЛИЦА ЗА ГЛОБАЛНИ ПРОМЕНЛИВИ (Стратегии и др.) ---
   await pool.query(`
     CREATE TABLE IF NOT EXISTS global_vars (
     key TEXT PRIMARY KEY,
@@ -47,6 +47,33 @@ async function initDB() {
     );
   `);
    console.log("✅ Таблицата global_vars е готова.");
+*/
+
+  const { Pool } = require('pg');
+
+// Конфигурация на връзката с PostgreSQL
+const pool = new Pool({
+    connectionString: "YOUR_DATABASE_URL_HERE"
+});
+
+// Функция за инициализиране на таблиците
+async function initDB() {
+    try {
+        // Създаваме таблицата, ако не съществува. 'key' е уникален, за да презаписваме лесно.
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS global_vars (
+                key TEXT PRIMARY KEY,
+                value TEXT
+            );
+        `);
+        console.log("✅ Database tables are ready.");
+    } catch (err) {
+        console.error("❌ Database initialization error:", err);
+    }
+}
+
+module.exports = { pool, initDB };
+
 
     // --- НОВО: АВТОМАТИЧНО ПОЧИСТВАНЕ ПРИ СТАРТ ---
     const deleteResult = await pool.query("DELETE FROM translation_cache WHERE expires_at < NOW()");
