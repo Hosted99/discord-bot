@@ -37,6 +37,12 @@ http.createServer((req, res) => {
 }).listen(port);
 console.log(`Monitoring server started on port ${port}`);
 
+// ---  ПЪРВО ИНИЦИАЛИЗИРАМЕ БАЗАТА ---
+async function startSystem() {
+    try {
+        await initDB(); // Изчакваме таблиците да са готови
+        console.log("✅ Database is ready.");
+
 // 4. Ботът е онлайн
 client.once("ready", async () => {
     await initDB();
