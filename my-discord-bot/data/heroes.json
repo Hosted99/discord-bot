@@ -74,7 +74,7 @@
     "haki": "1-2-3-4-6-9-7-5-8",
     "image": "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExbzc0eno3amo0eWE0c2ZoazhkOHJxaXc5b255b3IzbGg2a2hheWZndyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/IEZy0MXCCxBShZaloq/giphy.gif",
     "color": "#ffffff"
-  }
+  },
  "urzoro": {
     "title": "Enma Zoro (UR)",
     "role": "Warrior / Burst Severing",
@@ -86,7 +86,7 @@
     "haki": "1-3-4-6-9-2-5-7-8",
     "image": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdDNmMWpjZzJmdTFkbW1zMWg5ZWplbGxoNmM0cWV2N2htangxdmZtYiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/3nyIj1d1igD4SGhVvu/giphy.gif",
     "color": "#1b5e20"
-  }
+  },
  "urakainu": {
     "title": "Admiral Akainu (UR)",
     "role": "Mage/TankMage Suppression",
@@ -98,7 +98,7 @@
     "haki": "1-3-4-6-9-7-2-5-8",
     "image": "https://media1.tenor.com/m/xiGmlok8gxIAAAAC/one-piece-one-piece-film-red.gif",
     "color": "#8b0000"
-  }
+  },
   "urkaido": {
     "title": "Dragon Kaido (UR)",
     "role": "Warrior/Tank Invincibility",
@@ -110,7 +110,7 @@
     "haki": "1-3-6-9-4-2-5-7-8",
     "image": "https://media1.tenor.com/m/GpfOvpe8Lo0AAAAC/kaido.gif",
     "color": "#1e3a5f"
-  }
+  },
  "shanks": {
     "title": "Shanks (SSR+)",
     "role": "Warrior/Burst Focus",
@@ -122,7 +122,7 @@
     "haki": "1-2-3-4-6-9-7-5-8",
     "image": "https://media1.tenor.com/m/OvqEKxnx_9QAAAAC/shanks-one-piece.gif",
     "color": "#9e1b1b"
-  }
+  },
  "uta": {
     "title": "Uta (SSR+)",
     "role": "Support / Realm Guard",
@@ -134,7 +134,7 @@
     "haki": "1-2-3-4-6-9-7-5-8",
     "image": "https://media1.tenor.com/m/s4nelekOVA4AAAAC/uta-uta-one-piece.gif",
     "color": "#ff69b4"
-  }
+  },
  "legendmihawk": {
     "title": "Legendary Mihawk (SSR+)",
     "role": "Warrior / Burst Combo",
@@ -146,7 +146,7 @@
     "haki": "1-3-6-9-4-2-7-5-8",
     "image": "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExZWNmd2J6OGVodjMzNHdsdmE5b2s2c2Rwd2cxb3ltdjAxeHd3dzVnMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/b1yxeuOXI8nVS/giphy.gif",
     "color": "#2b2d31"
-  }
+  },
  "yamato": {
     "title": "Yamato (SSR+)",
     "role": "Tank/Warrior Tank Control",
@@ -158,7 +158,7 @@
     "haki": "1-2-3-6-4-9-7-5-8",
     "image": "https://media.tenor.com/YzCC-LHk0rAAAAAM/yamato.gif",
     "color": "#00ced1"
-  }
+  },
  "shirahoshi": {
     "title": "Shirahoshi (SSR+)",
     "role": "Support / Heal Revive",
@@ -170,7 +170,7 @@
     "haki": "1-2-3-4-6-9-7-5-8",
     "image": "https://media1.tenor.com/m/xtBRTiZ1_HsAAAAC/one-piece-shirahoshi.gif",
     "color": "#ffb6c1"
-  }
+  },
  "bigmom": {
     "title": "Big Mom (SSR+)",
     "role": "Mage / Mage SPT Revive",
