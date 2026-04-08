@@ -1,7 +1,7 @@
 const Groq = require("groq-sdk");
 const { Client, GatewayIntentBits, EmbedBuilder } = require("discord.js");
 const { pool, initDB } = require("./utilities/db");
-const { initSchedulers, captureStrategy } = require("./utilities/scheduler");
+const { initSchedulers, handleManiaPlan, handleManiaList, handleManiaStrategy } = require("./utilities/scheduler");
 const { handleCommands } = require("./utilities/commandHandler");
 const { handleSpecialChannels } = require("./utilities/specialChannels");
 const { handleNewMember, handleRoleCommands } = require("./utilities/roleHandler");
