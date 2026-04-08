@@ -1,56 +1,58 @@
-// Функция за случаен избор на съобщение
 const random = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
 // PREPARATION MESSAGES (11:00)
 const warHype = [
-  "⚔️ 'We're going to be the Pirate Kings!' - Prep has started! Let's sharpen our blades like Zoro! 🗡️",
-  "🍖 Our feast is over! The crew is ready, are you? Set our course for the Guild War! 🏴‍☠️",
-  "🛡️ 'Our dreams... HAVE NO END!' - Get your gear ready, guild preparation is LIVE! 🌊",
-  "⚓ Raise the sails! We need everyone ready before the storm hits. Preparation starts now! 🧭",
-  "🔥 Focus up, Nakama! We're not just a team, we're a legend in the making. Get ready! 🛡️"
+  "⚔️ 'We're going to be the Pirate Kings!' - Guild War prep has started! Sharpen your blades like Zoro! 🗡️",
+  "🍖 Our feast is over! The crew is ready for the Guild War! Set our course for the battlefield! 🏴‍☠️",
+  "🛡️ 'Our dreams... HAVE NO END!' - Get your gear ready, GUILD WAR preparation is LIVE! 🌊",
+  "⚓ Raise the sails! We need everyone ready for the GW before the storm hits. Prep starts now! 🧭",
+  "🔥 Focus up, Nakama! We're not just a team, we're a Guild War legend in the making. Get ready! 🛡️"
 ];
 
 // BATTLE MESSAGES (12, 15, 18:00)
 const warBattle = [
   "🔥 OUR GUM-GUM BATTLE IS ON! Guild War is LIVE! Let's go beyond our limits, GEAR SECOND! ⚡",
-  "🏹 'The One Piece is real!' - Show them our power! Don't let them touch our treasure! 💎",
-  "💥 'Scars on our backs are a swordsman's shame!' - To the front lines, we never run away! 🤜",
-  "🌩️ We're bringing the 'D' energy to the battlefield! Charge together and crush them! ⚡",
-  "🏴‍☠️ The Grand Line belongs to US! Join the fight and show them the strength of our crew! 🔱"
+  "🏹 'The One Piece is real!' - Show them our Guild's power! Don't let them touch our treasure! 💎",
+  "💥 'Scars on our backs are a swordsman's shame!' - To the GW front lines, we never run away! 🤜",
+  "🌩️ We're bringing the 'D' energy to the Guild War! Charge together and crush them! ⚡",
+  "🏴‍☠️ The Grand Line belongs to US! Join the Guild War and show them the strength of our crew! 🔱"
 ];
 
 // END MESSAGES (21:00)
 const warEnd = [
-  "🍻 'Inherited Will, The Destiny of the Age!' - Our war has ended, let's party like pirates! 🍖",
-  "🏆 We're not just crewmates, we're FAMILY! Great job today, legends. Rest up for the next voyage! ⚓",
-  "🌊 The dust has settled on the battlefield. We stood our ground! Time to head to the tavern! 🍻",
-  "⭐ Another victory (or a great fight) for our flag! Proud of every single one of you, Nakama! 🚩",
-  "💤 Even the strongest pirates need sleep. The war is over. Rest well, the sea calls tomorrow! 🌙"
+  "🍻 'Inherited Will, The Destiny of the Age!' - Our Guild War has ended, let's party like pirates! 🍖",
+  "🏆 We're not just crewmates, we're FAMILY! Great GW today, legends. Rest up for the next voyage! ⚓",
+  "🌊 The dust has settled on the Guild War battlefield. We stood our ground! To the tavern! 🍻",
+  "⭐ Another victory (or a great fight) for our Guild flag! Proud of every single one of you, Nakama! 🚩",
+  "💤 Even the strongest pirates need sleep. The Guild War is over. Rest well, the sea calls tomorrow! 🌙"
 ];
 
-// END MESSAGES (23:00)
-const ghostLastCall = [
-  "⏰ ONLY 1 HOUR LEFT! Stop procrastinating, Nakama! Get the Ghost Trial done! 👻",
-  "🏃‍♂️ MOVE IT! Only 60 minutes left for the Ghost Trial! Don't let rewards vanish! 🌊",
-  "🏴‍☠️ 'A pirate never misses his mark!' - Finish the Ghost Trial NOW! ⚔️",
-  "💀 YOHOHOHO! Time is running out for your shadows! 1 hour left! 🕯️"
-];
 
 // START MESSAGES (10:00)
 const ghostStart = [
-  "💀 YOHOHOHO! A new day begins and the Ghost Trial is waiting for us! Don't let them take your shadows! 👻",
-  "🧟‍♂️ Thriller Bark vibes! Ghost Trial is open for the day. Let's show these spirits our crew's power! ⚔️",
-  "🌑 Wake up, Nakama! The spirits are restless. Ghost Trial is available, go clear it! 🕯️",
-  "🎻 The Binks' Sake is playing... the ghosts are calling! Time to hit the Ghost Trial! 💀",
-  "👻 Don't wait until the last minute! The Ghost Trial is open. Get those rewards now! 🔥"
+  "💀 YOHOHOHO! A new day begins and the Ghost Trial is waiting! Don't let them steal your shadows! 👻",
+  "🧟‍♂️ Thriller Bark vibes! Ghost Trial is officially OPEN. Let's show these spirits our crew's power! ⚔️",
+  "🌑 Wake up, Nakama! The spirits are restless. Ghost Trial is available for the day, go clear it! 🕯️",
+  "🎻 Binks' Sake is playing... the ghosts are calling! Time to enter the Ghost Trial arena! 💀",
+  "👻 Don't wait for the fog to thicken! The Ghost Trial is open. Claim those rewards now! 🔥"
 ];
+
+// LAST CALL MESSAGES (23:00)
+const ghostLastCall = [
+  "⏰ ONLY 1 HOUR LEFT! Stop procrastinating, Nakama! Get the Ghost Trial cleared! 👻",
+  "🏃‍♂️ MOVE IT! Only 60 minutes left for the Ghost Trial! Don't let your rewards vanish into the mist! 🌊",
+  "🏴‍☠️ 'A pirate never misses his mark!' - Finish your Ghost Trial runs RIGHT NOW! ⚔️",
+  "💀 YOHOHOHO! Time is running out for your shadows! Only 1 hour left for Ghost Trial! 🕯️",
+  "⌛ The hourglass is empty! Last chance to enter the Ghost Trial before reset! ⏳"
+];
+
 
  
 
 module.exports = [
   { cron: "0 12 * * 3,5,0", message: "Guess what day it is today? Mania day 😈!!", target: "@everyone" },
   { cron: "45 19 * * 3,5,0", message: "15 min until Mania starts!", target: "@everyone" },
-  { cron: "0 20 * * 3,5,0", message: "Mania is open!", target: "@everyone" },
+  { cron: "0 20 * * 3,5,0", message: "Mania is open Let's party Are you READY?!", target: "@everyone" },
 
 
   //SHANDORA !!!
