@@ -79,19 +79,21 @@ async function handleCommands(msg, pool) {
         return msg.reply({ embeds: [listEmbed] });
     }
 
-        // --- 2.2 КОМАНДА: !hero ---
+            // --- 2.2 КОМАНДА: !hero ---
     if (cmd === "!hero") {
         if (msg.channel.name !== "unit-build") return msg.reply("❌ Use #unit-build!");
         if (!args[0]) return msg.reply("⚠️ Specify hero! Example: `!hero mihawk`.");
 
         const heroesData = getHeroes();
-        const hero = heroesData[args[0].toLowerCase()];
-        
-        if (!hero) return msg.reply("❌ Hero not found! Use `!hero-list`.");
+        const heroName = args[0].trim().toLowerCase();
+        const hero = heroesData[heroName];
 
+        if (!hero) return msg.reply(`❌ Hero **${args[0]}** not found! Use \`!hero-list\`.`);
+
+        console.log("Link loaded from JSON:", hero.image);
         const embed = new EmbedBuilder()
             .setTitle(hero.title)
-            .setImage(hero.image)
+            .setImage(hero.image) // Тук Discord очаква директен линк
             .setColor(hero.color || "#2b2d31")
             .addFields(
                 { name: "⚔️ Role", value: hero.role || "N/A", inline: true },
