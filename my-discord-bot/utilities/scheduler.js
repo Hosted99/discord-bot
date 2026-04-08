@@ -1,49 +1,50 @@
 const cron = require("node-cron"); // Импортираме cron библиотеката за scheduling
 const { EmbedBuilder } = require("discord.js"); // Импортираме EmbedBuilder за красиви Discord съобщения
 const staticList = require("../data/staticReminders"); // Зареждаме статичните напомняния
-let currentPlanMsgId = null;
 
-global.lastStrategyContent = null; // Глобална променлива за последната стратегия (не се ползва активно тук)
-let strategyMsgObject = null; // Ще пазим последното изпратено съобщение със стратегия
+// Глобални променливи за модула
+let currentPlanMsgId = null;
+let strategyMsgObject = null;
 
 // Проверка дали cron изразът е валиден
 const isValidCron = (expr) => typeof expr === "string" && cron.validate(expr);
 
+/**
+ * Инициализира всички автоматични таймери (Cron Jobs)
+ */
 function initSchedulers(client, pool) {
     // 1. СТАТИЧНИ НАПОМНЯНИЯ
-    staticList.forEach(rem => { // Минаваме през всяко статично напомняне
-        if (!isValidCron(rem.cron)) return; // Ако cron форматът не е валиден – пропускаме
+    staticList.forEach(rem => { 
+        if (!isValidCron(rem.cron)) return;
 
-        cron.schedule(rem.cron, () => { // Създаваме scheduler
-            client.guilds.cache.forEach(async (guild) => { // За всеки сървър
-                const ch = guild.channels.cache.find(c => c.name === "reminders"); // Търсим канал "reminders"
+        cron.schedule(rem.cron, () => {
+            client.guilds.cache.forEach(async (guild) => {
+                const ch = guild.channels.cache.find(c => c.name === "reminders");
                 if (ch) {
-                    const mention = await getMention(guild, rem.target); // Вземаме mention (role или everyone)
-                   const finalMsg = typeof rem.message === 'function' ? rem.message() : rem.message;
-                   ch.send(`${mention} ${finalMsg}`);
+                    const mention = await getMention(guild, rem.target);
+                    const finalMsg = typeof rem.message === 'function' ? rem.message() : rem.message;
+                    ch.send(`${mention} ${finalMsg}`);
                 }
             });
-        }, { timezone: "Europe/London" }); // Задаваме timezone
+        }, { timezone: "Europe/London" });
     });
 
     // 2. ДИНАМИЧНИ НАПОМНЯНИЯ (от база данни)
-    pool.query("SELECT * FROM reminders").then(res => { // Вземаме всички reminders от DB
-        res.rows.forEach(rem => { // За всяко напомняне
-            if (!isValidCron(rem.cron)) return; // Проверка за валиден cron
+    pool.query("SELECT * FROM reminders").then(res => {
+        res.rows.forEach(rem => {
+            if (!isValidCron(rem.cron)) return;
 
-            cron.schedule(rem.cron, () => { // Създаваме scheduler
-                const ch = client.channels.cache.get(rem.channel_id); // Вземаме канала по ID
-                if (ch) ch.send(rem.message); // Пращаме съобщението
+            cron.schedule(rem.cron, () => {
+                const ch = client.channels.cache.get(rem.channel_id);
+                if (ch) ch.send(rem.message);
             }, { timezone: "Europe/London" });
         });
     });
+}
 
-    const { EmbedBuilder } = require('discord.js');
-
-// Пазим ID на плана само в паметта за текущата сесия
-let currentPlanMsgId = null;
-
-// --- ФУНКЦИЯ ЗА ПЛАН (mania-plan) ---
+/**
+ * ПУСКАНЕ НА ПЛАН (mania-plan)
+ */
 async function handleManiaPlan(msg) {
     const planEmbed = new EmbedBuilder()
         .setTitle("⚔️ MANIA FORMATION")
@@ -54,11 +55,13 @@ async function handleManiaPlan(msg) {
     await planMsg.react("✅");
     await planMsg.react("❌");
     
-    currentPlanMsgId = planMsg.id; // Запомняме съобщението
-    if (msg.deletable) await msg.delete();
+    currentPlanMsgId = planMsg.id; // Запомняме съобщението за mania-list
+    if (msg.deletable) await msg.delete().catch(() => {});
 }
 
-// --- ФУНКЦИЯ ЗА СПИСЪК (mania-list) ---
+/**
+ * СПИСЪК НА ПОТВЪРДИЛИТЕ (mania-list)
+ */
 async function handleManiaList(msg) {
     if (!currentPlanMsgId) return msg.reply("❌ No active plan found!");
 
@@ -80,7 +83,9 @@ async function handleManiaList(msg) {
     }
 }
 
-// --- ФУНКЦИЯ ЗА СТРАТЕГИЯ (mania-strategy) ---
+/**
+ * ПУБЛИКУВАНЕ НА СТРАТЕГИЯ (mania-strategy)
+ */
 async function handleManiaStrategy(msg, pool) {
     const rawContent = msg.content.replace(/mania-strategy/gi, "").trim();
     if (!rawContent) return;
@@ -103,7 +108,7 @@ async function handleManiaStrategy(msg, pool) {
         }
     });
 
-    // ПРЕЗАПИСВАНЕ: Използваме ON CONFLICT за автоматично обновяване на стратегията
+    // ПРЕЗАПИСВАНЕ В DB
     await pool.query(`
         INSERT INTO global_vars (key, value) 
         VALUES ('last_strategy', $1) 
@@ -113,23 +118,25 @@ async function handleManiaStrategy(msg, pool) {
 
     await msg.channel.send({ 
         content: "@everyone 🚩 **NEW STRATEGY ISSUED!**", 
-                embeds: [stratEmbed] 
+        embeds: [stratEmbed] 
     });
 
-    currentPlanMsgId = null; // Чистим плана за деня
-    if (msg.deletable) await msg.delete();
+    currentPlanMsgId = null; // Чистим плана за деня след стратегията
+    if (msg.deletable) await msg.delete().catch(() => {});
 }
 
-// Експортираме функциите, за да се ползват в index.js
-module.exports = { handleManiaPlan, handleManiaList, handleManiaStrategy };
-
-
-// Функция за взимане на mention (role или everyone)
+/**
+ * Функция за взимане на mention (role или everyone)
+ */
 async function getMention(guild, target) {
-    if (target === "@everyone" || target === "@here") return target; // Ако е глобално mention
-    const role = guild.roles.cache.find(r => r.name.toLowerCase() === target.toLowerCase()); // Търсим роля
-    if (role) return `<@&${role.id}>`; // Връщаме role mention
-    return target; // Ако няма – връщаме текста
+    if (target === "@everyone" || target === "@here") return target;
+    const role = guild.roles.cache.find(r => r.name.toLowerCase() === target.toLowerCase());
+    if (role) return `<@&${role.id}>`;
+    return target;
 }
 
-module.exports = { initSchedulers, isValidCron, captureStrategy }; // Експортираме функциите
+/**
+ * Експортираме всички функции в един обект
+ */
+module.exports = { initSchedulers, isValidCron, handleManiaPlan, handleManiaList, handleManiaStrategy,getMention 
+};
