@@ -212,8 +212,9 @@ client.on("messageCreate", async (msg) => {
         await msg.react("📥");
         return msg.channel.send({ embeds: [strategyEmbed] });
     }
+    */
 });
-*/
+
 
 // 7. Graceful shutdown
 async function sendFarewell(client) {
