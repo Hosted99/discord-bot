@@ -1,14 +1,14 @@
 {
- "mihawk": {
-    "title": "Legendary Mihawk (SSR+)",
-    "role": "Warrior / Burst Combo / BanHealing",
-    "seals": "Physical Combo | Fury | Force | Pierce | Lifesteal",
+  "mihawk": {
+    "title": "Mihawk (SSR+)",
+    "role": "Warrior/Pursuit BanHealing",
+    "seals": "Physical Combo | Fury | Piercing | Force | Ironwall | Lifesteal",
     "extras": "Pursuit | Raid | Assault | ArmorPen | Flexibility | Annihilation | Rage",
     "devil_fruit": "Rumble Rumble, Elaph Elaph, Fish Fish, Fort Fort",
     "secondary_fruit": "Squeeze Squeeze, Time Time, Glint-Glint",
-    "equipment": "Conqueror Set / Samurai Set",
-    "haki": "1-3-6-9-4-2-7-5-8",
-    "image": "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExZWNmd2J6OGVodjMzNHdsdmE5b2s2c2Rwd2cxb3ltdjAxeHd3dzVnMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/b1yxeuOXI8nVS/giphy.gif",
+    "equipment": "Conqueror, Samurai Set",
+    "haki": "1-2-3-4-6-9-7-5-8",
+    "image": "https://media1.tenor.com/m/6DvLY-5GdE0AAAAC/dracule-mihawk-mihawk.gif",
     "color": "#2b2d31"
   },
  "blackb": {
@@ -60,7 +60,7 @@
     "secondary_fruit": "Ope Ope, Time Time, Tremor Tremor",
     "equipment": "World Tree, Ult Guardian",
     "haki": "1-2-3-6-4-9-7-5-8",
-    "image": "https://ibb.co",
+    "image": "https://media1.tenor.com/m/m42XDNACDasAAAAC/onepiece-one.gif",
     "color": "#4a0d0d"
   },
  "nika": {
@@ -84,7 +84,7 @@
     "secondary_fruit": "Time Time, Glint-Glint",
     "equipment": "Conqueror, Core Staff, Cursed Specter",
     "haki": "1-3-4-6-9-2-5-7-8",
-    "image": "https://giphy.com",
+    "image": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdDNmMWpjZzJmdTFkbW1zMWg5ZWplbGxoNmM0cWV2N2htangxdmZtYiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/3nyIj1d1igD4SGhVvu/giphy.gif",
     "color": "#1b5e20"
   }
  "urakainu": {
@@ -96,7 +96,7 @@
     "secondary_fruit": "Glint-Glint, Ice Ice, Time Time, Soul Soul",
     "equipment": "Conqueror, Core Impact, Cursed Specter",
     "haki": "1-3-4-6-9-7-2-5-8",
-    "image": "https://giphy.com",
+    "image": "https://media1.tenor.com/m/xiGmlok8gxIAAAAC/one-piece-one-piece-film-red.gif",
     "color": "#8b0000"
   }
   "urkaido": {
@@ -108,7 +108,7 @@
     "secondary_fruit": "Time Time, Glint-Glint, Eleph Eleph, Rumble Rumble",
     "equipment": "Conqueror, Samurai Set, Core Staff, Cursed Specter",
     "haki": "1-3-6-9-4-2-5-7-8",
-    "image": "https://giphy.com",
+    "image": "https://media1.tenor.com/m/GpfOvpe8Lo0AAAAC/kaido.gif",
     "color": "#1e3a5f"
   }
  "shanks": {
@@ -120,7 +120,7 @@
     "secondary_fruit": "Time Time, Glint-Glint, Fish Fish",
     "equipment": "Conqueror Set, Ult Guardian",
     "haki": "1-2-3-4-6-9-7-5-8",
-    "image": "https://giphy.com",
+    "image": "https://media1.tenor.com/m/OvqEKxnx_9QAAAAC/shanks-one-piece.gif",
     "color": "#9e1b1b"
   }
  "uta": {
@@ -132,7 +132,7 @@
     "secondary_fruit": "Ice Ice, Shadow Shadow, Dark Dark",
     "equipment": "Gauntlet of Liberation, Ult Guardian, Core Staff",
     "haki": "1-2-3-4-6-9-7-5-8",
-    "image": "https://nocookie.net",
+    "image": "https://media1.tenor.com/m/s4nelekOVA4AAAAC/uta-uta-one-piece.gif",
     "color": "#ff69b4"
   }
  "legendmihawk": {
@@ -144,7 +144,7 @@
     "secondary_fruit": "Time Time, Glint-Glint",
     "equipment": "Conqueror, Core Impact, Cursed Specter",
     "haki": "1-3-6-9-4-2-7-5-8",
-    "image": "https://giphy.com",
+    "image": "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExZWNmd2J6OGVodjMzNHdsdmE5b2s2c2Rwd2cxb3ltdjAxeHd3dzVnMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/b1yxeuOXI8nVS/giphy.gif",
     "color": "#2b2d31"
   }
  "yamato": {
@@ -156,7 +156,7 @@
     "secondary_fruit": "Ope Ope, Ice Ice, Soul Soul, Shadow Shadow",
     "equipment": "World Tree, Ult Guardian",
     "haki": "1-2-3-6-4-9-7-5-8",
-    "image": "https://pinimg.com",
+    "image": "https://media.tenor.com/YzCC-LHk0rAAAAAM/yamato.gif",
     "color": "#00ced1"
   }
  "shirahoshi": {
@@ -168,7 +168,7 @@
     "secondary_fruit": "Ope Ope, Glint Glint",
     "equipment": "Gauntlet of Liberation, Ult Guardian, Core Staff",
     "haki": "1-2-3-4-6-9-7-5-8",
-    "image": "https://ibb.co",
+    "image": "https://media1.tenor.com/m/xtBRTiZ1_HsAAAAC/one-piece-shirahoshi.gif",
     "color": "#ffb6c1"
   }
  "bigmom": {
@@ -180,7 +180,7 @@
     "secondary_fruit": "Time Time, Glint Glint, Sick Sick",
     "equipment": "Conqueror, Guardian, Samurai Set, Core Scepter",
     "haki": "1-2-3-4-6-9-7-5-8",
-    "image": "https://nocookie.net",
+    "image": "https://media1.tenor.com/m/84ApoU9WV0wAAAAC/big-mom-one-piece.gif",
     "color": "#e91e63"
   }
 }
