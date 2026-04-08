@@ -75,4 +75,112 @@
     "image": "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExbzc0eno3amo0eWE0c2ZoazhkOHJxaXc5b255b3IzbGg2a2hheWZndyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/IEZy0MXCCxBShZaloq/giphy.gif",
     "color": "#ffffff"
   }
+ "urzoro": {
+    "title": "Enma Zoro (UR)",
+    "role": "Warrior / Burst Severing",
+    "seals": "Physical Combo | Fury | Force | Pierce | Lifesteal | Raid",
+    "extras": "Thorn | Iron Wall | Flexibility | Mind | Annihilation | Assault",
+    "devil_fruit": "Rumble Rumble, Elaph Elaph, Squeeze Squeeze, Fish Fish",
+    "secondary_fruit": "Time Time, Glint-Glint",
+    "equipment": "Conqueror, Core Staff, Cursed Specter",
+    "haki": "1-3-4-6-9-2-5-7-8",
+    "image": "https://giphy.com",
+    "color": "#1b5e20"
+  }
+ "urakainu": {
+    "title": "Admiral Akainu (UR)",
+    "role": "Mage/TankMage Suppression",
+    "seals": "Magic Combo | Fury | Magic | Ironwall | Pierce | Lifesteal",
+    "extras": "Raid | Mind | Healing Down | Rage | Pursuit | Flexibility",
+    "devil_fruit": "Venon Venom, Magma Magma, Rumble Rumble, Squeeze Squeeze",
+    "secondary_fruit": "Glint-Glint, Ice Ice, Time Time, Soul Soul",
+    "equipment": "Conqueror, Core Impact, Cursed Specter",
+    "haki": "1-3-4-6-9-7-2-5-8",
+    "image": "https://giphy.com",
+    "color": "#8b0000"
+  }
+  "urkaido": {
+    "title": "Dragon Kaido (UR)",
+    "role": "Warrior/Tank Invincibility",
+    "seals": "Fury | Force | Pierce | Lifesteal | Healing Down | Ironwall | Flexibility",
+    "extras": "Annihilation | Physical Combo | Thorn | Regen | Cure",
+    "devil_fruit": "Venom Venom, Fort Fort, Squeeze Squeeze, Soul Soul",
+    "secondary_fruit": "Time Time, Glint-Glint, Eleph Eleph, Rumble Rumble",
+    "equipment": "Conqueror, Samurai Set, Core Staff, Cursed Specter",
+    "haki": "1-3-6-9-4-2-5-7-8",
+    "image": "https://giphy.com",
+    "color": "#1e3a5f"
+  }
+ "shanks": {
+    "title": "Shanks (SSR+)",
+    "role": "Warrior/Burst Focus",
+    "seals": "Physical Combo | Lifesteal | Pierce | Force | Assault | Fury",
+    "extras": "Pursuit | Ironwall | Flexibility | Mind | Rage | Raid",
+    "devil_fruit": "Rumble Rumble, Elaph Elaph, Fort Fort",
+    "secondary_fruit": "Time Time, Glint-Glint, Fish Fish",
+    "equipment": "Conqueror Set, Ult Guardian",
+    "haki": "1-2-3-4-6-9-7-5-8",
+    "image": "https://giphy.com",
+    "color": "#9e1b1b"
+  }
+ "uta": {
+    "title": "Uta (SSR+)",
+    "role": "Support / Realm Guard",
+    "seals": "Magic Combo | Medic | Iron Wall | Flexibility | Blessing | Resilience",
+    "extras": "Purge | Cover | Thorn | Regen | Soul Return | Cure",
+    "devil_fruit": "Barrier Barrier, Glint Glint, Ope Ope",
+    "secondary_fruit": "Ice Ice, Shadow Shadow, Dark Dark",
+    "equipment": "Gauntlet of Liberation, Ult Guardian, Core Staff",
+    "haki": "1-2-3-4-6-9-7-5-8",
+    "image": "https://nocookie.net",
+    "color": "#ff69b4"
+  }
+ "legendmihawk": {
+    "title": "Legendary Mihawk (SSR+)",
+    "role": "Warrior / Burst Combo",
+    "seals": "Physical Combo | Fury | Force | Pierce | Lifesteal",
+    "extras": "Pursuit | Iron Wall | Flexibility | Mind | Annihilation",
+    "devil_fruit": "Rumble Rumble, Elaph Elaph, Squeeze Squeeze",
+    "secondary_fruit": "Time Time, Glint-Glint",
+    "equipment": "Conqueror, Core Impact, Cursed Specter",
+    "haki": "1-3-6-9-4-2-7-5-8",
+    "image": "https://giphy.com",
+    "color": "#2b2d31"
+  }
+ "yamato": {
+    "title": "Yamato (SSR+)",
+    "role": "Tank/Warrior Tank Control",
+    "seals": "Iron Wall | Soul Return | Regen | Thorn | Blessing | P.Combo",
+    "extras": "Immunity | Cover | Flexibility | Pierce | Force | Lifesteal | Control",
+    "devil_fruit": "Paw Paw, Fort Fort, Tweet Tweet",
+    "secondary_fruit": "Ope Ope, Ice Ice, Soul Soul, Shadow Shadow",
+    "equipment": "World Tree, Ult Guardian",
+    "haki": "1-2-3-6-4-9-7-5-8",
+    "image": "https://pinimg.com",
+    "color": "#00ced1"
+  }
+ "shirahoshi": {
+    "title": "Shirahoshi (SSR+)",
+    "role": "Support / Heal Revive",
+    "seals": "Magic Combo | Medic | Iron Wall | Flexibility | Blessing | Resilience",
+    "extras": "Purge | Cover | Thorn | Regen | Soul Return | Dispel | Cure",
+    "devil_fruit": "Barrier Barrier, Time Time",
+    "secondary_fruit": "Ope Ope, Glint Glint",
+    "equipment": "Gauntlet of Liberation, Ult Guardian, Core Staff",
+    "haki": "1-2-3-4-6-9-7-5-8",
+    "image": "https://ibb.co",
+    "color": "#ffb6c1"
+  }
+ "bigmom": {
+    "title": "Big Mom (SSR+)",
+    "role": "Mage / Mage SPT Revive",
+    "seals": "Magic Combo | Medic | Pierce | Magic | Iron Wall | Flexibility | Blessing",
+    "extras": "Purge | Cover | Thorn | Regen | Resilience | Soul Return | Fury",
+    "devil_fruit": "Ope Ope, Soul Soul, Fort Fort, Ice Ice",
+    "secondary_fruit": "Time Time, Glint Glint, Sick Sick",
+    "equipment": "Conqueror, Guardian, Samurai Set, Core Scepter",
+    "haki": "1-2-3-4-6-9-7-5-8",
+    "image": "https://nocookie.net",
+    "color": "#e91e63"
+  }
 }
