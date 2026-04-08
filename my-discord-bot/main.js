@@ -1,7 +1,12 @@
 const Groq = require("groq-sdk");
 const { Client, GatewayIntentBits, EmbedBuilder } = require("discord.js");
 const { pool, initDB } = require("./utilities/db");
-const { initSchedulers, handleManiaPlan, handleManiaList, handleManiaStrategy } = require("./utilities/scheduler");
+const { 
+    initSchedulers, 
+    handleManiaPlan, 
+    handleManiaList, 
+    handleManiaStrategy 
+} = require("./utilities/scheduler");
 const { handleCommands } = require("./utilities/commandHandler");
 const { handleSpecialChannels } = require("./utilities/specialChannels");
 const { handleNewMember, handleRoleCommands } = require("./utilities/roleHandler");
@@ -18,11 +23,12 @@ const client = new Client({
         GatewayIntentBits.Guilds, 
         GatewayIntentBits.GuildMessages, 
         GatewayIntentBits.MessageContent, 
-        GatewayIntentBits.GuildMembers
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.GuildMessageReactions
     ]
 });
 
-// 3. Keep-alive сървър
+// 3. Keep-alive сървър за хостинг
 const http = require('http');
 const port = process.env.PORT || 10000;
 http.createServer((req, res) => {
@@ -63,37 +69,24 @@ client.on("guildMemberAdd", async (member) => {
     await handleNewMember(member);
 });
 
-// 7. Основен слушател
+// 7. ОСНОВЕН СЛУШАТЕЛ
 client.on("messageCreate", async (msg) => {
     if (msg.author.bot || !msg.guild) return;
 
-    console.log(`[DEBUG] Message in #${msg.channel.name}: "${msg.content}"`);
-
-
     const lowerContent = msg.content.toLowerCase();
 
-// --- MANIA СИСТЕМА ---
-if (lowerContent === "mania-plan") {
-    const { handleManiaPlan } = require("./utilities/scheduler");
-    return await handleManiaPlan(msg);
-}
+    // --- 1. MANIA СИСТЕМА ---
+    if (lowerContent === "mania-plan") {
+        return await handleManiaPlan(msg);
+    }
+    if (lowerContent === "mania-list") {
+        return await handleManiaList(msg);
+    }
+    if (lowerContent.startsWith("mania-strategy")) {
+        return await handleManiaStrategy(msg, pool);
+    }
 
-if (lowerContent === "mania-list") {
-    const { handleManiaList } = require("./utilities/scheduler");
-    return await handleManiaList(msg);
-}
-
-if (lowerContent.startsWith("mania-strategy")) {
-    const { handleManiaStrategy } = require("./utilities/scheduler");
-    return await handleManiaStrategy(msg, pool);
-}
-
-
-
-    
-    
-
-    // --- 1. Команди (!addrole / !removerole / други) ---
+    // --- 2. Команди (!addrole / !removerole / !commands) ---
     if (msg.content.startsWith("!")) {
         const content = msg.content.trim();
         const args = content.split(/\s+/);
@@ -102,15 +95,14 @@ if (lowerContent.startsWith("mania-strategy")) {
         if (cmd === "!addrole" || cmd === "!removerole") {
             return await handleRoleCommands(msg, cmd, args);
         }
-
         return await handleCommands(msg, pool);
     }
 
-    // --- 2. Специални канали ---
+    // --- 3. Специални канали ---
     const specialHandled = await handleSpecialChannels(msg, pool);
     if (specialHandled) return;
 
-    // --- 3. Преводач (ai-translator канал) ---
+    // --- 4. Преводач (ai-translator канал) ---
     if (msg.channel.name === 'ai-translator') {
         if (translationCooldown.has(msg.author.id)) return;
 
