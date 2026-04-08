@@ -37,11 +37,18 @@ http.createServer((req, res) => {
 }).listen(port);
 console.log(`Monitoring server started on port ${port}`);
 
-// ---  ПЪРВО ИНИЦИАЛИЗИРАМЕ БАЗАТА ---
+// 4. Функция за стартиране на системата
 async function startSystem() {
     try {
         await initDB(); // Изчакваме таблиците да са готови
         console.log("✅ Database is ready.");
+        
+        // Влизаме в Discord едва след като базата е готова
+        client.login(process.env.DISCORD_TOKEN);
+    } catch (err) {
+        console.error("❌ Critical Startup Error:", err.message);
+    }
+}
 
 // 4. Ботът е онлайн
 client.once("ready", async () => {
@@ -196,8 +203,7 @@ client.on("messageCreate", async (msg) => {
         "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExZHg3emxudmRqZ2x4eG9nZ3FsYWFuZDZoeHF3MHVwbWI3a3Nod3ZuNyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/dlKxhG0vaPkXr6R4Da/giphy.gif",
         "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXVqb2drZjVucngybzJiNHhycnRueDJ4OGpja2h6NW4zOXYzMTJwaCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/mSb6D6bfTToa6JAUXD/giphy.gif",
         "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExdG83eW4xemhrOHJjdXhiODBkYmppMHRuanJmbWR1bjJjZnpwYnpvMSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/K7HP8vmRFmHdkQwgGU/giphy.gif",
-        "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExMWVmcXliMGlsNWtkbnBzOTN6ZHlsNW55d25ucTh3aWtlbnphMWxkMSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/BjSp5w6ed5uQpihCAL/giphy.gif"
-    ];
+        "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExMWVmcXliMGlsNWtkbnBzOTN6ZHlsNW55d25ucTh3aWtlbnphMWxkMSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/BjSp5w6ed5uQpihCAL/giphy.gif"];
 
     // Избираме случаен GIF
     const randomGif = morningGifs[Math.floor(Math.random() * morningGifs.length)];
@@ -211,40 +217,7 @@ client.on("messageCreate", async (msg) => {
     return msg.reply({ embeds: [morningEmbed] });
 }
 
-
-   /* // --- 6. Capture strategy ---
-    const strategyEmbed = await captureStrategy(msg, pool);
-    if (strategyEmbed) {
-        await msg.react("📥");
-        return msg.channel.send({ embeds: [strategyEmbed] });
-    }
-    */
 });
-
-
-// 7. Graceful shutdown
-async function sendFarewell(client) {
-    const promises = [];
-    for (const guild of client.guilds.cache.values()) {
-        const logChannel = guild.channels.cache.find(ch => ch.name === "bot-only");
-        if (logChannel) {
-            promises.push(
-                logChannel.send("⚓ **Captain's leaving the deck...** The ship is anchored. Offline.")
-                    .catch(err => console.error(`❌ Failed to send to ${guild.name}:`, err.message))
-            );
-        }
-    }
-    return Promise.all(promises);
-}
-
-async function gracefulShutdown() {
-    console.log("🛑 Stopping bot sequence...");
-    try { await sendFarewell(client); } catch (err) { console.error(err); }
-    setTimeout(() => { client.destroy(); process.exit(0); }, 2000);
-}
-
-process.on('SIGTERM', gracefulShutdown);
-process.on('SIGINT', gracefulShutdown);
 
 // 9. Логване на бота
 client.login(process.env.DISCORD_TOKEN);
