@@ -23,11 +23,12 @@ const sendBotManual = async (guild) => {
                 value: "• **Auto-Translate:** Write in any language; I'll instantly translate it to 🇺🇸 **English**.\n" +
                        "• **Reverse Translation:** Reply to a translated message in English to translate it back to the original author's language."
             },
-            { 
-                name: "⚔️ 2. Mania Strategy System", 
-                value: "• **Recording:** Type `mania-strategy <text>` anywhere. I'll react with 📥.\n" +
-                       "• **19:25 (London):** I'll post the strategy in <#mania-reminder> with `@everyone` and a poll (✅).\n" +
-                       "• **20:00 (London):** Audit time! I'll personally ping everyone who hasn't confirmed their status."
+           { 
+                name: "⚔️ 2. Mania Battle System", 
+                value: "• **Step 1: `mania-plan`** - Start recruitment with ✅/❌ reactions.\n" +
+                       "• **Step 2: `mania-list`** - Get a live report of all confirmed players before the fight.\n" +
+                       "• **Step 3: `mania-strategy <text>`** - Post the final formatted battle plan and ping everyone.\n" +
+                           "*Format:* Boss Name - @Player1 @Player2 (use a new line for each boss)."
             },
             { 
                 name: "🚢 3. Special Channels & Rules", 
