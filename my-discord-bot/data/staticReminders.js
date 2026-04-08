@@ -51,8 +51,8 @@ const ghostLastCall = [
 
 module.exports = [
   { cron: "0 12 * * 3,5,0", message: "Guess what day it is today? Mania day 😈!!", target: "@everyone" },
-  { cron: "45 19 * * 3,5,0", message: "15 min until Mania starts!", target: "@everyone" },
-  { cron: "0 20 * * 3,5,0", message: "Mania is open Let's party Are you READY?!", target: "@everyone" },
+  { cron: "45 19 * * 3,5,0", message: "15 min until Mania starts! Are you READY?", target: "@everyone" },
+  { cron: "0 20 * * 3,5,0", message: "Mania is open Let's party!", target: "@everyone" },
 
 
   //SHANDORA !!!
