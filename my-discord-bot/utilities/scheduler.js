@@ -163,7 +163,7 @@ async function handleManiaStrategy(msg, pool) {
     `, [rawContent]);
 
     await msg.channel.send({ 
-        content: "@everyone 🚩 **NEW STRATEGY ISSUED!**", 
+        content: "@everyone 🚩 **TODAY'S TARGETS 👑 !**", 
         embeds: [stratEmbed] 
     });
 
