@@ -206,13 +206,14 @@ client.on("messageCreate", async (msg) => {
 }
 
 
-    // --- 6. Capture strategy ---
+   /* // --- 6. Capture strategy ---
     const strategyEmbed = await captureStrategy(msg, pool);
     if (strategyEmbed) {
         await msg.react("📥");
         return msg.channel.send({ embeds: [strategyEmbed] });
     }
 });
+*/
 
 // 7. Graceful shutdown
 async function sendFarewell(client) {
