@@ -69,6 +69,30 @@ client.on("messageCreate", async (msg) => {
 
     console.log(`[DEBUG] Message in #${msg.channel.name}: "${msg.content}"`);
 
+
+    const lowerContent = msg.content.toLowerCase();
+
+// --- MANIA СИСТЕМА ---
+if (lowerContent === "mania-plan") {
+    const { handleManiaPlan } = require("./utilities/scheduler");
+    return await handleManiaPlan(msg);
+}
+
+if (lowerContent === "mania-list") {
+    const { handleManiaList } = require("./utilities/scheduler");
+    return await handleManiaList(msg);
+}
+
+if (lowerContent.startsWith("mania-strategy")) {
+    const { handleManiaStrategy } = require("./utilities/scheduler");
+    return await handleManiaStrategy(msg, pool);
+}
+
+
+
+    
+    
+
     // --- 1. Команди (!addrole / !removerole / други) ---
     if (msg.content.startsWith("!")) {
         const content = msg.content.trim();
