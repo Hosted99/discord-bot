@@ -50,15 +50,18 @@ async function startSystem() {
     }
 }
 
-// 4. Ботът е онлайн
+// 5. БОТЪТ Е ОНЛАЙН (Връщаме съобщенията тук)
 client.once("ready", async () => {
-    await initDB();
+    // Вече можем безопасно да пуснем шедулъра
     initSchedulers(client, pool);
     console.log(`🤖 Онлайн като: ${client.user.tag}`);
 
+    // Изпращане на Manual и Online статус във всеки сървър
     client.guilds.cache.forEach(async (guild) => {
+        // Изпращане на инфо за бота (Manual)
         await sendBotManual(guild).catch(err => console.log("Грешка при Manual msg:", err.message));
 
+        // Търсене на канал за статус
         const botChannel = guild.channels.cache.find(ch => ch.name === "bot-only");
         if (botChannel) {
             const aliveEmbed = new EmbedBuilder()
