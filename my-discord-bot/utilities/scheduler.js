@@ -37,8 +37,8 @@ function initSchedulers(client, pool) {
         });
     });
 
-    // --- 3. ПУСКАНЕ НА СТРАТЕГИЯТА (19:15 London Time) ---
-    cron.schedule("03 21 * * *", async () => { // Всеки ден в 19:15
+    // --- 3. ПУСКАНЕ НА СТРАТЕГИЯТА (18:45 London Time) ---
+    cron.schedule("45 18 * * *", async () => { // Всеки ден в 19:15
         try {
             const res = await pool.query("SELECT value FROM global_vars WHERE key = 'last_strategy'"); // Вземаме стратегията от DB
             if (res.rows.length === 0) return; // Ако няма запис – излизаме
@@ -56,7 +56,7 @@ function initSchedulers(client, pool) {
                         .setDescription(strategyText) // Описание
                         .setColor("#FF4500") // Цвят
                         .setThumbnail("https://imgur.com") // Thumbnail (тук трябва реален линк)
-                        .setFooter({ text: "Confirm your presence with ✅ before 19:50!" }) // Footer
+                        .setFooter({ text: "Confirm your presence with ✅ before 19:30!" }) // Footer
                         .setTimestamp(); // Timestamp
 
                     strategyMsgObject = await channel.send({ // Пращаме съобщението
@@ -72,8 +72,8 @@ function initSchedulers(client, pool) {
         }
     }, { timezone: "Europe/London" });
 
-    // --- 4. ПРОВЕРКА НА ДИСЦИПЛИНАТА (19:16 London Time) ---
-    cron.schedule("05 21 * * *", async () => { // 1 минута по-късно
+    // --- 4. ПРОВЕРКА НА ДИСЦИПЛИНАТА (19:30 London Time) ---
+    cron.schedule("30 19 * * *", async () => { // 1 минута по-късно
         if (!strategyMsgObject) return; // Ако няма стратегия – излизаме
 
         try {
