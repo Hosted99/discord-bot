@@ -67,21 +67,58 @@ async function handleManiaList(msg) {
 
     try {
         const planMsg = await msg.channel.messages.fetch(currentPlanMsgId);
-        const reaction = planMsg.reactions.cache.get("✅");
-        const users = reaction ? await reaction.users.fetch() : [];
-        const confirmed = users.filter(u => !u.bot).map(u => `<@${u.id}>`);
+        
+        // 1. Взимаме ✅ (Will Play)
+        const reactionYes = planMsg.reactions.cache.get("✅");
+        const usersYes = reactionYes ? await reactionYes.users.fetch() : new Map();
+        const confirmed = usersYes.filter(u => !u.bot).map(u => `<@${u.id}>`);
 
-        const listEmbed = new EmbedBuilder()
-            .setTitle("📊 CURRENT ONLINE LIST")
-            .setDescription(confirmed.length > 0 ? confirmed.join("\n") : "No one confirmed.")
-            .addFields({ name: "TOTAL:", value: `${confirmed.length} players` })
-            .setColor("#0099FF");
+        // 2. Взимаме ❌ (Won't Play)
+        const reactionNo = planMsg.reactions.cache.get("❌");
+        const usersNo = reactionNo ? await reactionNo.users.fetch() : new Map();
+        const declined = usersNo.filter(u => !u.bot).map(u => `<@${u.id}>`);
 
-        await msg.channel.send({ embeds: [listEmbed] });
+        // 3. Намираме тези, които не са гласували (No Response)
+        const allMembers = await msg.guild.members.fetch();
+        const votedIds = [...usersYes.keys(), ...usersNo.keys()];
+        const missing = allMembers.filter(m => 
+            !m.user.bot && 
+            m.roles.cache.size > 1 && 
+            !votedIds.includes(m.id)
+        ).map(m => `<@${m.id}>`);
+
+        // --- ИЗПРАЩАНЕ НА 3 ОТДЕЛНИ СЪОБЩЕНИЯ ---
+
+        // Съобщение 1: ✅
+        const embedYes = new EmbedBuilder()
+            .setTitle("✅ WILL PLAY TODAY")
+            .setDescription(confirmed.join(", ") || "No one yet.")
+            .setColor("#2ecc71")
+            .setFooter({ text: `Total: ${confirmed.length} players` });
+        await msg.channel.send({ embeds: [embedYes] });
+
+        // Съобщение 2: ❌
+        const embedNo = new EmbedBuilder()
+            .setTitle("❌ WON'T PLAY")
+            .setDescription(declined.join(", ") || "No one yet.")
+            .setColor("#e74c3c")
+            .setFooter({ text: `Total: ${declined.length} players` });
+        await msg.channel.send({ embeds: [embedNo] });
+
+        // Съобщение 3: ⏳
+        const embedMissing = new EmbedBuilder()
+            .setTitle("⏳ NO RESPONSE (MISSING)")
+            .setDescription(missing.length > 0 ? missing.slice(0, 30).join(", ") : "Everyone has voted!")
+            .setColor("#f1c40f")
+            .setFooter({ text: `Total: ${missing.length} players ignored the plan` });
+        await msg.channel.send({ embeds: [embedMissing] });
+
     } catch (e) {
-        msg.reply("Error fetching plan data.");
+        console.error("List Error:", e);
+        msg.reply("Error fetching player lists.");
     }
 }
+
 
 /**
  * ПУБЛИКУВАНЕ НА СТРАТЕГИЯ (mania-strategy)
