@@ -47,21 +47,21 @@ async function handleSpecialChannels(msg) {
         return true; 
     }
 
-    // --- 2. Логика САМО ЗА СНИМКИ (Photos Only) ---
-    // Проверява дали в описанието (Topic) на канала има думата "photos"
-    if (msg.channel.topic && msg.channel.topic.includes("photos")) {
-        // Ако съобщението няма прикачени файлове (снимки)
+   // --- 2. НОВАТА Логика за СНИМКИ (Photos Only) ---
+    // Сега ботът ще трие САМО ако името на канала съдържа думата "photos"
+    // Пример: #daily-photos, #island-photos. В #nsfw вече няма да трие!
+    if (msg.channel.name.toLowerCase().includes("photos")) {
         if (msg.attachments.size === 0) {
             try {
                 await msg.delete();
                 const warning = await msg.channel.send(`📸 ${msg.author}, only photos are allowed in this channel!`);
                 setTimeout(() => warning.delete().catch(() => {}), 5000);
             } catch (err) { console.error("Photo channel cleanup error:", err.message); }
-            return true; // Спираме съобщението да стигне до командите
+            return true; 
         }
     }
     
-    return false; // Продължаваме към командите, ако не сме в специален канал
+    return false; 
 }
 
 module.exports = { handleSpecialChannels };
