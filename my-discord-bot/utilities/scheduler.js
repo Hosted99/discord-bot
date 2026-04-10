@@ -124,35 +124,53 @@ async function handleManiaList(msg) {
  * ПУБЛИКУВАНЕ НА СТРАТЕГИЯ (mania-strategy)
  */
 async function handleManiaStrategy(msg, pool) {
+    // Премахваме командата и излишните интервали
     const rawContent = msg.content.replace(/mania-strategy/gi, "").trim();
     if (!rawContent) return;
 
-    // Списък с епични аниме битки за GIF
+    // Списък с GIF-ове (Вано Арка / Луфи)
     const strategyGifs = [
-        "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExZ3kxYzJmN3N2MTNqNzI4ZHk5dXVldWI3cjdvMndjdnJmMWN3bmdzdCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/QfD1Hv15WwflPZeeWF/giphy.gif",
-        "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExODVhMWpwY3h6OGk5OW1ldDJucDVjZXp5ZjloNG82OW1pNjh0NDF1biZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Muqc4t03A8sz4ksa5i/giphy.gif",
-        "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExNzljYXR6cTQ2aWtrc25lbXljenVmMTN4YjdhMXcyNmJjeWdoZW1ueiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Rz24pRStq8KaEwz9c6/giphy.gif"
+        "https://giphy.com",
+        "https://giphy.com",
+        "https://giphy.com"
     ];
     const randomGif = strategyGifs[Math.floor(Math.random() * strategyGifs.length)];
 
     const lines = rawContent.split('\n').filter(l => l.trim() !== "");
+    
     const stratEmbed = new EmbedBuilder()
         .setTitle("🏴‍☠️ DAILY BATTLE STRATEGY")
         .setDescription("All pirates to your positions!")
         .setColor("#FF4500")
-        .setImage(randomGif) // Добавяме GIF-а тук
+        .setImage(randomGif)
         .setTimestamp();
 
     lines.forEach(line => {
         if (line.includes('-')) {
             const [boss, players] = line.split('-');
+            
+            // Форматираме списъка с играчи:
+            // 1. Махаме излишни интервали
+            // 2. Разделяме по запетая (ако има)
+            // 3. Слагаме всеки на нов ред с точка (•) за прегледност
+            const playerList = players.trim()
+                .split(',')
+                .map(p => p.trim())
+                .filter(p => p.length > 0)
+                .join('\n• ');
+
             stratEmbed.addFields({
                 name: `⚔️ ${boss.trim().toUpperCase()}`,
-                value: players.trim(),
-                inline: false
+                value: `• ${playerList}`, // Добавяме точка и пред първия играч
+                inline: false // ВИНАГИ false за по-добра четимост на мобилни устройства
             });
         }
     });
+
+    // Изпращаме съобщението
+    await msg.channel.send({ embeds: [stratEmbed] });
+}
+
 
     // ПРЕЗАПИСВАНЕ В DB
     await pool.query(`
