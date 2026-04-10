@@ -135,25 +135,29 @@ async function handleManiaStrategy(msg, pool) {
         if (line.includes('-')) {
             const [boss, playersPart] = line.split('-');
             
-            // РЕШЕНИЕ: Разделяме САМО по запетая. 
-            // Така "Mr.J Mugi's lil bro" остава едно цяло име.
+            // 1. Разделяме имената по запетая
+            // 2. Чистим излишните интервали и символа @
             const players = playersPart.trim()
-                .split(',') 
-                .map(p => p.trim().replace(/@/g, "")) // Махаме @ за по-чисто
-                .filter(p => p.length > 0)
-                .join(', ');
+                .split(',')
+                .map(p => p.trim().replace(/@/g, ""))
+                .filter(p => p.length > 0);
 
-            if (players) {
-                response += ` ┌── ⚔️ ${boss.trim().toUpperCase()}\n`;
-                response += ` └─ 👤 ${players}\n`;
-                response += ` ──────────────────────────────────\n`;
+            if (players.length > 0) {
+                response += `┌── ⚔️ ${boss.trim().toUpperCase()}\n`;
+                
+                // Всеки играч отива на нов ред с иконка за по-добра подредба
+                players.forEach(player => {
+                    response += `└─ 👤 ${player}\n`;
+                });
+                
+                response += `──────────────────────────────────\n`;
             }
         }
     });
 
     response += "```\n@everyone **ALL PIRATES TO POSITIONS!**";
 
-    // Запис в DB
+    // ПРЕЗАПИСВАНЕ В DB
     await pool.query(`
         INSERT INTO global_vars (key, value) 
         VALUES ('last_strategy', $1) 
@@ -164,6 +168,7 @@ async function handleManiaStrategy(msg, pool) {
     await msg.channel.send(response);
     if (msg.deletable) await msg.delete().catch(() => {});
 }
+
 
 
 
