@@ -159,7 +159,7 @@ async function handleManiaStrategy(msg, pool) {
             const fieldData = {
                 name: `⚔️ ${boss.trim().toUpperCase()}`,
                 value: players.length > 0 ? `• ${players.join('\n• ')}` : "No players assigned",
-                inline: true 
+                inline: false
             };
 
             if (index < 6) {
