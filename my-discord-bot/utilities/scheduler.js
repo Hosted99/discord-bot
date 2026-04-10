@@ -1,7 +1,10 @@
 const cron = require("node-cron"); // Импортираме cron библиотеката за scheduling
 const { EmbedBuilder } = require("discord.js"); // Импортираме EmbedBuilder за красиви Discord съобщения
 const staticList = require("../data/staticReminders"); // Зареждаме статичните напомняния
-const DB_PATH = path.join(__dirname, '..', 'data', 'database.json'); // Пътят нагоре към data
+const fs = require('fs');
+const path = require('path');
+// Пътят отива една папка нагоре и влиза в 'data'
+const DB_PATH = path.join(__dirname, '..', 'data', 'database.json');
 
 // Глобални променливи за модула
 let currentPlanMsgId = null;
@@ -57,8 +60,9 @@ async function handleManiaPlan(msg) {
     await planMsg.react("✅");
     await planMsg.react("❌");
     
-    // ЗАПИСВАМЕ НОВОТО ID ВЪВ ФАЙЛА
+    // ЗАПИСВАМЕ ID-ТО ВЪВ ФАЙЛА
     fs.writeFileSync(DB_PATH, JSON.stringify({ planId: planMsg.id }, null, 2));
+    lastVotedString = ""; // Нулираме проверката за нов план
 
     if (msg.deletable) await msg.delete().catch(() => {});
 }
@@ -67,76 +71,60 @@ async function handleManiaPlan(msg) {
  * СПИСЪК НА ПОТВЪРДИЛИТЕ (mania-list)
  */
 async function handleManiaList(msg) {
-    if (!currentPlanMsgId) return msg.reply("❌ No active plan found!");
+    // ЧЕТЕМ ID-ТО ОТ ФАЙЛА
+    let planData = { planId: null };
+    if (fs.existsSync(DB_PATH)) {
+        planData = JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
+    }
+
+    if (!planData.planId) return msg.reply("❌ No active plan found!");
 
     try {
-        const planMsg = await msg.channel.messages.fetch(currentPlanMsgId).catch(() => null);
-        if (!planMsg) return msg.reply("❌ Original plan message was deleted!");
+        const planMsg = await msg.channel.messages.fetch(planData.planId).catch(() => null);
+        if (!planMsg) return msg.reply("❌ Plan not found in channel!");
 
-        // 1. Взимаме гласувалите
-        const reactionYes = planMsg.reactions.cache.get("✅");
-        const usersYes = reactionYes ? await reactionYes.users.fetch() : new Map();
-        const confirmed = usersYes.filter(u => !u.bot).map(u => u.id); // Взимаме само ID-та за проверка
+        // Логика за взимане на реакциите
+        const usersYes = await planMsg.reactions.cache.get("✅")?.users.fetch() || new Map();
+        const confirmed = usersYes.filter(u => !u.bot).map(u => `<@${u.id}>`);
 
-        const reactionNo = planMsg.reactions.cache.get("❌");
-        const usersNo = reactionNo ? await reactionNo.users.fetch() : new Map();
-        const declined = usersNo.filter(u => !u.bot).map(u => u.id);
+        const usersNo = await planMsg.reactions.cache.get("❌")?.users.fetch() || new Map();
+        const declined = usersNo.filter(u => !u.bot).map(u => `<@${u.id}>`);
 
-        // 2. ПРОВЕРКА ЗА ПРОМЯНА: Сравняваме текущите гласове с предишните
-        const currentVotedString = [...confirmed, ...declined].sort().join(",");
-        if (currentVotedString === lastVotedString && lastVotedString !== "") {
-            const noChangeMsg = await msg.channel.send("ℹ️ No changes since the last list.");
-            // Изтриваме съобщението "няма промяна" след 5 секунди, за да е чисто
-            setTimeout(() => noChangeMsg.delete().catch(() => {}), 5000);
-            if (msg.deletable) await msg.delete().catch(() => {});
-            return; // Спираме до тук, няма нужда от нов списък
+        // Проверка за промяна
+        const currentVoted = [...confirmed, ...declined].join("");
+        if (currentVoted === lastVotedString && lastVotedString !== "") {
+            return msg.reply("ℹ️ No changes since last check.").then(m => setTimeout(() => m.delete(), 5000));
         }
-        
-        lastVotedString = currentVotedString; // Обновяваме "паметта" на бота
+        lastVotedString = currentVoted;
 
-        // 3. Намираме негласувалите (тук често става грешката)
-        let missingMentions = [];
-        try {
-            const allMembers = await msg.guild.members.fetch();
-            const votedIds = [...confirmed, ...declined];
-            missingMentions = allMembers
-                .filter(m => !m.user.bot && m.roles.cache.size > 1 && !votedIds.includes(m.id))
-                .map(m => `<@${m.id}>`);
-        } catch (fetchError) {
-            console.error("Fetch Error:", fetchError);
-            // Ако fetch се провали, просто продължаваме без списък "Missing", вместо да спираме всичко
-        }
+        // Намираме негласувалите (Missing)
+        const allMembers = await msg.guild.members.fetch();
+        const votedIds = [...usersYes.keys(), ...usersNo.keys()];
+        const missing = allMembers.filter(m => !m.user.bot && !votedIds.includes(m.id)).map(m => `<@${m.id}>`);
 
-        // 4. Подготвяме споменаванията за потвърдилите и отказалите
-        const confirmedMentions = confirmed.map(id => `<@${id}>`).join(", ") || "None yet";
-        const declinedMentions = declined.map(id => `<@${id}>`).join(", ") || "None";
-
-        // 5. Пращаме Embed
-        const statusEmbed = new EmbedBuilder()
-            .setTitle("⚔️ CURRENT FORMATION STATUS")
-            .setDescription("The original plan is still active above! 👆")
-            .setColor("#3498db")
+        // Пращане на списъка
+        const embed = new EmbedBuilder()
+            .setTitle("⚔️ CURRENT STATUS")
             .addFields(
-                { name: `✅ CONFIRMED (${confirmed.length})`, value: confirmedMentions, inline: false },
-                { name: `❌ DECLINED (${declined.length})`, value: declinedMentions, inline: false }
-            );
+                { name: `✅ YES (${confirmed.length})`, value: confirmed.join(", ") || "None", inline: false },
+                { name: `❌ NO (${declined.length})`, value: declined.join(", ") || "None", inline: false }
+            ).setColor("#3498db");
 
-        await msg.channel.send({ embeds: [statusEmbed] });
-
-        // 6. Пингваме липсващите само ако има такива
-        if (missingMentions.length > 0) {
-            await msg.channel.send({ 
-                content: `🔔 **Attention!** These players haven't voted:\n${missingMentions.join(" ")}` 
-            });
+        await msg.channel.send({ embeds: [embed] });
+        
+        // ПИНГ за тези, които не са гласували
+        if (missing.length > 0) {
+            await msg.channel.send(`🔔 **Missing votes:** ${missing.join(" ")}`);
         }
 
         if (msg.deletable) await msg.delete().catch(() => {});
 
     } catch (e) {
-        // Тази грешка вече ще излиза само при сериозен проблем, не при всяко писане
-        console.error("General List Error:", e);
+        console.error(e);
+        msg.reply("Error fetching the list.");
     }
 }
+
 
 
 
