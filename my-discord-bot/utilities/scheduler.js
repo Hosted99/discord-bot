@@ -129,35 +129,33 @@ async function handleManiaStrategy(msg, pool) {
 
     const lines = rawContent.split('\n').filter(l => l.trim() !== "");
     
+    // Заглавието е отвън, за да не пречи на подравняването вътре
     let response = "🏴‍☠️ **DAILY BATTLE STRATEGY**\n```text\n";
 
     lines.forEach(line => {
         if (line.includes('-')) {
             const [boss, playersPart] = line.split('-');
             
-            // 1. Разделяме имената по запетая
-            // 2. Чистим излишните интервали и символа @
             const players = playersPart.trim()
-                .split(',')
+                .split(/,\s*|\s+(?=@)/) 
                 .map(p => p.trim().replace(/@/g, ""))
                 .filter(p => p.length > 0);
 
             if (players.length > 0) {
-                response += `┌── ⚔️ ${boss.trim().toUpperCase()}\n`;
+                // Използваме прости текстови символи [X] и > за 100% точност
+                response += `[ BOSS ] ${boss.trim().toUpperCase()}\n`;
                 
-                // Всеки играч отива на нов ред с иконка за по-добра подредба
                 players.forEach(player => {
-                    response += `└─ 👤 ${player}\n`;
+                    response += `  > ${player}\n`;
                 });
                 
-                response += `──────────────────────────────────\n`;
+                response += `--------------------------------\n`;
             }
         }
     });
 
     response += "```\n@everyone **ALL PIRATES TO POSITIONS!**";
 
-    // ПРЕЗАПИСВАНЕ В DB
     await pool.query(`
         INSERT INTO global_vars (key, value) 
         VALUES ('last_strategy', $1) 
@@ -168,6 +166,7 @@ async function handleManiaStrategy(msg, pool) {
     await msg.channel.send(response);
     if (msg.deletable) await msg.delete().catch(() => {});
 }
+
 
 
 
