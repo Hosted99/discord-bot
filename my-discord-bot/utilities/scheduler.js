@@ -145,25 +145,25 @@ async function handleManiaStrategy(msg, pool) {
         .setImage(randomGif)
         .setTimestamp();
 
-    lines.forEach(line => {
-    if (line.includes('-')) {
-        const [boss, players] = line.split('-');
-        
-        // РЕШЕНИЕ: Разделяме САМО по запетая. 
-        // Така имена като "@☠ Hosted" ще останат цели на един ред.
-        const playerList = players.trim()
-            .split(',') 
-            .map(p => p.trim())
-            .filter(p => p.length > 0)
-            .join('\n• ');
+        lines.forEach(line => {
+        if (line.includes('-')) {
+            const [boss, playersPart] = line.split('-');
+            
+            // МАГИЯТА Е ТУК: Разделяме само там, където има запетая ИЛИ интервал, последван от @
+            // Това пази имена като "@ᐪˢ☠️ Hosted" цели.
+            const players = playersPart.trim()
+                .split(/,\s*|\s+(?=@)/) 
+                .map(p => p.trim())
+                .filter(p => p.length > 0);
 
-        stratEmbed.addFields({
-            name: `⚔️ ${boss.trim().toUpperCase()}`,
-            value: playerList.length > 0 ? `• ${playerList}` : "No players assigned",
-            inline: false 
-        });
-    }
-});
+            stratEmbed.addFields({
+                name: `⚔️ ${boss.trim().toUpperCase()}`,
+                value: players.length > 0 ? `• ${players.join('\n• ')}` : "No players assigned",
+                inline: false 
+            });
+        }
+    });
+
 
 
     // ПРЕЗАПИСВАНЕ В DB
