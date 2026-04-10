@@ -184,7 +184,7 @@ client.on("messageCreate", async (msg) => {
     }
 
     // --- 4. Лека нощ ---
-    const nightRegex = /\b(good night|nighty night|gn)\b/i;
+    const nightRegex = /\b(good night|nighty night|)\b/i;
     if (nightRegex.test(msg.content.toLowerCase())) {
         const nightEmbed = new EmbedBuilder()
             .setTitle(`🌙 Good night!`)
