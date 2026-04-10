@@ -129,21 +129,24 @@ async function handleManiaStrategy(msg, pool) {
 
     const lines = rawContent.split('\n').filter(l => l.trim() !== "");
     
-    // Заглавието е отвън, за да не пречи на подравняването вътре
     let response = "🏴‍☠️ **DAILY BATTLE STRATEGY**\n```text\n";
 
     lines.forEach(line => {
         if (line.includes('-')) {
-            const [boss, playersPart] = line.split('-');
+            // Разделяме САМО по първото тире (Бос - Играчи)
+            const parts = line.split('-');
+            const boss = parts[0].trim().toUpperCase();
+            // Всичко след първото тире са играчите
+            const playersPart = parts.slice(1).join('-').trim();
             
-            const players = playersPart.trim()
-                .split(/,\s*|\s+(?=@)/) 
+            // ВАЖНО: Разделяме САМО по запетая. Интервалите в имената вече не пречат!
+            const players = playersPart
+                .split(',') 
                 .map(p => p.trim().replace(/@/g, ""))
                 .filter(p => p.length > 0);
 
             if (players.length > 0) {
-                // Използваме прости текстови символи [X] и > за 100% точност
-                response += `[ BOSS ] ${boss.trim().toUpperCase()}\n`;
+                response += `[ BOSS ] ${boss}\n`;
                 
                 players.forEach(player => {
                     response += `  > ${player}\n`;
@@ -156,6 +159,7 @@ async function handleManiaStrategy(msg, pool) {
 
     response += "```\n@everyone **ALL PIRATES TO POSITIONS!**";
 
+    // DB запис
     await pool.query(`
         INSERT INTO global_vars (key, value) 
         VALUES ('last_strategy', $1) 
