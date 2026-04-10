@@ -196,7 +196,7 @@ client.on("messageCreate", async (msg) => {
     }
 
     // --- 5. Добро утро ---
-    const morningRegex = /\b(good morning|morning|добро утро)\b/i;
+    const morningRegex = /\b(good morning|добро утро)\b/i;
 
     if (morningRegex.test(msg.content.toLowerCase())) {
     // Списък с различни GIF-ове
