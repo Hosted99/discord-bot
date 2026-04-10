@@ -124,6 +124,7 @@ async function handleManiaList(msg) {
  * ПУБЛИКУВАНЕ НА СТРАТЕГИЯ (mania-strategy)
  */
 async function handleManiaStrategy(msg, pool) {
+    const { EmbedBuilder } = require('discord.js');
     const rawContent = msg.content.replace(/mania-strategy/gi, "").trim();
     if (!rawContent) return;
 
@@ -135,18 +136,18 @@ async function handleManiaStrategy(msg, pool) {
 
     const lines = rawContent.split('\n').filter(l => l.trim() !== "");
     
-    // Основният Embed (Лява колона + Картинка)
     const embedLeft = new EmbedBuilder()
         .setTitle("🏴‍☠️ DAILY BATTLE STRATEGY")
         .setDescription("All pirates to your positions!")
         .setColor("#FF4500")
         .setImage(randomGif);
 
-    // Втори Embed (Дясна колона)
     const embedRight = new EmbedBuilder()
+        .setTitle("⚔️ ADDITIONAL TARGETS") // Добавяме заглавие, за да не е празен
         .setColor("#FF4500");
 
-    // Разделяме босовете: първите 6 вляво, останалите вдясно
+    let hasRightContent = false;
+
     lines.forEach((line, index) => {
         if (line.includes('-')) {
             const [boss, playersPart] = line.split('-');
@@ -157,14 +158,15 @@ async function handleManiaStrategy(msg, pool) {
 
             const fieldData = {
                 name: `⚔️ ${boss.trim().toUpperCase()}`,
-                value: players.length > 0 ? `• ${players.join('\n• ')}` : "No players",
-                inline: true // Използваме true тук, за да стоят компактно
+                value: players.length > 0 ? `• ${players.join('\n• ')}` : "No players assigned",
+                inline: true 
             };
 
             if (index < 6) {
                 embedLeft.addFields(fieldData);
             } else {
                 embedRight.addFields(fieldData);
+                hasRightContent = true;
             }
         }
     });
@@ -177,16 +179,18 @@ async function handleManiaStrategy(msg, pool) {
         DO UPDATE SET value = EXCLUDED.value
     `, [rawContent]);
 
-    // ИЗПРАЩАНЕ (Discord ще ги покаже един до друг или един под друг в зависимост от устройството)
+    // Подготвяме масива с ембеди - добавяме втория само ако има съдържание
+    const embedsToSend = [embedLeft];
+    if (hasRightContent) embedsToSend.push(embedRight);
+
     await msg.channel.send({ 
         content: "@everyone 🚩 **TODAY'S TARGETS 👑 !**", 
-        embeds: [embedLeft, embedRight] 
+        embeds: embedsToSend 
     });
 
     if (typeof currentPlanMsgId !== 'undefined') currentPlanMsgId = null; 
     if (msg.deletable) await msg.delete().catch(() => {});
 }
-
 
 
 /**
