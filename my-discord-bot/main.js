@@ -1,5 +1,6 @@
 const Groq = require("groq-sdk");
 const { Client, GatewayIntentBits, EmbedBuilder } = require("discord.js");
+const DB_PATH = path.join(__dirname, 'data', 'database.json');
 const { pool, initDB } = require("./utilities/db");
 const { 
     initSchedulers, 
