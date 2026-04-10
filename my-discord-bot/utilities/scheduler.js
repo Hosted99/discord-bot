@@ -120,58 +120,51 @@ async function handleManiaList(msg) {
 }
 
 
-/**
+**
  * ПУБЛИКУВАНЕ НА СТРАТЕГИЯ (mania-strategy)
  */
 async function handleManiaStrategy(msg, pool) {
-    const { EmbedBuilder } = require('discord.js');
     const rawContent = msg.content.replace(/mania-strategy/gi, "").trim();
     if (!rawContent) return;
 
-    const strategyGifs = [
-        "https://giphy.com",
-        "https://giphy.com"
-    ];
-    const randomGif = strategyGifs[Math.floor(Math.random() * strategyGifs.length)];
-
     const lines = rawContent.split('\n').filter(l => l.trim() !== "");
-    
-    const embedLeft = new EmbedBuilder()
-        .setTitle("🏴‍☠️ DAILY BATTLE STRATEGY")
-        .setDescription("All pirates to your positions!")
-        .setColor("#FF4500")
-        .setImage(randomGif);
+    let strategyData = [];
 
-    const embedRight = new EmbedBuilder()
-        .setTitle("⚔️ ADDITIONAL TARGETS") // Добавяме заглавие, за да не е празен
-        .setColor("#FF4500");
-
-    let hasRightContent = false;
-
-    lines.forEach((line, index) => {
+    // 1. Събираме данните и чистим имената за таблицата
+    lines.forEach(line => {
         if (line.includes('-')) {
-            const [boss, playersPart] = line.split('-');
-            const players = playersPart.trim()
-                .split(/,\s*|\s+(?=@)/) 
-                .map(p => p.trim())
-                .filter(p => p.length > 0);
-
-            const fieldData = {
-                name: `⚔️ ${boss.trim().toUpperCase()}`,
-                value: players.length > 0 ? `• ${players.join('\n• ')}` : "No players assigned",
-                inline: false
-            };
-
-            if (index < 6) {
-                embedLeft.addFields(fieldData);
-            } else {
-                embedRight.addFields(fieldData);
-                hasRightContent = true;
-            }
+            const [boss, players] = line.split('-');
+            strategyData.push({
+                boss: boss.trim().toUpperCase(),
+                // Махаме @ и специални символи за по-чиста таблица, ако желаеш
+                players: players.trim().replace(/@/g, "") 
+            });
         }
     });
 
-    // ПРЕЗАПИСВАНЕ В DB
+    // 2. Генериране на текстовата таблица
+    let table = "🏴‍☠️ **DAILY BATTLE STRATEGY**\n```text\n";
+    table += "===========================================================\n";
+
+    for (let i = 0; i < strategyData.length; i += 2) {
+        const left = strategyData[i];
+        const right = strategyData[i + 1];
+
+        // Лява колона - фиксирана на 28 символа ширина
+        let leftContent = `⚔️ ${left.boss}: ${left.players}`;
+        let row = leftContent.padEnd(28); 
+
+        // Дясна колона
+        if (right) {
+            row += ` | ⚔️ ${right.boss}: ${right.players}`;
+        }
+
+        table += row + "\n";
+        table += "-----------------------------------------------------------\n";
+    }
+    table += "```\n@everyone **ALL PIRATES TO POSITIONS!**";
+
+    // 3. Запис в базата данни
     await pool.query(`
         INSERT INTO global_vars (key, value) 
         VALUES ('last_strategy', $1) 
@@ -179,14 +172,8 @@ async function handleManiaStrategy(msg, pool) {
         DO UPDATE SET value = EXCLUDED.value
     `, [rawContent]);
 
-    // Подготвяме масива с ембеди - добавяме втория само ако има съдържание
-    const embedsToSend = [embedLeft];
-    if (hasRightContent) embedsToSend.push(embedRight);
-
-    await msg.channel.send({ 
-        content: "@everyone 🚩 **TODAY'S TARGETS 👑 !**", 
-        embeds: embedsToSend 
-    });
+    // 4. Изпращане на чистото съобщение
+    await msg.channel.send(table);
 
     if (typeof currentPlanMsgId !== 'undefined') currentPlanMsgId = null; 
     if (msg.deletable) await msg.delete().catch(() => {});
