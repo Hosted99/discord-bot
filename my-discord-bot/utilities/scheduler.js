@@ -129,29 +129,31 @@ async function handleManiaStrategy(msg, pool) {
 
     const lines = rawContent.split('\n').filter(l => l.trim() !== "");
     
-    let table = "🏴‍☠️ **DAILY BATTLE STRATEGY**\n```text\n";
+    let response = "🏴‍☠️ **DAILY BATTLE STRATEGY**\n```text\n";
 
     lines.forEach(line => {
         if (line.includes('-')) {
             const [boss, playersPart] = line.split('-');
             
-            // Чистим имената и ги подреждаме със запетая
+            // РЕШЕНИЕ: Разделяме САМО по запетая. 
+            // Така "Mr.J Mugi's lil bro" остава едно цяло име.
             const players = playersPart.trim()
-                .split(/,\s*|\s+(?=@)/) 
-                .map(p => p.trim().replace(/@/g, "")) // Махаме @ за по-чист вид
+                .split(',') 
+                .map(p => p.trim().replace(/@/g, "")) // Махаме @ за по-чисто
                 .filter(p => p.length > 0)
                 .join(', ');
 
-            // Всеки бос в отделен ред със заглавна и долна черта
-            table += `┏━ ⚔️ ${boss.trim().toUpperCase()}\n`;
-            table += `┃  👥 ${players || "No players assigned"}\n`;
-            table += `┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+            if (players) {
+                response += ` ┌── ⚔️ ${boss.trim().toUpperCase()}\n`;
+                response += ` └─ 👤 ${players}\n`;
+                response += ` ──────────────────────────────────\n`;
+            }
         }
     });
 
-    table += "```\n@everyone **ALL PIRATES TO POSITIONS!**";
+    response += "```\n@everyone **ALL PIRATES TO POSITIONS!**";
 
-    // ПРЕЗАПИСВАНЕ В DB
+    // Запис в DB
     await pool.query(`
         INSERT INTO global_vars (key, value) 
         VALUES ('last_strategy', $1) 
@@ -159,11 +161,10 @@ async function handleManiaStrategy(msg, pool) {
         DO UPDATE SET value = EXCLUDED.value
     `, [rawContent]);
 
-    await msg.channel.send(table);
-
-    if (typeof currentPlanMsgId !== 'undefined') currentPlanMsgId = null; 
+    await msg.channel.send(response);
     if (msg.deletable) await msg.delete().catch(() => {});
 }
+
 
 
 
