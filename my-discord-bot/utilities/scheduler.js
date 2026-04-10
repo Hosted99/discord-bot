@@ -63,59 +63,70 @@ async function handleManiaPlan(msg) {
  * СПИСЪК НА ПОТВЪРДИЛИТЕ (mania-list)
  */
 async function handleManiaList(msg) {
-    if (!currentPlanMsgId) return msg.reply("❌ No active plan found!");
+    // 1. Проверка дали има активен план в паметта на бота
+    if (!currentPlanMsgId) {
+        return msg.reply("❌ No active plan found! Start one with `mania-plan`.");
+    }
 
     try {
-        const planMsg = await msg.channel.messages.fetch(currentPlanMsgId);
+        // 2. Опитваме се да вземем оригиналното съобщение на плана
+        const planMsg = await msg.channel.messages.fetch(currentPlanMsgId).catch(() => null);
         
-        // 1. Взимаме ✅ (Will Play)
+        if (!planMsg) {
+            return msg.reply("❌ Original plan message was deleted!");
+        }
+
+        // 3. Извличаме хората, които са реагирали с ✅
         const reactionYes = planMsg.reactions.cache.get("✅");
         const usersYes = reactionYes ? await reactionYes.users.fetch() : new Map();
         const confirmed = usersYes.filter(u => !u.bot).map(u => `<@${u.id}>`);
 
-        // 2. Взимаме ❌ (Won't Play)
+        // 4. Извличаме хората, които са реагирали с ❌
         const reactionNo = planMsg.reactions.cache.get("❌");
         const usersNo = reactionNo ? await reactionNo.users.fetch() : new Map();
         const declined = usersNo.filter(u => !u.bot).map(u => `<@${u.id}>`);
 
-        // 3. Намираме тези, които не са гласували (No Response)
+        // 5. Намираме тези, които не са гласували (Missing)
+        // ВАЖНО: Изисква "Server Members Intent" в Discord Developer Portal
         const allMembers = await msg.guild.members.fetch();
         const votedIds = [...usersYes.keys(), ...usersNo.keys()];
+        
         const missing = allMembers.filter(m => 
             !m.user.bot && 
-            m.roles.cache.size > 1 && 
+            m.roles.cache.size > 1 && // Пропуска хората без роли (често са ботове или нови)
             !votedIds.includes(m.id)
-        ).map(m => `<@${m.id}>`);
+        );
 
-        // --- ИЗПРАЩАНЕ НА 3 ОТДЕЛНИ СЪОБЩЕНИЯ ---
+        const missingMentions = missing.map(m => `<@${m.id}>`);
 
-        // Съобщение 1: ✅
-        const embedYes = new EmbedBuilder()
-            .setTitle("✅ WILL PLAY TODAY")
-            .setDescription(confirmed.join(", ") || "No one yet.")
-            .setColor("#2ecc71")
-            .setFooter({ text: `Total: ${confirmed.length} players` });
-        await msg.channel.send({ embeds: [embedYes] });
+        // 6. Създаваме Embed със статистиката (без пингове вътре)
+        const statusEmbed = new EmbedBuilder()
+            .setTitle("⚔️ CURRENT FORMATION STATUS")
+            .setDescription("The original plan is still active above! 👆")
+            .setColor("#3498db")
+            .addFields(
+                { name: `✅ CONFIRMED (${confirmed.length})`, value: confirmed.join(", ") || "None yet", inline: false },
+                { name: `❌ DECLINED (${declined.length})`, value: declined.join(", ") || "None", inline: false }
+            )
+            .setFooter({ text: "Vote using the reactions on the main message!" });
 
-        // Съобщение 2: ❌
-        const embedNo = new EmbedBuilder()
-            .setTitle("❌ WON'T PLAY")
-            .setDescription(declined.join(", ") || "No one yet.")
-            .setColor("#e74c3c")
-            .setFooter({ text: `Total: ${declined.length} players` });
-        await msg.channel.send({ embeds: [embedNo] });
+        await msg.channel.send({ embeds: [statusEmbed] });
 
-        // Съобщение 3: ⏳
-        const embedMissing = new EmbedBuilder()
-            .setTitle("⏳ NO RESPONSE (MISSING)")
-            .setDescription(missing.length > 0 ? missing.slice(0, 30).join(", ") : "Everyone has voted!")
-            .setColor("#f1c40f")
-            .setFooter({ text: `Total: ${missing.length} players ignored the plan` });
-        await msg.channel.send({ embeds: [embedMissing] });
+        // 7. Изпращаме ПИНГ съобщение само за тези, които липсват
+        if (missingMentions.length > 0) {
+            await msg.channel.send({ 
+                content: `🔔 **Attention!** The following players haven't voted yet:\n${missingMentions.join(" ")}` 
+            });
+        } else {
+            await msg.channel.send("✅ Everyone has voted! Great job.");
+        }
+
+        // 8. Изтриваме командата на потребителя (!mania-list), за да не се трупа текст
+        if (msg.deletable) await msg.delete().catch(() => {});
 
     } catch (e) {
         console.error("List Error:", e);
-        msg.reply("Error fetching player lists.");
+        msg.reply("⚠️ Error: Make sure the bot has **'Server Members Intent'** enabled in the Developer Portal!");
     }
 }
 
