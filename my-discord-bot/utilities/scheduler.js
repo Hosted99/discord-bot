@@ -149,11 +149,12 @@ async function handleManiaStrategy(msg, pool) {
         if (line.includes('-')) {
             const [boss, players] = line.split('-');
             
+             // Това ще раздели имената, независимо дали ползваш запетая или интервал
             const playerList = players.trim()
-                .split(',')
-                .map(p => p.trim())
+                .split(/[\s,]+/) // Регулярен израз за интервал ИЛИ запетая
                 .filter(p => p.length > 0)
                 .join('\n• ');
+
 
             stratEmbed.addFields({
                 name: `⚔️ ${boss.trim().toUpperCase()}`,
