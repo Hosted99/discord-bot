@@ -124,13 +124,10 @@ async function handleManiaList(msg) {
  * ПУБЛИКУВАНЕ НА СТРАТЕГИЯ (mania-strategy)
  */
 async function handleManiaStrategy(msg, pool) {
-    // Премахваме командата и излишните интервали
     const rawContent = msg.content.replace(/mania-strategy/gi, "").trim();
     if (!rawContent) return;
 
-    // Списък с GIF-ове (Вано Арка / Луфи)
     const strategyGifs = [
-        "https://giphy.com",
         "https://giphy.com",
         "https://giphy.com"
     ];
@@ -138,33 +135,39 @@ async function handleManiaStrategy(msg, pool) {
 
     const lines = rawContent.split('\n').filter(l => l.trim() !== "");
     
-    const stratEmbed = new EmbedBuilder()
+    // Основният Embed (Лява колона + Картинка)
+    const embedLeft = new EmbedBuilder()
         .setTitle("🏴‍☠️ DAILY BATTLE STRATEGY")
         .setDescription("All pirates to your positions!")
         .setColor("#FF4500")
-        .setImage(randomGif)
-        .setTimestamp();
+        .setImage(randomGif);
 
-        lines.forEach(line => {
+    // Втори Embed (Дясна колона)
+    const embedRight = new EmbedBuilder()
+        .setColor("#FF4500");
+
+    // Разделяме босовете: първите 6 вляво, останалите вдясно
+    lines.forEach((line, index) => {
         if (line.includes('-')) {
             const [boss, playersPart] = line.split('-');
-            
-            // МАГИЯТА Е ТУК: Разделяме само там, където има запетая ИЛИ интервал, последван от @
-            // Това пази имена като "@ᐪˢ☠️ Hosted" цели.
             const players = playersPart.trim()
                 .split(/,\s*|\s+(?=@)/) 
                 .map(p => p.trim())
                 .filter(p => p.length > 0);
 
-            stratEmbed.addFields({
+            const fieldData = {
                 name: `⚔️ ${boss.trim().toUpperCase()}`,
-                value: players.length > 0 ? `• ${players.join('\n• ')}` : "No players assigned",
-                inline: false 
-            });
+                value: players.length > 0 ? `• ${players.join('\n• ')}` : "No players",
+                inline: true // Използваме true тук, за да стоят компактно
+            };
+
+            if (index < 6) {
+                embedLeft.addFields(fieldData);
+            } else {
+                embedRight.addFields(fieldData);
+            }
         }
     });
-
-
 
     // ПРЕЗАПИСВАНЕ В DB
     await pool.query(`
@@ -174,16 +177,16 @@ async function handleManiaStrategy(msg, pool) {
         DO UPDATE SET value = EXCLUDED.value
     `, [rawContent]);
 
-    // Изпращаме съобщението с @everyone
+    // ИЗПРАЩАНЕ (Discord ще ги покаже един до друг или един под друг в зависимост от устройството)
     await msg.channel.send({ 
         content: "@everyone 🚩 **TODAY'S TARGETS 👑 !**", 
-        embeds: [stratEmbed] 
+        embeds: [embedLeft, embedRight] 
     });
 
-    // Изчистваме текущото съобщение
     if (typeof currentPlanMsgId !== 'undefined') currentPlanMsgId = null; 
     if (msg.deletable) await msg.delete().catch(() => {});
 }
+
 
 
 /**
