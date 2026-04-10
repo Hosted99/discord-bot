@@ -71,7 +71,7 @@ async function handleManiaPlan(msg) {
  * СПИСЪК НА ПОТВЪРДИЛИТЕ (mania-list)
  */
 async function handleManiaList(msg) {
-    // ЧЕТЕМ ID-ТО ОТ ФАЙЛА
+    // 1. Четем ID-то от файла
     let planData = { planId: null };
     if (fs.existsSync(DB_PATH)) {
         planData = JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
@@ -81,47 +81,51 @@ async function handleManiaList(msg) {
 
     try {
         const planMsg = await msg.channel.messages.fetch(planData.planId).catch(() => null);
-        if (!planMsg) return msg.reply("❌ Plan not found in channel!");
+        if (!planMsg) return msg.reply("❌ Original plan not found!");
 
-        // Логика за взимане на реакциите
-        const usersYes = await planMsg.reactions.cache.get("✅")?.users.fetch() || new Map();
+        // 2. Взимаме гласувалите
+        const reactionYes = planMsg.reactions.cache.get("✅");
+        const usersYes = reactionYes ? await reactionYes.users.fetch() : new Map();
         const confirmed = usersYes.filter(u => !u.bot).map(u => `<@${u.id}>`);
 
-        const usersNo = await planMsg.reactions.cache.get("❌")?.users.fetch() || new Map();
+        const reactionNo = planMsg.reactions.cache.get("❌");
+        const usersNo = reactionNo ? await reactionNo.users.fetch() : new Map();
         const declined = usersNo.filter(u => !u.bot).map(u => `<@${u.id}>`);
 
-        // Проверка за промяна
-        const currentVoted = [...confirmed, ...declined].join("");
-        if (currentVoted === lastVotedString && lastVotedString !== "") {
-            return msg.reply("ℹ️ No changes since last check.").then(m => setTimeout(() => m.delete(), 5000));
-        }
-        lastVotedString = currentVoted;
-
-        // Намираме негласувалите (Missing)
+        // 3. Намираме тези без глас
         const allMembers = await msg.guild.members.fetch();
         const votedIds = [...usersYes.keys(), ...usersNo.keys()];
-        const missing = allMembers.filter(m => !m.user.bot && !votedIds.includes(m.id)).map(m => `<@${m.id}>`);
+        const missing = allMembers.filter(m => 
+            !m.user.bot && 
+            m.roles.cache.size > 1 && 
+            !votedIds.includes(m.id)
+        ).map(m => `<@${m.id}>`);
 
-        // Пращане на списъка
-        const embed = new EmbedBuilder()
-            .setTitle("⚔️ CURRENT STATUS")
+        // 4. СЪЗДАВАМЕ EMBED-А (ТОЧНО КАТО НА СНИМКАТА)
+        const statusEmbed = new EmbedBuilder()
+            .setTitle("⚔️ CURRENT FORMATION STATUS")
+            .setDescription("The original plan is still active above! 👆")
+            .setColor("#3498db")
             .addFields(
-                { name: `✅ YES (${confirmed.length})`, value: confirmed.join(", ") || "None", inline: false },
-                { name: `❌ NO (${declined.length})`, value: declined.join(", ") || "None", inline: false }
-            ).setColor("#3498db");
+                { name: `✅ CONFIRMED (${confirmed.length})`, value: confirmed.join(", ") || "None yet", inline: false },
+                { name: `❌ DECLINED (${declined.length})`, value: declined.join(", ") || "None", inline: false }
+            );
 
-        await msg.channel.send({ embeds: [embed] });
-        
-        // ПИНГ за тези, които не са гласували
+        await msg.channel.send({ embeds: [statusEmbed] });
+
+        // 5. ПИНГ СЪОБЩЕНИЕТО С ЖЪЛТАТА ИКОНКА (ИЗВЪН EMBED)
         if (missing.length > 0) {
-            await msg.channel.send(`🔔 **Missing votes:** ${missing.join(" ")}`);
+            await msg.channel.send(`🔔 **Attention!** These players haven't voted:\n${missing.join(" ")}`);
+        } else {
+            await msg.channel.send("✅ Everyone has voted!");
         }
 
+        // Изтриваме само командата mania-list
         if (msg.deletable) await msg.delete().catch(() => {});
 
     } catch (e) {
-        console.error(e);
-        msg.reply("Error fetching the list.");
+        console.error("List Error:", e);
+        msg.reply("Error fetching player lists.");
     }
 }
 
