@@ -146,23 +146,25 @@ async function handleManiaStrategy(msg, pool) {
         .setTimestamp();
 
     lines.forEach(line => {
-        if (line.includes('-')) {
-            const [boss, players] = line.split('-');
-            
-             // Това ще раздели имената, независимо дали ползваш запетая или интервал
-            const playerList = players.trim()
-                .split(/[\s,]+/) // Регулярен израз за интервал ИЛИ запетая
-                .filter(p => p.length > 0)
-                .join('\n• ');
+    if (line.includes('-')) {
+        const [boss, players] = line.split('-');
+        
+        // РЕШЕНИЕ: Разделяме САМО по запетая. 
+        // Така имена като "@☠ Hosted" ще останат цели на един ред.
+        const playerList = players.trim()
+            .split(',') 
+            .map(p => p.trim())
+            .filter(p => p.length > 0)
+            .join('\n• ');
 
+        stratEmbed.addFields({
+            name: `⚔️ ${boss.trim().toUpperCase()}`,
+            value: playerList.length > 0 ? `• ${playerList}` : "No players assigned",
+            inline: false 
+        });
+    }
+});
 
-            stratEmbed.addFields({
-                name: `⚔️ ${boss.trim().toUpperCase()}`,
-                value: `• ${playerList}`,
-                inline: false 
-            });
-        }
-    });
 
     // ПРЕЗАПИСВАНЕ В DB
     await pool.query(`
