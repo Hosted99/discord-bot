@@ -124,42 +124,50 @@ async function handleManiaList(msg) {
  * ПУБЛИКУВАНЕ НА СТРАТЕГИЯ (mania-strategy)
  */
 async function handleManiaStrategy(msg, pool) {
+    const { EmbedBuilder } = require('discord.js');
     const rawContent = msg.content.replace(/mania-strategy/gi, "").trim();
     if (!rawContent) return;
 
+    const strategyGifs = [
+        "https://giphy.com",
+        "https://giphy.com"
+    ];
+    const randomGif = strategyGifs[Math.floor(Math.random() * strategyGifs.length)];
+
     const lines = rawContent.split('\n').filter(l => l.trim() !== "");
     
-    let response = "🏴‍☠️ **DAILY BATTLE STRATEGY**\n```text\n";
+    const stratEmbed = new EmbedBuilder()
+        .setTitle("🏴‍☠️ DAILY BATTLE STRATEGY")
+        .setDescription("All pirates to your positions!")
+        .setColor("#FF4500")
+        .setImage(randomGif)
+        .setTimestamp();
 
     lines.forEach(line => {
         if (line.includes('-')) {
-            // Разделяме САМО по първото тире (Бос - Играчи)
-            const parts = line.split('-');
-            const boss = parts[0].trim().toUpperCase();
-            // Всичко след първото тире са играчите
-            const playersPart = parts.slice(1).join('-').trim();
-            
-            // ВАЖНО: Разделяме САМО по запетая. Интервалите в имената вече не пречат!
-            const players = playersPart
-                .split(',') 
-                .map(p => p.trim().replace(/@/g, ""))
+            const firstDashIndex = line.indexOf('-');
+            const boss = line.substring(0, firstDashIndex).trim().toUpperCase();
+            const playersPart = line.substring(firstDashIndex + 1).trim();
+
+            // МАГИЯТА: Разделяме само когато видим интервал, последван от @
+            // Използваме "me" като специален случай, ако е в началото
+            let players = playersPart
+                .split(/(?=\s@)|(?<=me),?\s*/) 
+                .map(p => p.trim())
                 .filter(p => p.length > 0);
 
             if (players.length > 0) {
-                response += `[ BOSS ] ${boss}\n`;
-                
-                players.forEach(player => {
-                    response += `  > ${player}\n`;
+                stratEmbed.addFields({
+                    name: `⚔️ ${boss}`,
+                    // Слагаме всеки играч на нов ред с булет
+                    value: `• ${players.join('\n• ')}`,
+                    inline: false // ВИНАГИ false за 12 боса
                 });
-                
-                response += `--------------------------------\n`;
             }
         }
     });
 
-    response += "```\n@everyone **ALL PIRATES TO POSITIONS!**";
-
-    // DB запис
+    // Запис в DB
     await pool.query(`
         INSERT INTO global_vars (key, value) 
         VALUES ('last_strategy', $1) 
@@ -167,9 +175,16 @@ async function handleManiaStrategy(msg, pool) {
         DO UPDATE SET value = EXCLUDED.value
     `, [rawContent]);
 
-    await msg.channel.send(response);
+    // Изпращане
+    await msg.channel.send({ 
+        content: "@everyone 🚩 **TODAY'S TARGETS 👑 !**", 
+        embeds: [stratEmbed] 
+    });
+
+    if (typeof currentPlanMsgId !== 'undefined') currentPlanMsgId = null; 
     if (msg.deletable) await msg.delete().catch(() => {});
 }
+
 
 
 
