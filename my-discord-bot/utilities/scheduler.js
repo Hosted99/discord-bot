@@ -149,10 +149,6 @@ async function handleManiaStrategy(msg, pool) {
         if (line.includes('-')) {
             const [boss, players] = line.split('-');
             
-            // Форматираме списъка с играчи:
-            // 1. Махаме излишни интервали
-            // 2. Разделяме по запетая (ако има)
-            // 3. Слагаме всеки на нов ред с точка (•) за прегледност
             const playerList = players.trim()
                 .split(',')
                 .map(p => p.trim())
@@ -161,16 +157,11 @@ async function handleManiaStrategy(msg, pool) {
 
             stratEmbed.addFields({
                 name: `⚔️ ${boss.trim().toUpperCase()}`,
-                value: `• ${playerList}`, // Добавяме точка и пред първия играч
-                inline: false // ВИНАГИ false за по-добра четимост на мобилни устройства
+                value: `• ${playerList}`,
+                inline: false 
             });
         }
     });
-
-    // Изпращаме съобщението
-    await msg.channel.send({ embeds: [stratEmbed] });
-}
-
 
     // ПРЕЗАПИСВАНЕ В DB
     await pool.query(`
@@ -180,14 +171,17 @@ async function handleManiaStrategy(msg, pool) {
         DO UPDATE SET value = EXCLUDED.value
     `, [rawContent]);
 
+    // Изпращаме съобщението с @everyone
     await msg.channel.send({ 
         content: "@everyone 🚩 **TODAY'S TARGETS 👑 !**", 
         embeds: [stratEmbed] 
     });
 
-    currentPlanMsgId = null; // Чистим плана за деня след стратегията
+    // Изчистваме текущото съобщение
+    if (typeof currentPlanMsgId !== 'undefined') currentPlanMsgId = null; 
     if (msg.deletable) await msg.delete().catch(() => {});
 }
+
 
 /**
  * Функция за взимане на mention (role или everyone)
