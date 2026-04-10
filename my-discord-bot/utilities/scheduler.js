@@ -149,7 +149,7 @@ async function handleManiaStrategy(msg, pool) {
             stratEmbed.addFields({
                 name: `⚔️ ${boss.trim().toUpperCase()}`,
                 value: players.trim(),
-                inline: true
+                inline: false
             });
         }
     });
