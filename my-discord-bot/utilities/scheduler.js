@@ -120,7 +120,7 @@ async function handleManiaList(msg) {
 }
 
 
-**
+/*
  * ПУБЛИКУВАНЕ НА СТРАТЕГИЯ (mania-strategy)
  */
 async function handleManiaStrategy(msg, pool) {
