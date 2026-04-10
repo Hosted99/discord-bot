@@ -1,6 +1,7 @@
 const cron = require("node-cron"); // Импортираме cron библиотеката за scheduling
 const { EmbedBuilder } = require("discord.js"); // Импортираме EmbedBuilder за красиви Discord съобщения
 const staticList = require("../data/staticReminders"); // Зареждаме статичните напомняния
+const DB_PATH = path.join(__dirname, '..', 'data', 'database.json'); // Пътят нагоре към data
 
 // Глобални променливи за модула
 let currentPlanMsgId = null;
@@ -56,7 +57,9 @@ async function handleManiaPlan(msg) {
     await planMsg.react("✅");
     await planMsg.react("❌");
     
-    currentPlanMsgId = planMsg.id; // Запомняме съобщението за mania-list
+    // ЗАПИСВАМЕ НОВОТО ID ВЪВ ФАЙЛА
+    fs.writeFileSync(DB_PATH, JSON.stringify({ planId: planMsg.id }, null, 2));
+
     if (msg.deletable) await msg.delete().catch(() => {});
 }
 
