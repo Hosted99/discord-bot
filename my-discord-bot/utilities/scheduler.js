@@ -143,13 +143,15 @@ async function handleManiaStrategy(msg, pool) {
         .setImage(randomGif)
         .setTimestamp();
 
-    lines.forEach((line, index) => {
+    // Брояч за колоните
+    let fieldCount = 0;
+
+    lines.forEach((line) => {
         if (line.includes('-')) {
             const firstDashIndex = line.indexOf('-');
             const boss = line.substring(0, firstDashIndex).trim().toUpperCase();
             const playersPart = line.substring(firstDashIndex + 1).trim();
 
-            // Разделяме играчите по интервал + @
             let players = playersPart
                 .split(/(?=\s@)|(?<=me),?\s*/) 
                 .map(p => p.trim())
@@ -159,13 +161,15 @@ async function handleManiaStrategy(msg, pool) {
                 stratEmbed.addFields({
                     name: `⚔️ ${boss}`,
                     value: `• ${players.join('\n• ')}`,
-                    inline: true // ТОВА ПРАВИ КОЛОНИТЕ
+                    inline: true
                 });
 
-                // ТРИК ЗА ПОДРАВНЯВАНЕ: На всеки 2 боса добавяме празно поле,
-                // за да сме сигурни, че следващият ред започва чисто отляво.
-                if ((index + 1) % 2 === 0) {
-                    stratEmbed.addFields({ name: '\u200B', value: '\u200B', inline: false });
+                fieldCount++;
+
+                // На всеки 3 боса добавяме "инстант прекъсване", за да подредим следващия ред
+                if (fieldCount % 3 === 0) {
+                    // Това невидимо поле гарантира, че следващите 3 ще са точно отдолу
+                    // stratEmbed.addFields({ name: '\u200B', value: '\u200B', inline: false }); // Може да се махне, ако имената са много къси
                 }
             }
         }
@@ -187,6 +191,7 @@ async function handleManiaStrategy(msg, pool) {
     if (typeof currentPlanMsgId !== 'undefined') currentPlanMsgId = null; 
     if (msg.deletable) await msg.delete().catch(() => {});
 }
+
 
 
 
