@@ -143,14 +143,13 @@ async function handleManiaStrategy(msg, pool) {
         .setImage(randomGif)
         .setTimestamp();
 
-    lines.forEach(line => {
+    lines.forEach((line, index) => {
         if (line.includes('-')) {
             const firstDashIndex = line.indexOf('-');
             const boss = line.substring(0, firstDashIndex).trim().toUpperCase();
             const playersPart = line.substring(firstDashIndex + 1).trim();
 
-            // МАГИЯТА: Разделяме само когато видим интервал, последван от @
-            // Използваме "me" като специален случай, ако е в началото
+            // Разделяме играчите по интервал + @
             let players = playersPart
                 .split(/(?=\s@)|(?<=me),?\s*/) 
                 .map(p => p.trim())
@@ -159,10 +158,15 @@ async function handleManiaStrategy(msg, pool) {
             if (players.length > 0) {
                 stratEmbed.addFields({
                     name: `⚔️ ${boss}`,
-                    // Слагаме всеки играч на нов ред с булет
                     value: `• ${players.join('\n• ')}`,
-                    inline: false // ВИНАГИ false за 12 боса
+                    inline: true // ТОВА ПРАВИ КОЛОНИТЕ
                 });
+
+                // ТРИК ЗА ПОДРАВНЯВАНЕ: На всеки 2 боса добавяме празно поле,
+                // за да сме сигурни, че следващият ред започва чисто отляво.
+                if ((index + 1) % 2 === 0) {
+                    stratEmbed.addFields({ name: '\u200B', value: '\u200B', inline: false });
+                }
             }
         }
     });
@@ -175,7 +179,6 @@ async function handleManiaStrategy(msg, pool) {
         DO UPDATE SET value = EXCLUDED.value
     `, [rawContent]);
 
-    // Изпращане
     await msg.channel.send({ 
         content: "@everyone 🚩 **TODAY'S TARGETS 👑 !**", 
         embeds: [stratEmbed] 
