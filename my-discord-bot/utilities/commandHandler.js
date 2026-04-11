@@ -68,16 +68,34 @@ async function handleCommands(msg, pool) {
     // --- 2.1 КОМАНДА: !hero-list ---
     if (cmd === "!hero-list") {
         if (msg.channel.name !== "unit-build") return msg.reply("❌ Use #unit-build!");
-        const heroesData = getHeroes();
-        const heroNames = Object.keys(heroesData).sort().join(", ");
-        console.log("Намерени герои:", heroNames); // Виж в конзолата дали излиза нещо
         
+        const heroesData = getHeroes();
+        const allKeys = Object.keys(heroesData).sort();
+
+        // Разделяме героите на две групи
+        const mainBuilds = allKeys.filter(name => !name.includes("-cultiv1"));
+        const cultiBuilds = allKeys.filter(name => name.includes("-cultiv1"));
+
         const listEmbed = new EmbedBuilder()
             .setTitle("📜 Hero Roster")
             .setColor("#00AE86")
-            .setDescription(`Available heroes:\n**${heroNames || "No heroes found in JSON file!"}**`);
+            .addFields(
+                { 
+                    name: "🔵 Main Builds", 
+                    value: mainBuilds.map(h => `\`${h}\``).join(", ") || "None", 
+                    inline: false 
+                },
+                { 
+                    name: "🟡 Culti V1 Variants", 
+                    value: cultiBuilds.map(h => `**${h}**`).join(", ") || "None", 
+                    inline: false 
+                }
+            )
+            .setFooter({ text: `Total Heroes: ${allKeys.length}` });
+
         return msg.reply({ embeds: [listEmbed] });
     }
+
 
             // --- 2.2 КОМАНДА: !hero ---
     if (cmd === "!hero") {
