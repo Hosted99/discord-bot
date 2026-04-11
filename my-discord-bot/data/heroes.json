@@ -210,8 +210,8 @@
     "color": "#e91e63"
   },
   "marco": {
-    "title": "Marco (SSR+) :emoji:",
-    "role": "Support/Heal Link :emoji:",
+    "title": "Marco (SSR+)",
+    "role": "Support/Heal Link",
     "seals": "Magic Combo | Medic | Iron Wall | Flexibility | Blessing | Resilience",
     "extras": "Purge | Cover | Thorn | Regen | Cure | Soul Return",
     "devil_fruit": "Barrier Barrier, Glint Glint, Time Time",
@@ -225,8 +225,8 @@
     "color": "#2b2d31"
 },
   "garp": {
-    "title": "Garp (SSR+) :emoji:",
-    "role": "Warrior/Initiator Sunken :emoji:",
+    "title": "Garp (SSR+)",
+    "role": "Warrior/Initiator Sunken",
     "seals": "Physical Combo | Piercing | Force | Fury | Lifesteal | Ironwall",
     "extras": "Pursuit | Rage | Assault | Blessing | Mind | Flexibility",
     "devil_fruit": "Rumble Rumble, Elaph Elaph, Time Time",
@@ -240,8 +240,8 @@
     "color": "#2b2d31"
 },
   "sengoku": {
-    "title": "Sengoku (SSR+) :emoji:",
-    "role": "Tank/Invincible DMGDown :emoji:",
+    "title": "Sengoku (SSR+)",
+    "role": "Tank/Invincible DMGDown",
     "seals": "Iron Wall | Soul Return | Regen | Thorn | P.Combo | Cover | Cure | Pierce",
     "extras": "Immunity | Flexibility | Revival | Lifesteal | Control | Resilience",
     "devil_fruit": "Fort Fort, Tweet Tweet, Ope Ope",
@@ -255,8 +255,8 @@
     "color": "#2b2d31"
 },
   "enel": {
-    "title": "Enel (SSR+) :emoji:",
-    "role": "Mage/Multi DMGStatic :emoji:",
+    "title": "Enel (SSR+)",
+    "role": "Mage/Multi DMGStatic",
     "seals": "Magic Combo | Pierce | Magic | Fury | Ironwall | Lifesteal",
     "extras": "Annihilation | Raid | Mind | Pursuit | Healing Down | Flex",
     "devil_fruit": "Venom Venom, Magma Magma, Fish Fish, Rumble Rumble",
@@ -285,8 +285,8 @@
     "color": "#2b2d31"
 },
   "saturn": {
-    "title": "St. Saturn (UR) :emoji:",
-    "role": "Tank/TankSupRealm :emoji:",
+    "title": "St. Saturn (UR)",
+    "role": "Tank/TankSupRealm",
     "seals": "Iron Wall | Regen | Thorn | P.Combo | Cover | Cure",
     "extras": "Immunity | Flexibility | Control | Resilience",
     "devil_fruit": "Fort Fort, Tweet Tweet, Ope Ope, Shadow Shadow, Ice Ice",
@@ -300,8 +300,8 @@
     "color": "#2b2d31"
 },
   "rayleigh": {
-    "title": "Rayleigh (Prime) (UR) :emoji:",
-    "role": "Warrior/LethalBurst :emoji:",
+    "title": "Rayleigh (Prime) (UR)",
+    "role": "Warrior/LethalBurst",
     "seals": "Physical Combo | Fury | Force | Pierce | Lifesteal",
     "extras": "Pursuit | Flexibility | Mind | Annihilation",
     "devil_fruit": "Fish Fish, Glint Glint",
@@ -315,8 +315,8 @@
     "color": "#2b2d31"
 },
   "oden": {
-    "title": "Kozuki Oden (UR) :emoji:",
-    "role": "Warrior/Burst Upgrade :emoji:",
+    "title": "Kozuki Oden (UR)",
+    "role": "Warrior/Burst Upgrade",
     "seals": "Physical Combo | Fury | Force | Pierce | Lifesteal | Immunity | Thorn",
     "extras": "Pursuit | Iron Wall | Flexibility | Mind | Annihilation",
     "devil_fruit": "Fort Fort, Shadow Shadow",
@@ -330,8 +330,8 @@
     "color": "#2b2d31"
 },
   "bullet": {
-    "title": "Bullet (UR) :emoji:",
-    "role": "Tank/RealmAssemble :emoji:",
+    "title": "Bullet (UR)",
+    "role": "Tank/RealmAssemble",
     "seals": "Iron Wall | Regen | Thorn | P.Combo | Cover | Cure | Pierce | Rage",
     "extras": "Immunity | Flexibility | Resilience",
     "devil_fruit": "Fort Fort, Tweet Tweet, Ope Ope, Shadow Shadow",
