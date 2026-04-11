@@ -9,6 +9,8 @@
     "awakenings": "",
     "equipment": "Conqueror, Samurai Set",
     "haki": "1-2-3-4-6-9-7-5-8",
+    "signature": "",
+    "treasure": "",
     "image": "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExcTczMDE1bG9oc2oyOXNyYmN6YTdjY214aGJuNmw0d29jcnI3aTBvMCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/imgRbPSiIbPs4VP9HD/giphy.gif",
     "color": "#2b2d31"
   },
@@ -22,24 +24,10 @@
     "awakenings": "",
     "equipment": "Samurai Set, Conqueror Set, Guardian Set",
     "haki": "1-3-6-4-9-7-2-5-8",
+    "signature": "",
+    "treasure": "",
     "image": "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3bTF6MHNva2hjM2Uzd2Fjc3ZjOWZ3bDhtYzc3cGh5M2FuazRlcGlxdyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/VwpkFDijz3Bny/giphy.gif",
     "color": "#2b2d31"
-  },
-  "zoro": {
-    "title": "Pirate Hunter Zoro (SSR)",
-    "role": "Slasher / DPS",
-    "seals": "Crit | Bleed | Speed | Force",
-    "haki": "2-4-5-8-1-3-7-6-9",
-    "image": "https://imgur.com",
-    "color": "#1f8b4c"
-  },
-  "luffy": {
-    "title": "Monkey D. Luffy (Gear 4)",
-    "role": "Tank / Brawler",
-    "seals": "HP | Defense | Resist",
-    "haki": "5-5-8-2-1",
-    "image": "https://imgur.com",
-    "color": "#ff0000"
   },
  "kizaru": {
     "title": "Kizaru (SSR+)",
@@ -51,6 +39,8 @@
     "awakenings": "",
     "equipment": "Conqueror, Core Impact, Samurai Set",
     "haki": "1-2-3-6-4-9-7-5-8",
+    "signature": "",
+    "treasure": "",
     "image": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZGZ0OXNrZmtlanQ4YzJpcDd0bTRnaHBpcmJlOGoxOXRhdHhhYzZuYyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/zYmBMGH4kj78c/giphy.gif",
     "color": "#f1c40f"
   },
@@ -64,6 +54,8 @@
     "awakenings": "",
     "equipment": "World Tree, Ult Guardian",
     "haki": "1-2-3-6-4-9-7-5-8",
+    "signature": "",
+    "treasure": "",
     "image": "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExMDMydGpnMDRqYXhoOW5zZGFjZXQ0Mno4dmp2dWdrZzFlc242OTdzZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/5K61xLyRAswoxIUnX2/giphy.gif",
     "color": "#4a0d0d"
   },
@@ -77,6 +69,8 @@
     "awakenings": "",
     "equipment": "Conqueror, Core Impact, Cursed Specter",
     "haki": "1-2-3-4-6-9-7-5-8",
+    "signature": "",
+    "treasure": "",
     "image": "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExbzc0eno3amo0eWE0c2ZoazhkOHJxaXc5b255b3IzbGg2a2hheWZndyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/IEZy0MXCCxBShZaloq/giphy.gif",
     "color": "#ffffff"
   },
@@ -90,6 +84,8 @@
     "awakenings": "",
     "equipment": "Conqueror, Core Staff, Cursed Specter",
     "haki": "1-3-4-6-9-2-5-7-8",
+    "signature": "",
+    "treasure": "",
     "image": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdDNmMWpjZzJmdTFkbW1zMWg5ZWplbGxoNmM0cWV2N2htangxdmZtYiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/3nyIj1d1igD4SGhVvu/giphy.gif",
     "color": "#1b5e20"
   },
@@ -103,6 +99,8 @@
     "awakenings": "",
     "equipment": "Conqueror, Core Impact, Cursed Specter",
     "haki": "1-3-4-6-9-7-2-5-8",
+    "signature": "",
+    "treasure": "",
     "image": "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExMThncWZ2YnRtemJ2dXhqbjhuOXFqMnU0bTM0bHZrNnR6eTBwYzMxNCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/t55smbaCFTHwmIhgRa/giphy.gif",
     "color": "#8b0000"
   },
@@ -116,6 +114,8 @@
     "awakenings": "",
     "equipment": "Conqueror, Samurai Set, Core Staff, Cursed Specter",
     "haki": "1-3-6-9-4-2-5-7-8",
+    "signature": "",
+    "treasure": "",
     "image": "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExbjd1b3h2dDUyMDU0MGM5ZnNwNTQ3OTM2MWlhd3VuODJ5dDViYjZ3MSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/gZmKLrFyJ84FEByejx/giphy.gif",
     "color": "#1e3a5f"
   },
@@ -129,6 +129,8 @@
     "awakenings": "",
     "equipment": "Conqueror Set, Ult Guardian",
     "haki": "1-2-3-4-6-9-7-5-8",
+    "signature": "",
+    "treasure": "",
     "image": "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExeW9nbzU1OWRyZ3pmMnFvNjBobXBxYTZnZ242d2M5MXBqcGt6eGtuYyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/olFKBWJ5YcFrGQ6WBs/giphy.gif",
     "color": "#9e1b1b"
   },
@@ -142,6 +144,8 @@
     "awakenings": "",
     "equipment": "Gauntlet of Liberation, Ult Guardian, Core Staff",
     "haki": "1-2-3-4-6-9-7-5-8",
+    "signature": "",
+    "treasure": "",
     "image": "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExN29mMGEwbm0xdTBqemt3azBrZWxqbG15Z3NjejNhZ2R0ZnZ4aHRvdiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/ff1udEPLYfza9Q7iU2/giphy.gif",
     "color": "#ff69b4"
   },
@@ -155,6 +159,8 @@
     "awakenings": "",
     "equipment": "Conqueror, Core Impact, Cursed Specter",
     "haki": "1-3-6-9-4-2-7-5-8",
+    "signature": "",
+    "treasure": "",
     "image": "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExZWNmd2J6OGVodjMzNHdsdmE5b2s2c2Rwd2cxb3ltdjAxeHd3dzVnMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/b1yxeuOXI8nVS/giphy.gif",
     "color": "#2b2d31"
   },
@@ -168,6 +174,8 @@
     "awakenings": "",
     "equipment": "World Tree, Ult Guardian",
     "haki": "1-2-3-6-4-9-7-5-8",
+    "signature": "",
+    "treasure": "",
     "image": "https://media.tenor.com/YzCC-LHk0rAAAAAM/yamato.gif",
     "color": "#00ced1"
   },
@@ -181,6 +189,8 @@
     "awakenings": "",
     "equipment": "Gauntlet of Liberation, Ult Guardian, Core Staff",
     "haki": "1-2-3-4-6-9-7-5-8",
+    "signature": "",
+    "treasure": "",
     "image": "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExZXNvODZ2NGI5aW9yYXNvbGlia2ZvOXQyazhlNmRwYWh4ZW13b3JpNCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/wddhCfsUD1KUkxCMzt/giphy.gif",
     "color": "#ffb6c1"
   },
@@ -194,6 +204,8 @@
     "awakenings": "",
     "equipment": "Conqueror, Guardian, Samurai Set, Core Scepter",
     "haki": "1-2-3-4-6-9-7-5-8",
+    "signature": "",
+    "treasure": "",
     "image": "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExdjV4cG04N3hha204Nzl0Y3R5MDh3dWVjdXA5cDcyMTZiNXN5NjRlcCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Zu8snbMdNC8nH46jXv/giphy.gif",
     "color": "#e91e63"
   }
@@ -207,6 +219,8 @@
     "awakenings": "Barrier (Awakened), ",
     "equipment": "Gauntlet of Liberation Set, Ult Guardian",
     "haki": "1-3-4-6-9-2-5-7-8",
+     "signature": "",
+    "treasure": "",
     "image": "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExMDI5NXA2NWRxbWQ5cDh5eTFmNWRjcGx1Y3Rsb2Q0MWFscGJvbHh6MCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/RkvSWmrVlYNFRPzlsL/giphy.gif",
     "color": "#2b2d31"
 }
@@ -220,6 +234,8 @@
     "awakenings": "",
     "equipment": "Conqueror, Core Impact, Cursed Specter",
     "haki": "1-2-3-4-6-9-7-5-8",
+    "signature": "",
+    "treasure": "",
     "image": "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExNXJ1eTVoZjVqY2cxdGZkemY1eHlwYmFiNWhkcGd3amZhY3dqcnF5NiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/KbG4sWMdD6n93HTsK1/giphy.gif", 
     "color": "#2b2d31"
 }
@@ -233,6 +249,8 @@
     "awakenings": "Fort (Awakened), Ope (Awakened), Ice (Awakened)",
     "equipment": "World Tree, Ult Guardian",
     "haki": "1-2-3-4-6-9-7-5-8",
+    "signature": "",
+    "treasure": "",
     "image": "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExM2Ricnh3NXRnaTUzaDZxdDZwN3ZrbDh1aW5yNm84OGN4aHBoNWRtMiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/5sNGHaPAJyYQyFwBFo/giphy.gif",
     "color": "#2b2d31"
 }
@@ -246,6 +264,8 @@
     "awakenings": "",
     "equipment": "Conqueror Set, Core Staff, Samurai Set",
     "haki": "1-3-6-4-2-9-7-5-8",
+    "signature": "",
+    "treasure": "",
     "image": "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExdWRnYXVvdXY0dXpxamthcjJ0eGN6endhZjU0bXo3NnRiaDZwZDV3NyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/YIi5BSf925ntB88EID/giphy.gif",
     "color": "#2b2d31"
 }
@@ -259,6 +279,7 @@
     "awakenings": "Ope, Soul, Tweet, Barrier",
     "equipment": "Gauntlet of Liberation Set, Ult Guardian",
     "haki": "(First right middle, then left middle, then conq middle)",
+    "signature": "",
     "treasure": "Control Set",
     "image": "",
     "color": "#2b2d31"
@@ -288,6 +309,7 @@
     "awakenings": "Glint Glint (Awakened)",
     "equipment": "Conqueror, Core Impact, Cursed Specter",
     "haki": "(First left middle, then right middle, then conq middle)",
+    "signature": "",
     "treasure": "Plunder Set",
     "image": "https://imgur.com",
     "color": "#2b2d31"
@@ -303,8 +325,38 @@
     "equipment": "World Tree, Ult Guardian",
     "haki": "(first left middle, then right middle, then conq middle)",
     "signature": "2 stars",
-    "treasure": "Ruthless Set",
-    "image": "линк_към_портрета_на_оден",
+    "treasure": "",
+    "image": "",
     "color": "#2b2d31"
 } 
+  "bullet": {
+    "title": "Bullet (UR) :emoji:",
+    "role": "Tank/RealmAssemble :emoji:",
+    "seals": "Iron Wall | Regen | Thorn | P.Combo | Cover | Cure | Pierce | Rage",
+    "extras": "Immunity | Flexibility | Resilience",
+    "devil_fruit": "Fort Fort, Tweet Tweet, Ope Ope, Shadow Shadow",
+    "secondary_fruit": "", 
+    "awakenings": "Barrier, Tweet, Soul, Shadow",
+    "equipment": "World Tree, Ult Guardian",
+    "haki": "(First right middle, then left middle, then conq middle)",
+    "signature": "",
+    "treasure": "Inspiration, Ruthless, Oracle",
+    "image": "https://imgur.com",
+    "color": "#2b2d31"
+}
+  "urwhiteb": {
+    "title": "Whitebeard (Prime) (UR)",
+    "role": "Warrior/BurstFreeze SP",
+    "seals": "Fury | Force | Pierce | Lifesteal | Healing Down | Ironwall | Flexibility",
+    "extras": "Annihilation | Physical Combo | Thorn | Rage | Cure",
+    "devil_fruit": "Fort Fort, Squeeze Squeeze, Magma Magma, Rumble Rumble",
+    "secondary_fruit": "", 
+    "awakenings": "Magma, Soul, Glint",
+    "equipment": "Conqueror, Samurai Set, Core Staff, Cursed Specter",
+    "haki": "(First left middle, then right middle, then conq middle)",
+    "signature": "",
+    "treasure": "Plunder, Resentment, Fearless",
+    "image": "",
+    "color": "#2b2d31"
+}
 }
