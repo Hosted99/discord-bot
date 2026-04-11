@@ -100,34 +100,40 @@ if (cmd === "!hero-list") {
 
             // --- 2.2 КОМАНДА: !hero ---
     if (cmd === "!hero") {
-        if (msg.channel.name !== "unit-build") return msg.reply("❌ Use #unit-build!");
-        if (!args[0]) return msg.reply("⚠️ Specify hero! Example: `!hero mihawk`.");
+    if (msg.channel.name !== "unit-build") return msg.reply("❌ Use #unit-build!");
+    if (!args[0]) return msg.reply("⚠️ Specify hero! Example: `!hero mihawk`.");
 
-        const heroesData = getHeroes();
-        const heroName = args[0].trim().toLowerCase();
-        const hero = heroesData[heroName];
+    const heroesData = getHeroes();
+    
+    // 1. Вземаме целия вход (в случай че има интервали) и го правим малък
+    const inputName = args.join("-").toLowerCase(); 
 
-        if (!hero) return msg.reply(`❌ Hero **${args[0]}** not found! Use \`!hero-list\`.`);
+    // 2. Търсим ключа в JSON файла, като игнорираме малки/големи букви
+    const heroKey = Object.keys(heroesData).find(key => key.toLowerCase() === inputName);
+    const hero = heroesData[heroKey];
 
-        console.log("Link loaded from JSON:", hero.image);
-        const embed = new EmbedBuilder()
-            .setTitle(hero.title)
-            .setImage(hero.image) // Тук Discord очаква директен линк
-            .setColor(hero.color || "#2b2d31")
-            .addFields(
-                { name: "⚔️ Role", value: hero.role || "N/A", inline: true },
-                { name: "🛡️ Equipment", value: hero.equipment || "N/A", inline: true },
-                { name: "🧬 Haki Rec", value: hero.haki || "N/A", inline: true },
-                { name: "📜 Seals", value: hero.seals || "N/A", inline: false },
-                { name: "✨ Extras", value: hero.extras || "N/A", inline: false },
-                { name: "🍎 Devil Fruit", value: hero.devil_fruit || "N/A", inline: false },
-                { name: "🍊 Secondary", value: hero.secondary_fruit || "N/A", inline: false },
-                { name: "🌊 Fruit Awakenings", value: hero.awakenings || "N/A", inline: false },
-                { name: "💎 Treasure", value: hero.treasure || "N/A", inline: false }
-            );
+    if (!hero) return msg.reply(`❌ Hero **${args.join(" ")}** not found! Use \`!hero-list\`.`);
 
-        return msg.channel.send({ embeds: [embed] });
-    }
+    console.log("Link loaded from JSON:", hero.image);
+    const embed = new EmbedBuilder()
+        .setTitle(hero.title)
+        .setImage(hero.image)
+        .setColor(hero.color || "#2b2d31")
+        .addFields(
+            { name: "⚔️ Role", value: hero.role || "N/A", inline: true },
+            { name: "🛡️ Equipment", value: hero.equipment || "N/A", inline: true },
+            { name: "🧬 Haki Rec", value: hero.haki || "N/A", inline: true },
+            { name: "📜 Seals", value: hero.seals || "N/A", inline: false },
+            { name: "✨ Extras", value: hero.extras || "N/A", inline: false },
+            { name: "🍎 Devil Fruit", value: hero.devil_fruit || "N/A", inline: false },
+            { name: "🍊 2nd Devil Fruit", value: hero.secondary_fruit || "---", inline: false },
+            { name: "🌊 Fruit Awakenings", value: hero.awakenings || "N/A", inline: false },
+            { name: "💎 Treasure", value: hero.treasure || "N/A", inline: false }
+        );
+
+    return msg.channel.send({ embeds: [embed] });
+}
+
 
 
     // --- 3. КОМАНДА: !remind ---
