@@ -208,7 +208,7 @@
     "treasure": "",
     "image": "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExdjV4cG04N3hha204Nzl0Y3R5MDh3dWVjdXA5cDcyMTZiNXN5NjRlcCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Zu8snbMdNC8nH46jXv/giphy.gif",
     "color": "#e91e63"
-  }
+  },
   "marco": {
     "title": "Marco (SSR+) :emoji:",
     "role": "Support/Heal Link :emoji:",
@@ -223,7 +223,7 @@
     "treasure": "",
     "image": "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExMDI5NXA2NWRxbWQ5cDh5eTFmNWRjcGx1Y3Rsb2Q0MWFscGJvbHh6MCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/RkvSWmrVlYNFRPzlsL/giphy.gif",
     "color": "#2b2d31"
-}
+},
   "garp": {
     "title": "Garp (SSR+) :emoji:",
     "role": "Warrior/Initiator Sunken :emoji:",
@@ -238,7 +238,7 @@
     "treasure": "",
     "image": "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExNXJ1eTVoZjVqY2cxdGZkemY1eHlwYmFiNWhkcGd3amZhY3dqcnF5NiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/KbG4sWMdD6n93HTsK1/giphy.gif", 
     "color": "#2b2d31"
-}
+},
   "sengoku": {
     "title": "Sengoku (SSR+) :emoji:",
     "role": "Tank/Invincible DMGDown :emoji:",
@@ -253,7 +253,7 @@
     "treasure": "",
     "image": "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExM2Ricnh3NXRnaTUzaDZxdDZwN3ZrbDh1aW5yNm84OGN4aHBoNWRtMiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/5sNGHaPAJyYQyFwBFo/giphy.gif",
     "color": "#2b2d31"
-}
+},
   "enel": {
     "title": "Enel (SSR+) :emoji:",
     "role": "Mage/Multi DMGStatic :emoji:",
@@ -268,7 +268,7 @@
     "treasure": "",
     "image": "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExdWRnYXVvdXY0dXpxamthcjJ0eGN6endhZjU0bXo3NnRiaDZwZDV3NyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/YIi5BSf925ntB88EID/giphy.gif",
     "color": "#2b2d31"
-}
+},
   "mars": {
     "title": "Mars (UR)",
     "role": "Mage/MageSPTRealm",
@@ -283,7 +283,7 @@
     "treasure": "Control Set",
     "image": "",
     "color": "#2b2d31"
-}
+},
   "saturn": {
     "title": "St. Saturn (UR) :emoji:",
     "role": "Tank/TankSupRealm :emoji:",
@@ -298,7 +298,7 @@
     "treasure": "Inspiration, Ruthless, Oracle",
     "image": "https://imgur.com",
     "color": "#2b2d31"
-}
+},
   "rayleigh": {
     "title": "Rayleigh (Prime) (UR) :emoji:",
     "role": "Warrior/LethalBurst :emoji:",
@@ -313,7 +313,7 @@
     "treasure": "Plunder Set",
     "image": "https://imgur.com",
     "color": "#2b2d31"
-}
+},
   "oden": {
     "title": "Kozuki Oden (UR) :emoji:",
     "role": "Warrior/Burst Upgrade :emoji:",
@@ -328,7 +328,7 @@
     "treasure": "",
     "image": "",
     "color": "#2b2d31"
-} 
+},
   "bullet": {
     "title": "Bullet (UR) :emoji:",
     "role": "Tank/RealmAssemble :emoji:",
@@ -343,7 +343,7 @@
     "treasure": "Inspiration, Ruthless, Oracle",
     "image": "https://imgur.com",
     "color": "#2b2d31"
-}
+},
   "urwhiteb": {
     "title": "Whitebeard (Prime) (UR)",
     "role": "Warrior/BurstFreeze SP",
