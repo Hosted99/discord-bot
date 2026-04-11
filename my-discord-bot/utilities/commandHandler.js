@@ -67,34 +67,45 @@ async function handleCommands(msg, pool) {
 
    // --- 2.1 КОМАНДА: !hero-list ---
 if (cmd === "!hero-list") {
-    if (msg.channel.name !== "unit-build") return msg.reply("❌ Use #unit-build!");
+    // Проверка за правилния канал
+    if (msg.channel.name !== "unit-build") return msg.reply("❌ Използвай канал #unit-build!");
     
     const heroesData = getHeroes();
-    const allKeys = Object.keys(heroesData).sort();
+    const allKeys = Object.keys(heroesData).sort(); // Сортиране по азбучен ред
 
-    // Фикс: Използваме toLowerCase(), за да хванем и -cultiV1, и -cultiv1
+    // Разделяне на героите на две основни групи (Main и Culti)
     const mainBuilds = allKeys.filter(name => !name.toLowerCase().includes("-cultiv1"));
     const cultiBuilds = allKeys.filter(name => name.toLowerCase().includes("-cultiv1"));
 
+    // Функция за форматиране на списъка с номерация и нов ред
+    const formatList = (list) => {
+        if (list.length === 0) return "---";
+        // Всеки герой ще е на нов ред с номер отпред
+        return list.map((name, index) => `**${index + 1}.** \`${name}\``).join("\n");
+    };
+
     const listEmbed = new EmbedBuilder()
-        .setTitle("📜 Hero Roster")
+        .setTitle("📜 OP: Sailing Kingdom - Hero Roster")
         .setColor("#00AE86")
+        .setDescription("Използвай командата `!hero <име>`, за да видиш детайли.")
         .addFields(
             { 
                 name: "🔵 Main Builds", 
-                value: mainBuilds.map(h => `\`${h}\``).join(", ") || "None", 
-                inline: false 
+                value: formatList(mainBuilds), 
+                inline: true 
             },
             { 
                 name: "🟡 Culti V1 Variants", 
-                value: cultiBuilds.map(h => `\`${h}\``).join(", ") || "None", 
-                inline: false 
+                value: formatList(cultiBuilds), 
+                inline: true 
             }
         )
-        .setFooter({ text: `Total Heroes: ${allKeys.length}` });
+        .setFooter({ text: `Общо герои: ${allKeys.length} | Бот система` })
+        .setTimestamp(); // Добавя час на генериране
 
     return msg.reply({ embeds: [listEmbed] });
 }
+
 
 
 
