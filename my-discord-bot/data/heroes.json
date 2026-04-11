@@ -402,10 +402,12 @@
 "seals": "Physical Combo | Armorpen | Piercing | Force | Fury | Lifesteal | Mind", 
 "extras": "Pursuit | Assault | Ironwall | Flexibility | Resilience | Rage", 
 "devil_fruit": "Rumble Rumble, Elaph Elaph, Fish Fish",
-"secondary_fruit": "Time Time, Glint-Glint, Squeeze Squeeze", "awakenings": "Mag-Mag, Eleph-Eleph",
+"secondary_fruit": "Time Time, Glint-Glint, Squeeze Squeeze", 
+"awakenings": "Mag-Mag, Eleph-Eleph",
 "equipment": "Conqueror, Core Impact, Samurai Set", 
 "haki": "1-2-3-6-4-9-7-5-8",
-"signature": "", "treasure": "plunderer", 
+"signature": "", 
+"treasure": "plunderer", 
 "image":"https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZGZ0OXNrZmtlanQ4YzJpcDd0bTRnaHBpcmJlOGoxOXRhdHhhYzZuYyZlcD12MV9na",
 "color": "#f1c40f"
 },
@@ -413,7 +415,10 @@
 "title": "Kaido (SSR+)",
 "role": "Tank / Taunt Transform",
 "seals": "Iron Wall | Cure | Regen | Thorn | Flexibility | Taunt | Control | P.Combo", "extras": "Immunity | Soul Return | Lifesteal | Pierce | Cover",
-"devil_fruit": "Fort Fort, Tweet-Tweet, Paw Paw", "secondary_fruit": "Ope Ope, Time Time, Tremor Tremor", "awakenings": "Barrier, Tweet, Shadow, soul", "equipment": "World Tree, Ult Guardian",
+"devil_fruit": "Fort Fort, Tweet-Tweet, Paw Paw", 
+"secondary_fruit": "Ope Ope, Time Time, Tremor Tremor", 
+"awakenings": "Barrier, Tweet, Shadow, soul", 
+"equipment": "World Tree, Ult Guardian",
 "haki": "1-2-3-6-4-9-7-5-8",
 "signature": "",
 "treasure": "", 
@@ -665,7 +670,7 @@
 "treasure": "Inspiration, Ruthless, Oracle", 
 "image": "https://imgur.com",
 "color": "#2b2d31"
-},
+}
 }
 
 
