@@ -65,29 +65,30 @@ async function handleCommands(msg, pool) {
         return msg.reply({ embeds: [helpEmbed] });
     }
 
-   // --- 2.1 КОМАНДА: !hero-list ---
+
+// --- 2.1 КОМАНДА: !hero-list ---
 if (cmd === "!hero-list") {
-    // Проверка за правилния канал
-    if (msg.channel.name !== "unit-build") return msg.reply("❌ Използвай канал #unit-build!");
+    // Проверка дали командата се използва в правилния канал
+    if (msg.channel.name !== "unit-build") return msg.reply("❌ Use #unit-build channel!");
     
     const heroesData = getHeroes();
-    const allKeys = Object.keys(heroesData).sort(); // Сортиране по азбучен ред
+    const allKeys = Object.keys(heroesData).sort(); // Сортираме имената по азбучен ред
 
-    // Разделяне на героите на две основни групи (Main и Culti)
+    // Разделяме героите на две групи според това дали съдържат "-cultiv1"
     const mainBuilds = allKeys.filter(name => !name.toLowerCase().includes("-cultiv1"));
     const cultiBuilds = allKeys.filter(name => name.toLowerCase().includes("-cultiv1"));
 
-    // Функция за форматиране на списъка с номерация и нов ред
+    // Функция за вертикално форматиране със заглавия и номерация
     const formatList = (list) => {
         if (list.length === 0) return "---";
-        // Всеки герой ще е на нов ред с номер отпред
+        // Правим списък: 1. име, 2. име... на нов ред (\n)
         return list.map((name, index) => `**${index + 1}.** \`${name}\``).join("\n");
     };
 
     const listEmbed = new EmbedBuilder()
         .setTitle("📜 OP: Sailing Kingdom - Hero Roster")
         .setColor("#00AE86")
-        .setDescription("Използвай командата `!hero <име>`, за да видиш детайли.")
+        .setDescription("Use `!hero <name>` to view a detailed build.")
         .addFields(
             { 
                 name: "🔵 Main Builds", 
@@ -100,11 +101,12 @@ if (cmd === "!hero-list") {
                 inline: true 
             }
         )
-        .setFooter({ text: `Общо герои: ${allKeys.length} | Бот система` })
-        .setTimestamp(); // Добавя час на генериране
+        .setFooter({ text: `Total Heroes: ${allKeys.length} | Build System` })
+        .setTimestamp(); // Добавяме клеймо за време
 
     return msg.reply({ embeds: [listEmbed] });
 }
+
 
 
 
