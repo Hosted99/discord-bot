@@ -64,7 +64,7 @@
     "awakenings": "",
     "equipment": "World Tree, Ult Guardian",
     "haki": "1-2-3-6-4-9-7-5-8",
-    "image": "https://media1.tenor.com/m/m42XDNACDasAAAAC/onepiece-one.gif",
+    "image": "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExMDMydGpnMDRqYXhoOW5zZGFjZXQ0Mno4dmp2dWdrZzFlc242OTdzZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/5K61xLyRAswoxIUnX2/giphy.gif",
     "color": "#4a0d0d"
   },
  "nika": {
@@ -103,7 +103,7 @@
     "awakenings": "",
     "equipment": "Conqueror, Core Impact, Cursed Specter",
     "haki": "1-3-4-6-9-7-2-5-8",
-    "image": "https://media1.tenor.com/m/xiGmlok8gxIAAAAC/one-piece-one-piece-film-red.gif",
+    "image": "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExMThncWZ2YnRtemJ2dXhqbjhuOXFqMnU0bTM0bHZrNnR6eTBwYzMxNCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/t55smbaCFTHwmIhgRa/giphy.gif",
     "color": "#8b0000"
   },
   "urkaido": {
@@ -116,7 +116,7 @@
     "awakenings": "",
     "equipment": "Conqueror, Samurai Set, Core Staff, Cursed Specter",
     "haki": "1-3-6-9-4-2-5-7-8",
-    "image": "https://media1.tenor.com/m/GpfOvpe8Lo0AAAAC/kaido.gif",
+    "image": "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExbjd1b3h2dDUyMDU0MGM5ZnNwNTQ3OTM2MWlhd3VuODJ5dDViYjZ3MSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/gZmKLrFyJ84FEByejx/giphy.gif",
     "color": "#1e3a5f"
   },
  "shanks": {
@@ -129,7 +129,7 @@
     "awakenings": "",
     "equipment": "Conqueror Set, Ult Guardian",
     "haki": "1-2-3-4-6-9-7-5-8",
-    "image": "https://media1.tenor.com/m/OvqEKxnx_9QAAAAC/shanks-one-piece.gif",
+    "image": "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExeW9nbzU1OWRyZ3pmMnFvNjBobXBxYTZnZ242d2M5MXBqcGt6eGtuYyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/olFKBWJ5YcFrGQ6WBs/giphy.gif",
     "color": "#9e1b1b"
   },
  "uta": {
@@ -142,7 +142,7 @@
     "awakenings": "",
     "equipment": "Gauntlet of Liberation, Ult Guardian, Core Staff",
     "haki": "1-2-3-4-6-9-7-5-8",
-    "image": "https://media1.tenor.com/m/s4nelekOVA4AAAAC/uta-uta-one-piece.gif",
+    "image": "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExN29mMGEwbm0xdTBqemt3azBrZWxqbG15Z3NjejNhZ2R0ZnZ4aHRvdiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/ff1udEPLYfza9Q7iU2/giphy.gif",
     "color": "#ff69b4"
   },
  "legendmihawk": {
@@ -181,7 +181,7 @@
     "awakenings": "",
     "equipment": "Gauntlet of Liberation, Ult Guardian, Core Staff",
     "haki": "1-2-3-4-6-9-7-5-8",
-    "image": "https://media1.tenor.com/m/xtBRTiZ1_HsAAAAC/one-piece-shirahoshi.gif",
+    "image": "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExZXNvODZ2NGI5aW9yYXNvbGlia2ZvOXQyazhlNmRwYWh4ZW13b3JpNCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/wddhCfsUD1KUkxCMzt/giphy.gif",
     "color": "#ffb6c1"
   },
  "bigmom": {
@@ -194,7 +194,117 @@
     "awakenings": "",
     "equipment": "Conqueror, Guardian, Samurai Set, Core Scepter",
     "haki": "1-2-3-4-6-9-7-5-8",
-    "image": "https://media1.tenor.com/m/84ApoU9WV0wAAAAC/big-mom-one-piece.gif",
+    "image": "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExdjV4cG04N3hha204Nzl0Y3R5MDh3dWVjdXA5cDcyMTZiNXN5NjRlcCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Zu8snbMdNC8nH46jXv/giphy.gif",
     "color": "#e91e63"
   }
+  "marco": {
+    "title": "Marco (SSR+) :emoji:",
+    "role": "Support/Heal Link :emoji:",
+    "seals": "Magic Combo | Medic | Iron Wall | Flexibility | Blessing | Resilience",
+    "extras": "Purge | Cover | Thorn | Regen | Cure | Soul Return",
+    "devil_fruit": "Barrier Barrier, Glint Glint, Time Time",
+    "secondary_fruit": "Ope Ope, Ice Ice",
+    "awakenings": "Barrier (Awakened), ",
+    "equipment": "Gauntlet of Liberation Set, Ult Guardian",
+    "haki": "1-3-4-6-9-2-5-7-8",
+    "image": "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExMDI5NXA2NWRxbWQ5cDh5eTFmNWRjcGx1Y3Rsb2Q0MWFscGJvbHh6MCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/RkvSWmrVlYNFRPzlsL/giphy.gif",
+    "color": "#2b2d31"
+}
+  "garp": {
+    "title": "Garp (SSR+) :emoji:",
+    "role": "Warrior/Initiator Sunken :emoji:",
+    "seals": "Physical Combo | Piercing | Force | Fury | Lifesteal | Ironwall",
+    "extras": "Pursuit | Rage | Assault | Blessing | Mind | Flexibility",
+    "devil_fruit": "Rumble Rumble, Elaph Elaph, Time Time",
+    "secondary_fruit": "Glint-Glint, Fort Fort",
+    "awakenings": "",
+    "equipment": "Conqueror, Core Impact, Cursed Specter",
+    "haki": "1-2-3-4-6-9-7-5-8",
+    "image": "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExNXJ1eTVoZjVqY2cxdGZkemY1eHlwYmFiNWhkcGd3amZhY3dqcnF5NiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/KbG4sWMdD6n93HTsK1/giphy.gif", 
+    "color": "#2b2d31"
+}
+  "sengoku": {
+    "title": "Sengoku (SSR+) :emoji:",
+    "role": "Tank/Invincible DMGDown :emoji:",
+    "seals": "Iron Wall | Soul Return | Regen | Thorn | P.Combo | Cover | Cure | Pierce",
+    "extras": "Immunity | Flexibility | Revival | Lifesteal | Control | Resilience",
+    "devil_fruit": "Fort Fort, Tweet Tweet, Ope Ope",
+    "secondary_fruit": "Paw Paw, Eleph Eleph, Ice Ice",
+    "awakenings": "Fort (Awakened), Ope (Awakened), Ice (Awakened)",
+    "equipment": "World Tree, Ult Guardian",
+    "haki": "1-2-3-4-6-9-7-5-8",
+    "image": "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExM2Ricnh3NXRnaTUzaDZxdDZwN3ZrbDh1aW5yNm84OGN4aHBoNWRtMiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/5sNGHaPAJyYQyFwBFo/giphy.gif",
+    "color": "#2b2d31"
+}
+  "enel": {
+    "title": "Enel (SSR+) :emoji:",
+    "role": "Mage/Multi DMGStatic :emoji:",
+    "seals": "Magic Combo | Pierce | Magic | Fury | Ironwall | Lifesteal",
+    "extras": "Annihilation | Raid | Mind | Pursuit | Healing Down | Flex",
+    "devil_fruit": "Venom Venom, Magma Magma, Fish Fish, Rumble Rumble",
+    "secondary_fruit": "Time Time, Tremor Tremor, Soul Soul, Eleph Eleph",
+    "awakenings": "",
+    "equipment": "Conqueror Set, Core Staff, Samurai Set",
+    "haki": "1-3-6-4-2-9-7-5-8",
+    "image": "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExdWRnYXVvdXY0dXpxamthcjJ0eGN6endhZjU0bXo3NnRiaDZwZDV3NyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/YIi5BSf925ntB88EID/giphy.gif",
+    "color": "#2b2d31"
+}
+  "mars": {
+    "title": "Mars (UR)",
+    "role": "Mage/MageSPTRealm",
+    "seals": "Magic Combo | Medic | Iron Wall | Flexibility | Blessing | Resilience",
+    "extras": "Pierce | Cover | Thorn | Regen | Cure | Soul Return",
+    "devil_fruit": "Barrier Barrier, Soul Soul, Ope Ope",
+    "secondary_fruit": "", 
+    "awakenings": "Ope, Soul, Tweet, Barrier",
+    "equipment": "Gauntlet of Liberation Set, Ult Guardian",
+    "haki": "(First right middle, then left middle, then conq middle)",
+    "treasure": "Control Set",
+    "image": "",
+    "color": "#2b2d31"
+}
+  "saturn": {
+    "title": "St. Saturn (UR) :emoji:",
+    "role": "Tank/TankSupRealm :emoji:",
+    "seals": "Iron Wall | Regen | Thorn | P.Combo | Cover | Cure",
+    "extras": "Immunity | Flexibility | Control | Resilience",
+    "devil_fruit": "Fort Fort, Tweet Tweet, Ope Ope, Shadow Shadow, Ice Ice",
+    "secondary_fruit": "", 
+    "awakenings": "Barrier (Awakened), Tweet (Awakened), Soul (Awakened), Shadow (Awakened), Ice (Awakened)",
+    "equipment": "World Tree, Ult Guardian",
+    "haki": "(First right middle, then left middle, then conq middle)",
+    "signature": "2 stars",
+    "treasure": "Inspiration, Ruthless, Oracle",
+    "image": "https://imgur.com",
+    "color": "#2b2d31"
+}
+  "rayleigh": {
+    "title": "Rayleigh (Prime) (UR) :emoji:",
+    "role": "Warrior/LethalBurst :emoji:",
+    "seals": "Physical Combo | Fury | Force | Pierce | Lifesteal",
+    "extras": "Pursuit | Flexibility | Mind | Annihilation",
+    "devil_fruit": "Fish Fish, Glint Glint",
+    "secondary_fruit": "", 
+    "awakenings": "Glint Glint (Awakened)",
+    "equipment": "Conqueror, Core Impact, Cursed Specter",
+    "haki": "(First left middle, then right middle, then conq middle)",
+    "treasure": "Plunder Set",
+    "image": "https://imgur.com",
+    "color": "#2b2d31"
+}
+  "oden": {
+    "title": "Kozuki Oden (UR) :emoji:",
+    "role": "Warrior/Burst Upgrade :emoji:",
+    "seals": "Physical Combo | Fury | Force | Pierce | Lifesteal | Immunity | Thorn",
+    "extras": "Pursuit | Iron Wall | Flexibility | Mind | Annihilation",
+    "devil_fruit": "Fort Fort, Shadow Shadow",
+    "secondary_fruit": "", 
+    "awakenings": "Fort (Awakened), Shadow (Awakened), Tweet (Awakened), Barrier (Awakened)",
+    "equipment": "World Tree, Ult Guardian",
+    "haki": "(first left middle, then right middle, then conq middle)",
+    "signature": "2 stars",
+    "treasure": "Ruthless Set",
+    "image": "линк_към_портрета_на_оден",
+    "color": "#2b2d31"
+} 
 }
