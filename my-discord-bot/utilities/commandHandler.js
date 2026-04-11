@@ -65,36 +65,37 @@ async function handleCommands(msg, pool) {
         return msg.reply({ embeds: [helpEmbed] });
     }
 
-    // --- 2.1 КОМАНДА: !hero-list ---
-    if (cmd === "!hero-list") {
-        if (msg.channel.name !== "unit-build") return msg.reply("❌ Use #unit-build!");
-        
-        const heroesData = getHeroes();
-        const allKeys = Object.keys(heroesData).sort();
+   // --- 2.1 КОМАНДА: !hero-list ---
+if (cmd === "!hero-list") {
+    if (msg.channel.name !== "unit-build") return msg.reply("❌ Use #unit-build!");
+    
+    const heroesData = getHeroes();
+    const allKeys = Object.keys(heroesData).sort();
 
-        // Разделяме героите на две групи
-        const mainBuilds = allKeys.filter(name => !name.includes("-cultiv1"));
-        const cultiBuilds = allKeys.filter(name => name.includes("-cultiv1"));
+    // Фикс: Използваме toLowerCase(), за да хванем и -cultiV1, и -cultiv1
+    const mainBuilds = allKeys.filter(name => !name.toLowerCase().includes("-cultiv1"));
+    const cultiBuilds = allKeys.filter(name => name.toLowerCase().includes("-cultiv1"));
 
-        const listEmbed = new EmbedBuilder()
-            .setTitle("📜 Hero Roster")
-            .setColor("#00AE86")
-            .addFields(
-                { 
-                    name: "🔵 Main Builds", 
-                    value: mainBuilds.map(h => `\`${h}\``).join(", ") || "None", 
-                    inline: false 
-                },
-                { 
-                    name: "🟡 Culti V1 Variants", 
-                    value: cultiBuilds.map(h => `**${h}**`).join(", ") || "None", 
-                    inline: false 
-                }
-            )
-            .setFooter({ text: `Total Heroes: ${allKeys.length}` });
+    const listEmbed = new EmbedBuilder()
+        .setTitle("📜 Hero Roster")
+        .setColor("#00AE86")
+        .addFields(
+            { 
+                name: "🔵 Main Builds", 
+                value: mainBuilds.map(h => `\`${h}\``).join(", ") || "None", 
+                inline: false 
+            },
+            { 
+                name: "🟡 Culti V1 Variants", 
+                value: cultiBuilds.map(h => `\`${h}\``).join(", ") || "None", 
+                inline: false 
+            }
+        )
+        .setFooter({ text: `Total Heroes: ${allKeys.length}` });
 
-        return msg.reply({ embeds: [listEmbed] });
-    }
+    return msg.reply({ embeds: [listEmbed] });
+}
+
 
 
             // --- 2.2 КОМАНДА: !hero ---
