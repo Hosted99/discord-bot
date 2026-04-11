@@ -103,7 +103,8 @@ async function handleCommands(msg, pool) {
                 { name: "✨ Extras", value: hero.extras || "N/A", inline: false },
                 { name: "🍎 Devil Fruit", value: hero.devil_fruit || "N/A", inline: false },
                 { name: "🍊 Secondary", value: hero.secondary_fruit || "N/A", inline: false },
-                { name: "🌊 Fruit Awakenings", value: hero.awakenings || "N/A", inline: false }
+                { name: "🌊 Fruit Awakenings", value: hero.awakenings || "N/A", inline: false },
+                { name: "💎 Treasure", value: hero.treasure || "N/A", inline: false }
             );
 
         return msg.channel.send({ embeds: [embed] });
