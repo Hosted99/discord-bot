@@ -296,7 +296,7 @@
     "haki": "(First right middle, then left middle, then conq middle)",
     "signature": "2 stars",
     "treasure": "Inspiration, Ruthless, Oracle",
-    "image": "https://imgur.com",
+    "image": "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExbHR1eGM1eG80Z2Y4MmZsYjd1NTR0OGMyd3RuamFrd2drc2d1cHJlYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/65Ww3zikc3D5e277rA/giphy.gif",
     "color": "#2b2d31"
 },
   "rayleigh": {
@@ -311,7 +311,7 @@
     "haki": "(First left middle, then right middle, then conq middle)",
     "signature": "",
     "treasure": "Plunder Set",
-    "image": "https://imgur.com",
+    "image": "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExY291aWJlYmFoNDJscDRyMW9nZ3ZxY3FybDg5ZDB3bTNtZ2FhaTd2dSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/9rmHEV1GkkHqBbrSdY/giphy.gif",
     "color": "#2b2d31"
 },
   "oden": {
@@ -326,7 +326,7 @@
     "haki": "(first left middle, then right middle, then conq middle)",
     "signature": "2 stars",
     "treasure": "",
-    "image": "",
+    "image": "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExaWU0cGZ5OGNmdXo4ejNqcnZyaXI5OHBmcjF0OGRqemczMmJmank4aSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/0aAG1PtxnpEsfQso5P/giphy.gif",
     "color": "#2b2d31"
 },
   "bullet": {
@@ -341,7 +341,7 @@
     "haki": "(First right middle, then left middle, then conq middle)",
     "signature": "",
     "treasure": "Inspiration, Ruthless, Oracle",
-    "image": "https://imgur.com",
+    "image": "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExMnk3dG4wOXNkZG5iZTRwd2Y2aGgzdDhxNXVhZm9oOXBjamtvYjU3NyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/QzuBxkbWVL0WOuMOeR/giphy.gif",
     "color": "#2b2d31"
 },
   "urwhiteb": {
@@ -356,7 +356,7 @@
     "haki": "(First left middle, then right middle, then conq middle)",
     "signature": "",
     "treasure": "Plunder, Resentment, Fearless",
-    "image": "",
+    "image": "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExNGZucnU1djg5NnliNHRsbWVneDZraHpzeXlnd2J1dDJyeGIwZXMzNCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/YW9b7OfCHtW3hRT4g6/giphy.gif",
     "color": "#2b2d31"
 },
 
@@ -385,7 +385,8 @@
 },
 "blackb-cultiV1": {
 "title": "Blackbeard (SSR+)", "role": "Mage / Burst Absorb",
-"seals": "Magic Combo | Pierce | Flexibility | Ironwall | Healing Down | Regen", "extras": "Annihilation | Lifesteal | Resilience | Blessing",
+"seals": "Magic Combo | Pierce | Flexibility | Ironwall | Healing Down | Regen", 
+"extras": "Annihilation | Lifesteal | Resilience | Blessing",
 "devil_fruit": "Venom Venom, Magma Magma, Fort Fort, Squeeze Squeeze, Rumble", 
 "secondary_fruit": "Time Time, Tremor Tremor, Soul Soul",
 "awakenings": "Eleph, Mag, Dark, Soul",
@@ -414,7 +415,8 @@
 "kaido-cultiV1": {
 "title": "Kaido (SSR+)",
 "role": "Tank / Taunt Transform",
-"seals": "Iron Wall | Cure | Regen | Thorn | Flexibility | Taunt | Control | P.Combo", "extras": "Immunity | Soul Return | Lifesteal | Pierce | Cover",
+"seals": "Iron Wall | Cure | Regen | Thorn | Flexibility | Taunt | Control | P.Combo", 
+"extras": "Immunity | Soul Return | Lifesteal | Pierce | Cover",
 "devil_fruit": "Fort Fort, Tweet-Tweet, Paw Paw", 
 "secondary_fruit": "Ope Ope, Time Time, Tremor Tremor", 
 "awakenings": "Barrier, Tweet, Shadow, soul", 
@@ -443,7 +445,8 @@
 "urzoro-cultiV1": {
 "title": "Enma Zoro (UR)",
 "role": "Warrior / Burst Severing",
-"seals": "Physical Combo | Fury | Force | Pierce | Lifesteal | Raid", "extras": "Thorn | Iron Wall | Flexibility | Mind | Annihilation | Assault",
+"seals": "Physical Combo | Fury | Force | Pierce | Lifesteal | Raid", 
+"extras": "Thorn | Iron Wall | Flexibility | Mind | Annihilation | Assault",
 "devil_fruit": "Rumble Rumble, Elaph Elaph, Squeeze Squeeze, Fish Fish", 
 "secondary_fruit": "Time Time, Glint-Glint",
 "awakenings": "Mag-Mag, Eleph-Eleph", 
@@ -457,7 +460,8 @@
 "urakainu-cultiV1": {
 "title": "Admiral Akainu (UR)",
 "role": "Mage/TankMage Suppression",
-"seals": "Magic Combo | Fury | Magic | Ironwall | Pierce | Lifesteal", "extras": "Raid | Mind | Healing Down | Rage | Pursuit | Flexibility",
+"seals": "Magic Combo | Fury | Magic | Ironwall | Pierce | Lifesteal", 
+"extras": "Raid | Mind | Healing Down | Rage | Pursuit | Flexibility",
 "devil_fruit": "Venon Venom, Magma Magma, Rumble Rumble, Squeeze Squeeze", 
 "secondary_fruit": "Glint-Glint, Ice Ice, Time Time, Soul Soul",
 "awakenings": "Mag, Eleph, Soul, Dark",
@@ -469,8 +473,10 @@
 "color": "#8b0000"
 },
 "urkaido-cultiV1": {
-"title": "Dragon Kaido (UR)", "role": "Warrior/Tank Invincibility",
-"seals": "Fury | Force | Pierce | Lifesteal | Healing Down", "extras": "Annihilation | Physical Combo | Thorn",
+"title": "Dragon Kaido (UR)", 
+"role": "Warrior/Tank Invincibility",
+"seals": "Fury | Force | Pierce | Lifesteal | Healing Down", 
+"extras": "Annihilation | Physical Combo | Thorn",
 "devil_fruit": "Venom Venom, Fort Fort, Squeeze Squeeze, Soul Soul",
 "secondary_fruit": "Time Time, Glint-Glint, Eleph Eleph, Rumble Rumble", 
 "awakenings": "Mag-Mag, Eleph-Eleph",
@@ -482,7 +488,8 @@
 "color": "#1e3a5f"
 },
 "shanks-cultiV1": {
-"title": "Shanks (SSR+)", "role": "Warrior/Burst Focus",
+"title": "Shanks (SSR+)", 
+"role": "Warrior/Burst Focus",
 "seals": "Physical Combo | Lifesteal | Pierce | Force | Assault | Fury", 
 "extras": "Pursuit | Ironwall | Flexibility | Mind | Rage | Raid", 
 "devil_fruit": "Rumble Rumble, Elaph Elaph, Fort Fort", 
@@ -498,7 +505,8 @@
 "uta-cultiV1": {
 "title": "Uta (SSR+)",
 "role": "Support / Realm Guard",
-"seals": "Magic Combo | Medic | Iron Wall | Flexibility | Blessing | Resilience", "extras": "Purge | Cover | Thorn | Regen | Soul Return | Cure",
+"seals": "Magic Combo | Medic | Iron Wall | Flexibility | Blessing | Resilience", 
+"extras": "Purge | Cover | Thorn | Regen | Soul Return | Cure",
 "devil_fruit": "Barrier Barrier, Glint Glint, Ope Ope", 
 "secondary_fruit": "Ice Ice, Shadow Shadow, Dark Dark", 
 "awakenings": "Barrier, Tweet, Soul, Glint, Shadow", 
@@ -510,7 +518,8 @@
 "color": "#ff69b4"
 },
 "legendmihawk-cultiV1": {
-"title": "Legendary Mihawk (SSR+)", "role": "Warrior / Burst Combo",
+"title": "Legendary Mihawk (SSR+)", 
+"role": "Warrior / Burst Combo",
 "seals": "Physical Combo | Fury | Force | Pierce | Lifesteal", 
 "extras": "Pursuit | Iron Wall | Flexibility | Mind | Annihilation", 
 "devil_fruit": "Rumble Rumble, Elaph Elaph, Squeeze Squeeze", 
@@ -539,7 +548,8 @@
 "color": "#00ced1"
 },
 "shirahoshi-cultiV1": {
-"title": "Shirahoshi (SSR+)", "role": "Support / Heal Revive",
+"title": "Shirahoshi (SSR+)", 
+"role": "Support / Heal Revive",
 "seals": "Magic Combo | Medic | Iron Wall | Flexibility | Blessing | Resilience", 
 "extras": "Purge | Cover | Thorn | Regen | Soul Return | Dispel | Cure", 
 "devil_fruit": "Barrier Barrier, Time Time",
@@ -568,7 +578,8 @@
 "color": "#e91e63"
 },
 "marco-cultiV1": {
-"title": "Marco (SSR+)", "role": "Support/Heal Link",
+"title": "Marco (SSR+)", 
+"role": "Support/Heal Link",
 "seals": "Magic Combo | Medic | Iron Wall | Flexibility | Blessing | Resilience", 
 "extras": "Purge | Cover | Thorn | Regen | Cure | Soul Return",
 "devil_fruit": "Barrier Barrier, Glint Glint, Time Time", 
@@ -668,7 +679,7 @@
 "haki": "(First right middle, then left middle, then conq middle)", 
 "signature": "",
 "treasure": "Inspiration, Ruthless, Oracle", 
-"image": "https://imgur.com",
+"image": "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExbzEwYmY5N2ZtcjA0Z3E2ODlxdjd4aTJvanZrNXNnNWJiZ3Q5ZnYyeSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/i9Hev7tH20GeB36s1q/giphy.gif",
 "color": "#2b2d31"
 }
 }
