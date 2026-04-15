@@ -464,6 +464,46 @@ if (cmd === "!clear") {
         msg.reply("❌ Failed to delete messages. (Note: Discord cannot delete messages older than 14 days).");
     }
 }
+
+
+
+
+// --- КОМАНДА: !mania-help ---
+if (cmd === "!mania-help") {
+    const { EmbedBuilder } = require('discord.js');
+
+    const helpEmbed = new EmbedBuilder()
+        .setTitle("🏴‍☠️ MANIA COMMANDS CENTER")
+        .setDescription("Use these commands to organize the crew and prepare for battle!")
+        .setColor("#FF4500")
+        .setThumbnail("https://giphy.com")
+        .addFields(
+            { 
+                name: "📝 mania-plan", 
+                value: "Starts the daily sign-up. It pings @everyone and adds ✅/❌ reactions. The bot saves this post to track who is available." 
+            },
+            { 
+                name: "📜 mania-list", 
+                value: "Checks the reactions from the active plan. It lists confirmed players and **pings anyone who hasn't voted yet!** 🔔" 
+            },
+            { 
+                name: "⚔️ mania-strategy", 
+                value: "Publishes the final battle plan. \n**Format:** `Boss Name - @Player1 @Player2` \n*Each boss must be on a new line with a dash `-`.*" 
+            }
+        )
+        .setFooter({ text: "Captain's Tip: Use mania-list to find missing voters! 🏴‍☠️" })
+        .setTimestamp();
+
+    return msg.reply({ embeds: [helpEmbed] });
+}
+
+
+
+
+
+
+
+    
     // --- COMMAND: !cron (English Guide) ---
 if (cmd === "!cron" || cmd === "!cronhelp") {
     // Getting current server time to avoid time zone confusion
