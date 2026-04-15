@@ -7,7 +7,8 @@ const {
     initSchedulers, 
     handleManiaPlan, 
     handleManiaList, 
-    handleManiaStrategy 
+    handleManiaStrategy,
+    handleManiaHelp // <--- Добави това
 } = require("./utilities/scheduler");
 const { handleCommands } = require("./utilities/commandHandler");
 const { handleSpecialChannels } = require("./utilities/specialChannels");
