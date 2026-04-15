@@ -104,6 +104,12 @@ client.on("messageCreate", async (msg) => {
         return await handleManiaStrategy(msg, pool);
     }
 
+     // ДОБАВИ ТОВА:
+    if (content === '!mania-help') {
+        return handleManiaHelp(msg);
+    }
+
+    
     // --- 2. Команди (!addrole / !removerole / !commands) ---
     if (msg.content.startsWith("!")) {
         const content = msg.content.trim();
