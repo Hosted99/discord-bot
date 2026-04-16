@@ -44,7 +44,7 @@ async function handleRoleCommands(msg, cmd, args) {
 
 
      // --- МАСОВИ КОМАНДИ ЗА ТАГОВЕ ---
-    if (cmd === "!addroleall" || cmd === "!addgm") {
+    if (cmd === "!addroleallts" || cmd === "!addroleallgm") {
         msg.delete().catch(() => {});
         
         // Само Админи могат да пускат масово раздаване
@@ -54,9 +54,9 @@ async function handleRoleCommands(msg, cmd, args) {
         }
 
         // Определяме кой таг да търсим според командата
-        // Ако пишеш !addroleall -> търси ᐪˢ☠️
-        // Ако пишеш !addgm -> търси ᴳᴹ☠️
-        const tag = (cmd === "!addgm") ? "ᴳᴹ☠️" : "ᐪˢ☠️";
+        // Ако пишеш !addroleallts -> търси ᐪˢ☠️
+        // Ако пишеш !addroleallgm -> търси ᴳᴹ☠️
+        const tag = (cmd === "!addroleallgm") ? "ᴳᴹ☠️" : "ᐪˢ☠️";
 
         const role = msg.mentions.roles.first() || msg.guild.roles.cache.get(args[0]);
 
