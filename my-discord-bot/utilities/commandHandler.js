@@ -52,7 +52,7 @@ async function handleCommands(msg, pool) {
                 },
                 { 
                     name: "🎖️ Role Management (Admin)", 
-                    value: "• `!addrole @user <Role>` - Assign crew role.\n• `!removerole @user <Role>` - Remove crew role." 
+                    value: "• `!addrole @user <Role>` - Assign crew role.\n• `!removerole @user <Role>` - Remove crew role.\n"  "• `!addroleallts @role` — (Admin) Add role to everyone with **ᐪˢ☠️**.\n"  "• `!addroleallgm @role` — (Admin) Add role to everyone with **ᴳᴹ☠️**."
                 },
                 { 
                     name: "🧹 Moderation", 
