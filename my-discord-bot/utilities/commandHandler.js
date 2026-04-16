@@ -45,7 +45,7 @@ async function handleCommands(msg, pool) {
                 { 
                     name: "⚔️ Heroes & Guides", 
                     value: "• `!hero <name>` - Get guide (Only in `#unit-build`).\n• `!hero-list` - See all available heroes.\n"+
-                         "• !mania-help - Show the mania guide."
+                         "• `!mania-help` - Show the mania guide."
                 },
                 { 
                     name: "⏰ Reminders", 
