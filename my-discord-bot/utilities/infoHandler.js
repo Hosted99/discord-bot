@@ -58,7 +58,7 @@ const sendBotManual = async (guild) => {
                 name: "🎖️ 7. Role Management & Welcome", 
                 value: "• **New Members:** Automatically receive the `Rookies` role and a welcome message.\n" +
                 "• `!addrole @user <rank>` — (Admin) Assign specific pirate ranks.\n" +
-                "• `!removerole @user <rank>` — (Admin) Revoke a member's rank.\n""+
+                "• `!removerole @user <rank>` — (Admin) Revoke a member's rank.\n"+
                 "• `!addroleallts @role` — (Admin) Add role to everyone with **ᐪˢ☠️**.\n" +
                 "• `!addroleallgm @role` — (Admin) Add role to everyone with **ᴳᴹ☠️**."
             },
