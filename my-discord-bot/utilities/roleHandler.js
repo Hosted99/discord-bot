@@ -37,11 +37,68 @@ async function handleNewMember(member) {
 }
 
 /**
- * Контрол на специалните пиратски роли чрез команди !addrole и !removerole
+ * Контрол на специалните пиратски роли чрез команди !addroleall !addrole и !removerole
  */
 async function handleRoleCommands(msg, cmd, args) {
     if (!msg.member.permissions.has("ManageRoles")) return;
 
+
+     // --- МАСОВИ КОМАНДИ ЗА ТАГОВЕ ---
+    if (cmd === "!addroleall" || cmd === "!addgm") {
+        msg.delete().catch(() => {});
+        
+        // Само Админи могат да пускат масово раздаване
+        if (!msg.member.permissions.has("Administrator")) {
+            return msg.reply("❌ Only Admirals can use mass-role commands.")
+                      .then(m => setTimeout(() => m.delete().catch(() => {}), 5000));
+        }
+
+        // Определяме кой таг да търсим според командата
+        // Ако пишеш !addroleall -> търси ᐪˢ☠️
+        // Ако пишеш !addgm -> търси ᴳᴹ☠️
+        const tag = (cmd === "!addgm") ? "ᴳᴹ☠️" : "ᐪˢ☠️";
+
+        const role = msg.mentions.roles.first() || msg.guild.roles.cache.get(args[0]);
+
+        if (!role) {
+            return msg.channel.send(`❌ Usage: \`${cmd} @role\``)
+                      .then(m => setTimeout(() => m.delete().catch(() => {}), 5000));
+        }
+
+        const statusMsg = await msg.channel.send(`⏳ Scanning for pirates with tag **${tag}**...`);
+
+        try {
+            const allMembers = await msg.guild.members.fetch();
+            
+            // Филтрираме по съответния таг
+            const targets = allMembers.filter(m => 
+                m.user.username.includes(tag) || 
+                (m.nickname && m.nickname.includes(tag))
+            );
+
+            if (targets.size === 0) {
+                return statusMsg.edit(`❌ No users found with tag **${tag}**.`);
+            }
+
+            let count = 0;
+            for (const [id, member] of targets) {
+                if (!member.roles.cache.has(role.id)) {
+                    await member.roles.add(role).catch(() => {});
+                    count++;
+                }
+            }
+
+            return statusMsg.edit(`✅ Added **${role.name}** to **${count}** members with the **${tag}** tag.`);
+        } catch (err) {
+            console.error(err);
+            return statusMsg.edit("❌ Error during mass update.");
+        }
+    }
+
+  
+///
+
+    
     const targetUser = msg.mentions.members.first();
     // 1. Проверяваме дали е тагната роля или е написана като текст
     const mentionedRole = msg.mentions.roles.first();
