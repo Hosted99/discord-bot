@@ -113,7 +113,7 @@ client.on("messageCreate", async (msg) => {
         const args = content.split(/\s+/);
         const cmd = args.shift().toLowerCase();
 
-        if (cmd === "!addrole" || cmd === "!removerole") {
+        if (cmd === "!addrole" || cmd === "!removerole" || cmd === "!addroleallts" || cmd === "!addroleallgm") {
             return await handleRoleCommands(msg, cmd, args);
         }
         return await handleCommands(msg, pool);
