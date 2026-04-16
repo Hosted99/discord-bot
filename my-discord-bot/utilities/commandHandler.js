@@ -354,23 +354,29 @@ if (cmd === "!wanted") {
 
     // --- 8. BOUNTY COMMAND: !setbounty <user> <amount> (ADMIN/MOD) ---
 if (cmd === "!setbounty") {
-    // DELETE COMMAND IMMEDIATELY
-    msg.delete().catch(() => {}); 
-
-    // 🛡️ SECURITY CHECK: Replace '123456789012345678' with your Moderator Role ID
+    // 🛡️ 1. SECURITY CHECK FIRST (Replace with your Moderator Role ID)
     const modRoleId = "1494368806133301428"; 
     const hasModRole = msg.member.roles.cache.has(modRoleId);
     const hasAdminPerm = msg.member.permissions.has("Administrator");
 
     if (!hasModRole && !hasAdminPerm) {
-        return msg.reply("❌ Access Denied! You do not have permission to use this command.")
-                  .then(m => setTimeout(() => m.delete().catch(() => {}), 5000));
+        // We reply BEFORE deleting the command
+        return msg.reply("❌ Access Denied! Administrators or Moderators only.")
+            .then(m => {
+                setTimeout(() => m.delete().catch(() => {}), 5000);
+                msg.delete().catch(() => {}); // Delete the user's command now
+            });
     }
 
-    const target = msg.mentions.members.first();
-    const amount = args[1];
+    // 🛡️ 2. DELETE COMMAND (only if authorized)
+    msg.delete().catch(() => {}); 
 
-    if (!target || isNaN(amount)) return msg.reply("❌ Usage: `!setbounty @user <amount>`");
+    const target = msg.mentions.members.first();
+    const amount = args[1]; // Ensure you take the amount from the correct argument index
+
+    if (!target || isNaN(amount)) {
+        return msg.channel.send("❌ Usage: `!setbounty @user <amount>`");
+    }
 
     try {
         await pool.query(
@@ -395,27 +401,29 @@ if (cmd === "!setbounty") {
         await msg.channel.send({ embeds: [embed] });
     } catch (err) {
         console.error("SetBounty error:", err.message);
-        msg.reply("❌ Error updating bounty.");
+        msg.channel.send("❌ Error updating bounty in database.");
     }
 }
 
 // --- 9. BOUNTY COMMAND: !resetbounty (ADMIN/MOD) ---
 if (cmd === "!resetbounty") {
-    // DELETE COMMAND IMMEDIATELY
-    msg.delete().catch(() => {}); 
-
-    // 🛡️ SECURITY CHECK: Same logic as above
+    // 🛡️ SECURITY CHECK
     const modRoleId = "123456789012345678"; 
     const hasModRole = msg.member.roles.cache.has(modRoleId);
     const hasAdminPerm = msg.member.permissions.has("Administrator");
 
     if (!hasModRole && !hasAdminPerm) {
         return msg.reply("❌ Access Denied! Admirals or Moderators only.")
-                  .then(m => setTimeout(() => m.delete().catch(() => {}), 5000));
+            .then(m => {
+                setTimeout(() => m.delete().catch(() => {}), 5000);
+                msg.delete().catch(() => {});
+            });
     }
 
+    msg.delete().catch(() => {}); 
+
     const target = msg.mentions.members.first();
-    if (!target) return msg.reply("❌ Mention a user!");
+    if (!target) return msg.channel.send("❌ Please mention a user to reset.");
     
     try {
         await pool.query("UPDATE users SET bounty = 0 WHERE user_id = $1", [target.id]);
@@ -423,19 +431,19 @@ if (cmd === "!resetbounty") {
         const adminLog = msg.guild.channels.cache.find(ch => ch.name === "admin-logs");
         if (adminLog) {
             const logEmbed = new EmbedBuilder()
-            .setTitle("🧹 Bounty Reset Log")
-            .setDescription(`**Staff:** ${msg.author}\n**Target:** ${target}\n**Action:** Bounty reset to ฿0`)
-            .setColor("#ff0000")
-            .setTimestamp();
+                .setTitle("🧹 Bounty Reset Log")
+                .setDescription(`**Staff:** ${msg.author}\n**Target:** ${target}\n**Action:** Bounty reset to ฿0`)
+                .setColor("#ff0000")
+                .setTimestamp();
     
-            await adminLog.send({ embeds: [logEmbed] }).catch(err => console.log("Log error:", err.message));
+            await adminLog.send({ embeds: [logEmbed] }).catch(() => {});
         }
 
         await updateBountyRole(target, 0); 
         return msg.channel.send(`🧹 **Cleaning the Deck:** Bounty for **${target.user.username}** has been reset to ฿0.`);    
     } catch (err) {
         console.error("ResetBounty error:", err.message);
-        return msg.reply("❌ Error resetting bounty. Check database connection.");
+        return msg.channel.send("❌ Error resetting bounty. Check database connection.");
     }
 }
     // --- 10. МОДЕРАЦИЯ: !clear (ДОСТЪПНА НАВСЯКЪДЕ) ---
