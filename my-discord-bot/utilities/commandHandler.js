@@ -50,10 +50,13 @@ async function handleCommands(msg, pool) {
                     name: "⏰ Reminders", 
                     value: "• `!remind <cron> <msg>` - Set custom reminder.\n• `!reminders` - List your reminders.\n• `!allreminders` - View all schedules.\n• `!cron` — Show the timing & cron guide." 
                 },
-                { 
+                {
                     name: "🎖️ Role Management (Admin)", 
-                    value: "• `!addrole @user <Role>` - Assign crew role.\n• `!removerole @user <Role>` - Remove crew role.\n"  "• `!addroleallts @role` — (Admin) Add role to everyone with **ᐪˢ☠️**.\n"  "• `!addroleallgm @role` — (Admin) Add role to everyone with **ᴳᴹ☠️**."
-                },
+                    value: "• `!addrole @user <Role>` - Assign crew role.\n• + 
+                        "• ` !removerole @user <Role>` - Remove crew role.\n" +
+                     "• `!addroleallts @role` — (Admin) Add role to everyone with **ᐪˢ☠️**.\n" + 
+                       "• `!addroleallgm @role` — (Admin) Add role to everyone with **ᴳᴹ☠️**."
+},
                 { 
                     name: "🧹 Moderation", 
                     value: "• `!clear <1-100>` - Bulk delete messages (Admin)." 
