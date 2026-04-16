@@ -352,11 +352,21 @@ if (cmd === "!wanted") {
 
 
 
-    // --- 8. BOUNTY КОМАНДА: !setbounty <user> <amount> (ADMIN) ---
+    // --- 8. BOUNTY КОМАНДА: !setbounty <user> <amount> (ADMIN/MOD) ---
 // ---------------------- !setbounty ----------------------
 if (cmd === "!setbounty") {
-    // ИЗТРИВАМЕ  КОМАНДА ВЕДНАГА
+    // ИЗТРИВАМЕ КОМАНДА ВЕДНАГА
     msg.delete().catch(() => {}); 
+
+    // ПРОВЕРКА ЗА ПРАВА (Админ или роля "Moderator")
+    const isMod = msg.member.roles.cache.some(role => role.name === "Moderator");
+    const isAdmin = msg.member.permissions.has("Administrator");
+
+    if (!isMod && !isAdmin) {
+        return msg.reply("❌ Оторизиран достъп само за Модератори и Адмирали!")
+                  .then(m => setTimeout(() => m.delete().catch(() => {}), 5000));
+    }
+
     const target = msg.mentions.members.first();
     const amount = args[1];
 
@@ -388,42 +398,45 @@ if (cmd === "!setbounty") {
         msg.reply("❌ Error updating bounty.");
     }
 }
-    // --- 9. BOUNTY КОМАНДА: !resetbounty (ADMIN) ---
-    if (cmd === "!resetbounty") {
-        // ИЗТРИВАМЕ КОМАНДА ВЕДНАГА
-        msg.delete().catch(() => {}); 
-        // 2. Проверка за права
-        if (!msg.member.permissions.has("Administrator")) {
-            return msg.reply("❌ Admirals only!").then(m => setTimeout(() => m.delete().catch(() => {}), 5000));
-        }
-        const target = msg.mentions.members.first();
-        if (!target) return msg.reply("❌ Mention a user!");
-        
-        //     . ОБГРАЖДАМЕ С TRY-CATCH (За да не умира бота при грешка)
-        try {
-            // Нулираме в базата данни
-            await pool.query("UPDATE users SET bounty = 0 WHERE user_id = $1", [target.id]);
-////
+    // --- 9. BOUNTY КОМАНДА: !resetbounty (ADMIN/MOD) ---
+if (cmd === "!resetbounty") {
+    // ИЗТРИВАМЕ КОМАНДА ВЕДНАГА
+    msg.delete().catch(() => {}); 
 
-            
-            // 2. ЕТО ТУК СЛАГАШ ЦЕЛИЯ БЛОК (НОВОТО)
-            const adminLog = msg.guild.channels.cache.find(ch => ch.name === "admin-logs");
-            if (adminLog) {
-                const logEmbed = new EmbedBuilder()
-                .setTitle("🧹 Bounty Reset Log")
-                .setDescription(`**Admin:** ${msg.author}\n**Target:** ${target}\n**Action:** Bounty reset to ฿0`)
-                .setColor("#ff0000")
-                .setTimestamp();
-        
-                await adminLog.send({ embeds: [logEmbed] }).catch(err => console.log("Log error:", err.message));
-            }
-            // Нулираме ролята (ще му даде най-ниската или ще махне всички Bounty роли)
-            await updateBountyRole(target, 0); 
-            return msg.channel.send(`🧹 **Cleaning the Deck:** Bounty for **${target.user.username}** has been reset to ฿0.`);    
-        } catch (err) {
-            console.error("ResetBounty error:", err.message);
-            //  бота да продължи, вместо да се изключи
-            return msg.reply("❌ Error resetting bounty. Check database connection.");
+    // ПРОВЕРКА ЗА ПРАВА (Админ или роля "Moderator")
+    const isMod = msg.member.roles.cache.some(role => role.name === "Moderator");
+    const isAdmin = msg.member.permissions.has("Administrator");
+
+    if (!isMod && !isAdmin) {
+        return msg.reply("❌ Admirals or Moderators only!").then(m => setTimeout(() => m.delete().catch(() => {}), 5000));
+    }
+
+    const target = msg.mentions.members.first();
+    if (!target) return msg.reply("❌ Mention a user!");
+    
+    // ОБГРАЖДАМЕ С TRY-CATCH
+    try {
+        // Нулираме в базата данни
+        await pool.query("UPDATE users SET bounty = 0 WHERE user_id = $1", [target.id]);
+
+        // ПРОВЕРКА И ЛОГВАНЕ В ADMIN-LOGS
+        const adminLog = msg.guild.channels.cache.find(ch => ch.name === "admin-logs");
+        if (adminLog) {
+            const logEmbed = new EmbedBuilder()
+            .setTitle("🧹 Bounty Reset Log")
+            .setDescription(`**Admin:** ${msg.author}\n**Target:** ${target}\n**Action:** Bounty reset to ฿0`)
+            .setColor("#ff0000")
+            .setTimestamp();
+    
+            await adminLog.send({ embeds: [logEmbed] }).catch(err => console.log("Log error:", err.message));
+        }
+
+        // Нулираме ролята
+        await updateBountyRole(target, 0); 
+        return msg.channel.send(`🧹 **Cleaning the Deck:** Bounty for **${target.user.username}** has been reset to ฿0.`);    
+    } catch (err) {
+        console.error("ResetBounty error:", err.message);
+        return msg.reply("❌ Error resetting bounty. Check database connection.");
     }
 }
     // --- 10. МОДЕРАЦИЯ: !clear (ДОСТЪПНА НАВСЯКЪДЕ) ---
