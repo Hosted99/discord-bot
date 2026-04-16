@@ -352,18 +352,18 @@ if (cmd === "!wanted") {
 
 
 
-    // --- 8. BOUNTY КОМАНДА: !setbounty <user> <amount> (ADMIN/MOD) ---
-// ---------------------- !setbounty ----------------------
+    // --- 8. BOUNTY COMMAND: !setbounty <user> <amount> (ADMIN/MOD) ---
 if (cmd === "!setbounty") {
-    // ИЗТРИВАМЕ КОМАНДА ВЕДНАГА
+    // DELETE COMMAND IMMEDIATELY
     msg.delete().catch(() => {}); 
 
-    // ПРОВЕРКА ЗА ПРАВА (Админ или роля "Moderator")
-    const isMod = msg.member.roles.cache.some(role => role.name === "Moderator");
-    const isAdmin = msg.member.permissions.has("Administrator");
+    // 🛡️ SECURITY CHECK: Replace '123456789012345678' with your Moderator Role ID
+    const modRoleId = "1494368806133301428"; 
+    const hasModRole = msg.member.roles.cache.has(modRoleId);
+    const hasAdminPerm = msg.member.permissions.has("Administrator");
 
-    if (!isMod && !isAdmin) {
-        return msg.reply("❌ Оторизиран достъп само за Модератори и Адмирали!")
+    if (!hasModRole && !hasAdminPerm) {
+        return msg.reply("❌ Access Denied! You do not have permission to use this command.")
                   .then(m => setTimeout(() => m.delete().catch(() => {}), 5000));
     }
 
@@ -398,40 +398,39 @@ if (cmd === "!setbounty") {
         msg.reply("❌ Error updating bounty.");
     }
 }
-    // --- 9. BOUNTY КОМАНДА: !resetbounty (ADMIN/MOD) ---
+
+// --- 9. BOUNTY COMMAND: !resetbounty (ADMIN/MOD) ---
 if (cmd === "!resetbounty") {
-    // ИЗТРИВАМЕ КОМАНДА ВЕДНАГА
+    // DELETE COMMAND IMMEDIATELY
     msg.delete().catch(() => {}); 
 
-    // ПРОВЕРКА ЗА ПРАВА (Админ или роля "Moderator")
-    const isMod = msg.member.roles.cache.some(role => role.name === "Moderator");
-    const isAdmin = msg.member.permissions.has("Administrator");
+    // 🛡️ SECURITY CHECK: Same logic as above
+    const modRoleId = "123456789012345678"; 
+    const hasModRole = msg.member.roles.cache.has(modRoleId);
+    const hasAdminPerm = msg.member.permissions.has("Administrator");
 
-    if (!isMod && !isAdmin) {
-        return msg.reply("❌ Admirals or Moderators only!").then(m => setTimeout(() => m.delete().catch(() => {}), 5000));
+    if (!hasModRole && !hasAdminPerm) {
+        return msg.reply("❌ Access Denied! Admirals or Moderators only.")
+                  .then(m => setTimeout(() => m.delete().catch(() => {}), 5000));
     }
 
     const target = msg.mentions.members.first();
     if (!target) return msg.reply("❌ Mention a user!");
     
-    // ОБГРАЖДАМЕ С TRY-CATCH
     try {
-        // Нулираме в базата данни
         await pool.query("UPDATE users SET bounty = 0 WHERE user_id = $1", [target.id]);
 
-        // ПРОВЕРКА И ЛОГВАНЕ В ADMIN-LOGS
         const adminLog = msg.guild.channels.cache.find(ch => ch.name === "admin-logs");
         if (adminLog) {
             const logEmbed = new EmbedBuilder()
             .setTitle("🧹 Bounty Reset Log")
-            .setDescription(`**Admin:** ${msg.author}\n**Target:** ${target}\n**Action:** Bounty reset to ฿0`)
+            .setDescription(`**Staff:** ${msg.author}\n**Target:** ${target}\n**Action:** Bounty reset to ฿0`)
             .setColor("#ff0000")
             .setTimestamp();
     
             await adminLog.send({ embeds: [logEmbed] }).catch(err => console.log("Log error:", err.message));
         }
 
-        // Нулираме ролята
         await updateBountyRole(target, 0); 
         return msg.channel.send(`🧹 **Cleaning the Deck:** Bounty for **${target.user.username}** has been reset to ฿0.`);    
     } catch (err) {
