@@ -52,7 +52,7 @@ function initSchedulers(client, pool) {
  */
 async function handleManiaPlan(msg) {
      // 1. Смени това число с ID-то на главния ти канал (десен бутон на канала -> Copy ID)
-    const MAIN_CHANNEL_ID = '123456789012345678'; 
+    const MAIN_CHANNEL_ID = '1486343047632523398'; 
 
     
 
