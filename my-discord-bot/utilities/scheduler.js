@@ -51,6 +51,12 @@ function initSchedulers(client, pool) {
  * ПУСКАНЕ НА ПЛАН (mania-plan)
  */
 async function handleManiaPlan(msg) {
+     // 1. Смени това число с ID-то на главния ти канал (десен бутон на канала -> Copy ID)
+    const MAIN_CHANNEL_ID = '123456789012345678'; 
+
+    
+
+    
     const planEmbed = new EmbedBuilder()
         .setTitle("⚔️ MANIA FORMATION")
         .setDescription("@everyone Who will be able to play today?\n\n✅ - I'm in\n❌ - Can't play")
@@ -63,6 +69,17 @@ async function handleManiaPlan(msg) {
     // ЗАПИСВАМЕ ID-ТО ВЪВ ФАЙЛА
     fs.writeFileSync(DB_PATH, JSON.stringify({ planId: planMsg.id }, null, 2));
     lastVotedString = ""; // Нулираме проверката за нов план
+
+    // --- НОВАТА ЧАСТ: Известие в главния канал ---
+    try {
+        const mainChannel = msg.client.channels.cache.get(MAIN_CHANNEL_ID);
+        if (mainChannel) {
+            await mainChannel.send(`🚨 **@everyone A new Mania Plan has been posted in: ${planMsg.url}`);
+        }
+    } catch (error) {
+        console.error("Не можах да пратя съобщение в главния канал:", error);
+    }
+    // --------------------------------------------
 
     if (msg.deletable) await msg.delete().catch(() => {});
 }
