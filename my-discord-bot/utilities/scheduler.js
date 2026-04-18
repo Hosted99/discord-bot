@@ -88,6 +88,13 @@ async function handleManiaPlan(msg) {
  * СПИСЪК НА ПОТВЪРДИЛИТЕ (mania-list)
  */
 async function handleManiaList(msg) {
+
+    // 1.1. СЛОЖИ ID-ТО НА ГЛАВНИЯ ЧАТ ТУК:
+    const MAIN_CHANNEL_ID = '1486343047632523398';
+
+
+
+    
     // 1. Четем ID-то от файла
     let planData = { planId: null };
     if (fs.existsSync(DB_PATH)) {
@@ -133,6 +140,17 @@ async function handleManiaList(msg) {
         // 5. ПИНГ СЪОБЩЕНИЕТО С ЖЪЛТАТА ИКОНКА (ИЗВЪН EMBED)
         if (missing.length > 0) {
             await msg.channel.send(`🔔 **Attention!** These players haven't voted:\n${missing.join(" ")}`);
+        
+        // 6. ИЗВЕСТИЕ В ГЛАВНИЯ КАНАЛ (ЗА PUSH NOTIFICATION)
+            try {
+                const mainChannel = msg.client.channels.cache.get(MAIN_CHANNEL_ID);
+                if (mainChannel) {
+                    await mainChannel.send(`🚨 **MANDATORY ATTENTION!** 🚨\n\nThese players still need to vote for the Mania: ${missingText}\n\nGo to <#${msg.channel.id}> now!`);
+                }
+            } catch (err) {
+                console.error("Could not send to main channel:", err);
+            }
+        
         } else {
             await msg.channel.send("✅ Everyone has voted!");
         }
