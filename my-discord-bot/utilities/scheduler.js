@@ -89,13 +89,10 @@ async function handleManiaPlan(msg) {
  */
 async function handleManiaList(msg) {
 
-    // 1.1. СЛОЖИ ID-ТО НА ГЛАВНИЯ ЧАТ ТУК:
+    // 1.1. ID НА ГЛАВНИЯ ЧАТ (Където ще отиде "push" известието)
     const MAIN_CHANNEL_ID = '1486343047632523398';
-
-
-
     
-    // 1. Четем ID-то от файла
+    // 1. Проверяваме дали има активен план в базата данни (файла)
     let planData = { planId: null };
     if (fs.existsSync(DB_PATH)) {
         planData = JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
@@ -104,28 +101,32 @@ async function handleManiaList(msg) {
     if (!planData.planId) return msg.reply("❌ No active plan found!");
 
     try {
+        // Опитваме се да намерим оригиналното съобщение на плана
         const planMsg = await msg.channel.messages.fetch(planData.planId).catch(() => null);
         if (!planMsg) return msg.reply("❌ Original plan not found!");
 
-        // 2. Взимаме гласувалите
+        // 2. Събираме хората, гласували с ✅
         const reactionYes = planMsg.reactions.cache.get("✅");
         const usersYes = reactionYes ? await reactionYes.users.fetch() : new Map();
         const confirmed = usersYes.filter(u => !u.bot).map(u => `<@${u.id}>`);
 
+        // Събираме хората, гласували с ❌
         const reactionNo = planMsg.reactions.cache.get("❌");
         const usersNo = reactionNo ? await reactionNo.users.fetch() : new Map();
         const declined = usersNo.filter(u => !u.bot).map(u => `<@${u.id}>`);
 
-        // 3. Намираме тези без глас
+        // 3. Намираме тези, които все още не са гласували
         const allMembers = await msg.guild.members.fetch();
         const votedIds = [...usersYes.keys(), ...usersNo.keys()];
+        
+        // Филтрираме: да не е бот, да има поне една роля и да не е в списъка на гласувалите
         const missing = allMembers.filter(m => 
             !m.user.bot && 
             m.roles.cache.size > 1 && 
             !votedIds.includes(m.id)
         ).map(m => `<@${m.id}>`);
 
-        // 4. СЪЗДАВАМЕ EMBED-А (ТОЧНО КАТО НА СНИМКАТА)
+        // 4. Създаваме Embed-а със статуса (визуалната таблица)
         const statusEmbed = new EmbedBuilder()
             .setTitle("⚔️ CURRENT FORMATION STATUS")
             .setDescription("The original plan is still active above! 👆")
@@ -135,34 +136,43 @@ async function handleManiaList(msg) {
                 { name: `❌ DECLINED (${declined.length})`, value: declined.join(", ") || "None", inline: false }
             );
 
+        // Пращаме Embed-а в mania-reminder канала
         await msg.channel.send({ embeds: [statusEmbed] });
 
-        // 5. ПИНГ СЪОБЩЕНИЕТО С ЖЪЛТАТА ИКОНКА (ИЗВЪН EMBED)
+        // 5. Проверка дали има липсващи гласове
         if (missing.length > 0) {
-            await msg.channel.send(`🔔 **Attention!** These players haven't voted:\n${missing.join(" ")}`);
+            const missingText = missing.join(" "); // Правим списъка с пингове на един ред
+            
+            // Пращаме списъка в текущия канал (mania-reminder)
+            await msg.channel.send(`🔔 **Attention!** These players haven't voted:\n${missingText}`);
         
-        // 6. ИЗВЕСТИЕ В ГЛАВНИЯ КАНАЛ (ЗА PUSH NOTIFICATION)
+            // 6. ИЗВЕСТИЕ В ГЛАВНИЯ КАНАЛ (за да ги "светне" по телефона)
             try {
-                const mainChannel = msg.client.channels.cache.get(MAIN_CHANNEL_ID);
+                // Търсим канала директно през API-то на Discord за по-сигурно
+                const mainChannel = await msg.client.channels.fetch(MAIN_CHANNEL_ID).catch(() => null);
                 if (mainChannel) {
                     await mainChannel.send(`🚨 **MANDATORY ATTENTION!** 🚨\n\nThese players still need to vote for the Mania: ${missingText}\n\nGo to <#${msg.channel.id}> now!`);
+                } else {
+                    console.error("Грешка: Главният канал не е намерен. Провери ID-то!");
                 }
             } catch (err) {
-                console.error("Could not send to main channel:", err);
+                console.error("Грешка при пращане в главния канал:", err);
             }
         
         } else {
+            // Ако всички са гласували
             await msg.channel.send("✅ Everyone has voted!");
         }
 
-        // Изтриваме само командата mania-list
+        // Изтриваме командата на потребителя (mania-list), за да е чист чата
         if (msg.deletable) await msg.delete().catch(() => {});
 
     } catch (e) {
-        console.error("List Error:", e);
+        console.error("Грешка в mania-list:", e);
         msg.reply("Error fetching player lists.");
     }
 }
+
 
 
 
