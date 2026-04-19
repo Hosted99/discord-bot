@@ -47,70 +47,55 @@ function initSchedulers(client, pool) {
     });
 }
 
-/**
- * ПУСКАНЕ НА ПЛАН (mania-plan) БЕЗ ПРЕФИКС
- */
 async function handleManiaPlan(msg) {
-    // Превръщаме текста в малки букви за по-лесна проверка
     const content = msg.content.toLowerCase();
-
-    // Проверяваме дали съобщението започва с "mania-plan"
     if (!content.startsWith('mania-plan')) return;
 
-    // 1. Смени това число с ID-то на главния ти канал
     const MAIN_CHANNEL_ID = '1486343047632523398'; 
-
-    // 2. Настройки за ролите на двете гилдии
     const ROLES = {
         'g1': '1490805399010545794', 
         'g2': '1490805404710469642'  
     };
 
-    // Разделяме съобщението, за да разберем коя гилдия е посочена (g1 или g2)
-    const args = content.split(' ');
-    const guildType = args[1]; // Вземаме "g1" или "g2"
+    // Вземаме всичко след "mania-plan"
+    const arg = content.replace('mania-plan', '').trim(); 
 
-    // Проверка дали потребителят е написал валидна гилдия
-    if (!guildType || !ROLES[guildType]) {
-        const errorMsg = await msg.reply("❌ Please specify guild! Use: `mania-plan g1` or `mania-plan g2` (no prefix needed).");
-        setTimeout(() => errorMsg.delete().catch(() => {}), 5000);
-        return;
+    if (arg === 'all') {
+        await createPlan(msg, 'g1', ROLES['g1'], MAIN_CHANNEL_ID);
+        await createPlan(msg, 'g2', ROLES['g2'], MAIN_CHANNEL_ID);
+    } else if (arg === 'g1' || arg === 'g2') {
+        await createPlan(msg, arg, ROLES[arg], MAIN_CHANNEL_ID);
+    } else {
+        // Ако е празно или грешно, ботът ще отговори
+        return msg.reply("❌ Write: `mania-plan g1`, `mania-plan g2` or `mania-plan all`").then(m => setTimeout(() => m.delete(), 5000));
     }
 
-    const targetRolePing = `<@&${ROLES[guildType]}>`;
+    if (msg.deletable) await msg.delete().catch(() => {});
+}
+
+async function createPlan(msg, type, roleId, mainChannelId) {
+    const targetRolePing = `<@&${roleId}>`;
     const fullPing = `@everyone (${targetRolePing})`;
-    const guildName = guildType.toUpperCase();
+    const guildName = type.toUpperCase();
 
     const planEmbed = new EmbedBuilder()
         .setTitle(`⚔️ MANIA FORMATION - ${guildName}`)
         .setDescription(`${fullPing} Who will be able to play today?\n\n✅ - I'm in\n❌ - Can't play`)
-        .setColor(guildType === 'g1' ? "#00FF00" : "#0099FF");
+        .setColor(type === 'g1' ? "#00FF00" : "#0099FF");
 
-    // ПРАЩАНЕ НА ПЛАНА
-    const planMsg = await msg.channel.send({ 
-        content: fullPing, 
-        embeds: [planEmbed] 
-    });
-    
+    const planMsg = await msg.channel.send({ content: fullPing, embeds: [planEmbed] });
     await planMsg.react("✅");
     await planMsg.react("❌");
     
-    // ЗАПИСВАМЕ ID-ТО ВЪВ ФАЙЛА
-    fs.writeFileSync(DB_PATH, JSON.stringify({ planId: planMsg.id, guild: guildType }, null, 2));
-    lastVotedString = ""; // Нулираме проверката за нов план
+    // Записва само последното ID в DB
+    fs.writeFileSync(DB_PATH, JSON.stringify({ planId: planMsg.id, guild: type }, null, 2));
 
-    // --- Известие в главния канал ---
     try {
-        const mainChannel = msg.client.channels.cache.get(MAIN_CHANNEL_ID);
+        const mainChannel = msg.client.channels.cache.get(mainChannelId);
         if (mainChannel) {
-            await mainChannel.send(`🚨 **@everyone A new Mania Plan for ${guildName} has been posted here: ${planMsg.url}**`);
+            await mainChannel.send(`🚨 **@everyone A new Mania Plan for ${guildName} has been posted: ${planMsg.url}**`);
         }
-    } catch (error) {
-        console.error("Could not send notification to main channel:", error);
-    }
-
-    // Изтриваме съобщението на потребителя, за да е чисто
-    if (msg.deletable) await msg.delete().catch(() => {});
+    } catch (e) { console.error("Error sending to main channel:", e); }
 }
 
 
