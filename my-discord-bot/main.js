@@ -95,9 +95,9 @@ client.on("messageCreate", async (msg) => {
     const lowerContent = msg.content.toLowerCase();
 
     // --- 1. MANIA СИСТЕМА ---
-    if (lowerContent === "mania-plan") {
-        return await handleManiaPlan(msg);
-    }
+    if (lowerContent.startsWith("mania-plan")) {
+    return await handleManiaPlan(msg);
+}
     if (lowerContent === "mania-list") {
         return await handleManiaList(msg);
     }
