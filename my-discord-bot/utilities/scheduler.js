@@ -171,7 +171,7 @@ async function handleManiaList(msg) {
 
         const targetPlanId = res.rows[0].value; 
 
-        // 2. Опит за намиране на съобщението (Първо в кеша, после с fetch)
+        // 2. Опит за намиране на съобщението
         let planMsg = msg.channel.messages.cache.get(targetPlanId);
         if (!planMsg) {
             planMsg = await msg.channel.messages.fetch(targetPlanId).catch(() => null);
@@ -179,7 +179,7 @@ async function handleManiaList(msg) {
 
         if (!planMsg) return msg.reply(`❌ Original message not found.`);
 
-        // 3. СЪБИРАМЕ ГЛАСОВЕТЕ ( fetch() само на реакциите, не на целия сървър)
+        // 3. СЪБИРАМЕ ГЛАСОВЕТЕ
         const reactionYes = planMsg.reactions.cache.get("✅");
         const usersYes = reactionYes ? await reactionYes.users.fetch() : new Map();
         const confirmed = usersYes.filter(u => !u.bot).map(u => `<@${u.id}>`);
@@ -188,14 +188,11 @@ async function handleManiaList(msg) {
         const usersNo = reactionNo ? await reactionNo.users.fetch() : new Map();
         const declined = usersNo.filter(u => !u.bot).map(u => `<@${u.id}>`);
 
-        // 4. ФИЛТРИРАМЕ ЛИПСВАЩИТЕ (ИЗПОЛЗВАМЕ РОЛЯТА ЗА КЕШ)
-        // Това е най-важната промяна - не ползваме guild.members.fetch()
+        // 4. ФИЛТРИРАМЕ ЛИПСВАЩИТЕ
         const targetRole = msg.guild.roles.cache.get(ROLES[arg]);
         if (!targetRole) return msg.reply("❌ Role not found!");
 
         const votedIds = [...usersYes.keys(), ...usersNo.keys()];
-        
-        // Вземаме хората директно от ролята (от кеша на бота)
         const missing = targetRole.members.filter(m => 
             !m.user.bot && 
             !votedIds.includes(m.id)
@@ -213,14 +210,17 @@ async function handleManiaList(msg) {
 
         await msg.channel.send({ embeds: [statusEmbed] });
 
-        // 6. ИЗВЕСТИЯ ЗА ЛИПСВАЩИ
+        // 6. ИЗВЕСТИЯ ЗА ЛИПСВАЩИ С ПРЕПРАТКА (ТУК Е ПРОМЯНАТА)
         if (missing.length > 0) {
             const missingText = missing.join(" ");
+            
+            // Съобщение в текущия канал
             await msg.channel.send(`🔔 **Attention!** These players from **${arg.toUpperCase()}** haven't voted:\n${missingText}`);
             
+            // Съобщение в ГЛАВНИЯ КАНАЛ с препратка
             const mainChannel = msg.client.channels.cache.get(MAIN_CHANNEL_ID);
             if (mainChannel) {
-                await mainChannel.send(`🚨 **MANDATORY!** ${arg.toUpperCase()} members: ${missingText}`);
+                await mainChannel.send(`🚨 **MANDATORY!** Members of **${arg.toUpperCase()}** need to vote:\n${missingText}\n\n👉 **Go to channel:** <#${msg.channel.id}>\n🔗 **Direct Link to Plan:** ${planMsg.url}`);
             }
         } else {
             await msg.channel.send(`✅ Everyone from **${arg.toUpperCase()}** has voted!`);
@@ -233,6 +233,7 @@ async function handleManiaList(msg) {
         msg.reply("❌ Rate limited or error. Please wait 10-20 seconds.");
     }
 }
+
 
 
 
