@@ -98,9 +98,10 @@ client.on("messageCreate", async (msg) => {
     if (lowerContent.startsWith("mania-plan")) {
     return await handleManiaPlan(msg);
 }
-    if (lowerContent === "mania-list") {
-        return await handleManiaList(msg);
-    }
+   // С ТОВА:
+if (lowerContent.startsWith("mania-list")) {
+    return await handleManiaList(msg);
+}
     if (lowerContent.startsWith("mania-strategy")) {
         return await handleManiaStrategy(msg, pool);
     }
