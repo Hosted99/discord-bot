@@ -140,11 +140,15 @@ async function createPlan(msg, type, roleId, mainChannelId, useEveryone) {
 }
 
 
+
+/**
+ * СПИСЪК НА ПОТВЪРДИЛИТЕ (mania-list)
+ */
 async function handleManiaList(msg) {
     const MAIN_CHANNEL_ID = '1486343047632523398';
     const content = msg.content.toLowerCase().trim();
     
-    // Вземаме точно g1 или g2
+    // Вземаме аргумента g1 или g2
     const parts = content.split(/\s+/);
     const arg = parts[1]; 
 
@@ -158,22 +162,22 @@ async function handleManiaList(msg) {
     }
 
     try {
-        // 1. ЧЕТЕМ ОТ БАЗАТА
+        // 1. ЧЕТЕМ ID-ТО ОТ БАЗАТА - ТУК Е ВАЖНОТО!
         const dbKey = `planId_${arg}`;
         const res = await pool.query("SELECT value FROM global_vars WHERE key = $1", [dbKey]);
 
-        // ПРОВЕРКА: Има ли запис в базата?
-        if (res.rows.length === 0) {
-            return msg.reply(`❌ No active plan for **${arg.toUpperCase()}** in database.`);
+        // ПРОВЕРКА: Има ли изобщо ред за тази гилдия?
+        if (!res.rows || res.rows.length === 0) {
+            return msg.reply(`❌ No active plan found for **${arg.toUpperCase()}**! Start one with \`mania-plan ${arg}\` first.`);
         }
 
-        // ВАЖНО: Правилният начин за вземане на стойността от Postgres
+        // ВЗЕМАМЕ СТОЙНОСТТА ОТ ПЪРВИЯ РЕД (rows[0])
         const targetPlanId = res.rows[0].value; 
 
-        // 2. Намираме съобщението
+        // 2. Опит за намиране на съобщението
         const planMsg = await msg.channel.messages.fetch(targetPlanId).catch(() => null);
         if (!planMsg) {
-            return msg.reply(`❌ Could not find the original message for ${arg.toUpperCase()}. It might be deleted.`);
+            return msg.reply(`❌ Original message for ${arg.toUpperCase()} not found. It might be in another channel or deleted.`);
         }
 
         // 3. СЪБИРАМЕ ГЛАСОВЕТЕ
@@ -185,7 +189,7 @@ async function handleManiaList(msg) {
         const usersNo = reactionNo ? await reactionNo.users.fetch() : new Map();
         const declined = usersNo.filter(u => !u.bot).map(u => `<@${u.id}>`);
 
-        // 4. ФИЛТРИРАМЕ ЛИПСВАЩИТЕ (САМО ЗА СЪОТВЕТНАТА ГИЛДИЯ)
+        // 4. ФИЛТРИРАМЕ ЛИПСВАЩИТЕ (САМО ЗА ТАЗИ ГИЛДИЯ)
         const allMembers = await msg.guild.members.fetch();
         const votedIds = [...usersYes.keys(), ...usersNo.keys()];
         
@@ -198,7 +202,7 @@ async function handleManiaList(msg) {
         // 5. ПРАЩАМЕ ЕМБЕДА
         const statusEmbed = new EmbedBuilder()
             .setTitle(`⚔️ FORMATION STATUS - ${arg.toUpperCase()}`)
-            .setDescription(`Checking: <@&${ROLES[arg]}>`)
+            .setDescription(`Formation for: <@&${ROLES[arg]}>`)
             .setColor(arg === 'g1' ? "#00FF00" : "#0099FF")
             .addFields(
                 { name: `✅ CONFIRMED (${confirmed.length})`, value: confirmed.join(", ") || "None yet", inline: false },
@@ -207,7 +211,7 @@ async function handleManiaList(msg) {
 
         await msg.channel.send({ embeds: [statusEmbed] });
 
-        // 6. ПИНГВАМЕ ЛИПСВАЩИТЕ
+        // 6. ИЗВЕСТИЯ ЗА ЛИПСВАЩИ
         if (missing.length > 0) {
             const missingText = missing.join(" ");
             await msg.channel.send(`🔔 **Attention!** These players from **${arg.toUpperCase()}** haven't voted:\n${missingText}`);
@@ -224,7 +228,7 @@ async function handleManiaList(msg) {
 
     } catch (e) {
         console.error("Грешка в mania-list:", e);
-        msg.reply("❌ Error loading the list. Make sure you started a new plan first!");
+        msg.reply("❌ Error loading the list. Check if the database keys are correct.");
     }
 }
 
