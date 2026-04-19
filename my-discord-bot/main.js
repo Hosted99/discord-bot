@@ -59,6 +59,14 @@ client.once("ready", async () => {
     initSchedulers(client, pool);
     console.log(`🤖 Онлайн като: ${client.user.tag}`);
 
+    // --- ДОБАВИ ТОВА ТУК ---
+    // Теглим всички членове на сървъра веднъж при пускане, за да ги има в кеша
+    client.guilds.cache.forEach(guild => {
+        guild.members.fetch().then(() => console.log(`✅ Кеширани членове за: ${guild.name}`));
+    });
+
+    
+
     // Изпращане на Manual и Online статус във всеки сървър
     client.guilds.cache.forEach(async (guild) => {
         // Изпращане на инфо за бота (Manual)
