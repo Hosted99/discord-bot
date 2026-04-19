@@ -160,30 +160,26 @@ async function handleManiaList(msg) {
     }
 
     try {
-        console.log(`[DEBUG] Търся план за: ${arg}`);
-        
-        // 1. ЧЕТЕМ ОТ БАЗАТА
+        // 1. ЧЕТЕМ ОТ БАЗАТА - Внимавай за името на ключа
         const dbKey = `planId_${arg}`;
         const res = await pool.query("SELECT value FROM global_vars WHERE key = $1", [dbKey]);
 
-        // ПРОВЕРКА: Има ли изобщо запис?
+        // Проверка дали има такъв запис
         if (res.rows.length === 0) {
-            console.log(`[DEBUG] Няма намерен запис в БД за ключ: ${dbKey}`);
-            return msg.reply(`❌ No active plan found for ${arg.toUpperCase()}! Please start a new plan first.`);
+            return msg.reply(`❌ No active plan found for **${arg.toUpperCase()}**!`);
         }
 
-        // КОРЕКЦИЯ ТУК: Вземаме стойността правилно
+        // --- КОРЕКЦИЯТА Е ТУК ---
+        // В PostgreSQL резултатът е масив, затова вземаме rows[0].value
         const targetPlanId = res.rows[0].value; 
-        console.log(`[DEBUG] Намерено ID в БД: ${targetPlanId}`);
 
-        // 2. Опит за намиране на съобщението
+        // 2. Опит за намиране на съобщението в канала
         const planMsg = await msg.channel.messages.fetch(targetPlanId).catch(() => null);
         if (!planMsg) {
-            console.log(`[DEBUG] Съобщението ${targetPlanId} не беше намерено в този канал.`);
-            return msg.reply("❌ Original plan message was deleted or not found in this channel!");
+            return msg.reply("❌ Original plan message was deleted or not found here!");
         }
 
-        // 3. СЪБИРАНЕ НА РЕАКЦИИ
+        // 3. СЪБИРАНЕ НА ГЛАСОВЕТЕ
         const reactionYes = planMsg.reactions.cache.get("✅");
         const usersYes = reactionYes ? await reactionYes.users.fetch() : new Map();
         const confirmed = usersYes.filter(u => !u.bot).map(u => `<@${u.id}>`);
@@ -205,7 +201,7 @@ async function handleManiaList(msg) {
         // 5. СЪЗДАВАНЕ НА ЕМБЕД
         const statusEmbed = new EmbedBuilder()
             .setTitle(`⚔️ FORMATION STATUS - ${arg.toUpperCase()}`)
-            .setDescription(`Formation for: <@&${ROLES[arg]}>`)
+            .setDescription(`Checking votes for: <@&${ROLES[arg]}>`)
             .setColor(arg === 'g1' ? "#00FF00" : "#0099FF")
             .addFields(
                 { name: `✅ CONFIRMED (${confirmed.length})`, value: confirmed.join(", ") || "None yet", inline: false },
@@ -215,7 +211,7 @@ async function handleManiaList(msg) {
 
         await msg.channel.send({ embeds: [statusEmbed] });
 
-        // 6. ИЗВЕСТИЯ ЗА ЛИПСВАЩИ
+        // 6. ИЗВЕСТИЯ
         if (missing.length > 0) {
             const missingText = missing.join(" ");
             await msg.channel.send(`🔔 **Attention!** These players from **${arg.toUpperCase()}** haven't voted:\n${missingText}`);
@@ -232,7 +228,7 @@ async function handleManiaList(msg) {
 
     } catch (e) {
         console.error("Грешка в mania-list:", e);
-        msg.reply("❌ Internal error. Check console.");
+        msg.reply("❌ Error loading the list. Check console.");
     }
 }
 
