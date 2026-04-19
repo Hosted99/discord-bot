@@ -145,7 +145,7 @@ async function handleManiaList(msg) {
     const MAIN_CHANNEL_ID = '1486343047632523398';
     const content = msg.content.toLowerCase().trim();
     
-    // Вземаме аргумента (g1 или g2)
+    // Вземаме аргумента g1 или g2
     const arg = content.replace('mania-list', '').trim();
 
     const ROLES = {
@@ -158,23 +158,30 @@ async function handleManiaList(msg) {
     }
 
     try {
-        // 1. ЧЕТЕМ ID-ТО ОТ БАЗАТА (global_vars)
+        console.log(`[DEBUG] Търся план за: ${arg}`);
+        
+        // 1. ЧЕТЕМ ОТ БАЗАТА
         const dbKey = `planId_${arg}`;
         const res = await pool.query("SELECT value FROM global_vars WHERE key = $1", [dbKey]);
 
-        // ПРОВЕРКА: Дали изобщо има запис за тази гилдия
+        // ПРОВЕРКА: Има ли изобщо запис?
         if (res.rows.length === 0) {
-            return msg.reply(`❌ No active plan found for ${arg.toUpperCase()} in database!`);
+            console.log(`[DEBUG] Няма намерен запис в БД за ключ: ${dbKey}`);
+            return msg.reply(`❌ No active plan found for ${arg.toUpperCase()}! Please start a new plan first.`);
         }
 
-        // ВАЖНО: Вземаме стойността от първия ред [0]
-        const targetPlanId = res.rows[0].value;
+        // КОРЕКЦИЯ ТУК: Вземаме стойността правилно
+        const targetPlanId = res.rows[0].value; 
+        console.log(`[DEBUG] Намерено ID в БД: ${targetPlanId}`);
 
-        // 2. Опитваме се да намерим оригиналното съобщение
+        // 2. Опит за намиране на съобщението
         const planMsg = await msg.channel.messages.fetch(targetPlanId).catch(() => null);
-        if (!planMsg) return msg.reply("❌ Original plan message not found in this channel!");
+        if (!planMsg) {
+            console.log(`[DEBUG] Съобщението ${targetPlanId} не беше намерено в този канал.`);
+            return msg.reply("❌ Original plan message was deleted or not found in this channel!");
+        }
 
-        // 3. СЪБИРАМЕ ГЛАСОВЕТЕ (✅ и ❌)
+        // 3. СЪБИРАНЕ НА РЕАКЦИИ
         const reactionYes = planMsg.reactions.cache.get("✅");
         const usersYes = reactionYes ? await reactionYes.users.fetch() : new Map();
         const confirmed = usersYes.filter(u => !u.bot).map(u => `<@${u.id}>`);
@@ -183,7 +190,7 @@ async function handleManiaList(msg) {
         const usersNo = reactionNo ? await reactionNo.users.fetch() : new Map();
         const declined = usersNo.filter(u => !u.bot).map(u => `<@${u.id}>`);
 
-        // 4. ФИЛТРИРАМЕ ЛИПСВАЩИТЕ (само хора с конкретната роля)
+        // 4. ФИЛТРИРАНЕ НА ЛИПСВАЩИ (САМО ЗА ТАЗИ ГИЛДИЯ)
         const allMembers = await msg.guild.members.fetch();
         const votedIds = [...usersYes.keys(), ...usersNo.keys()];
         
@@ -193,20 +200,20 @@ async function handleManiaList(msg) {
             !votedIds.includes(m.id)
         ).map(m => `<@${m.id}>`);
 
-        // 5. СЪЗДАВАМЕ И ПРАЩАМЕ ЕМБЕДА
+        // 5. СЪЗДАВАНЕ НА ЕМБЕД
         const statusEmbed = new EmbedBuilder()
             .setTitle(`⚔️ FORMATION STATUS - ${arg.toUpperCase()}`)
             .setDescription(`Formation for: <@&${ROLES[arg]}>`)
             .setColor(arg === 'g1' ? "#00FF00" : "#0099FF")
             .addFields(
-                { name: `✅ CONFIRMED (${confirmed.length})`, value: confirmed.join(", ") || "None", inline: false },
+                { name: `✅ CONFIRMED (${confirmed.length})`, value: confirmed.join(", ") || "None yet", inline: false },
                 { name: `❌ DECLINED (${declined.length})`, value: declined.join(", ") || "None", inline: false }
             )
             .setTimestamp();
 
         await msg.channel.send({ embeds: [statusEmbed] });
 
-        // 6. ПИНГВАМЕ ЛИПСВАЩИТЕ
+        // 6. ИЗВЕСТИЯ ЗА ЛИПСВАЩИ
         if (missing.length > 0) {
             const missingText = missing.join(" ");
             await msg.channel.send(`🔔 **Attention!** These players from **${arg.toUpperCase()}** haven't voted:\n${missingText}`);
@@ -223,7 +230,7 @@ async function handleManiaList(msg) {
 
     } catch (e) {
         console.error("Грешка в mania-list:", e);
-        msg.reply("❌ Error fetching the list. Check bot console.");
+        msg.reply("❌ Internal error. Check console.");
     }
 }
 
