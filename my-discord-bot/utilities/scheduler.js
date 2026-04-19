@@ -142,13 +142,12 @@ async function createPlan(msg, type, roleId, mainChannelId, useEveryone) {
 
 
 /**
- * СПИСЪК НА ПОТВЪРДИЛИТЕ (mania-list)
+ * СПИСЪК НА ПОТВЪРДИЛИТЕ (mania-list) - ОПТИМИЗИРАН ПРОТИВ RATE LIMIT
  */
 async function handleManiaList(msg) {
     const MAIN_CHANNEL_ID = '1486343047632523398';
     const content = msg.content.toLowerCase().trim();
     
-    // Вземаме аргумента g1 или g2
     const parts = content.split(/\s+/);
     const arg = parts[1]; 
 
@@ -162,25 +161,25 @@ async function handleManiaList(msg) {
     }
 
     try {
-        // 1. ЧЕТЕМ ID-ТО ОТ БАЗАТА - ТУК Е ВАЖНОТО!
+        // 1. ЧЕТЕМ ID-ТО ОТ БАЗАТА
         const dbKey = `planId_${arg}`;
         const res = await pool.query("SELECT value FROM global_vars WHERE key = $1", [dbKey]);
 
-        // ПРОВЕРКА: Има ли изобщо ред за тази гилдия?
         if (!res.rows || res.rows.length === 0) {
-            return msg.reply(`❌ No active plan found for **${arg.toUpperCase()}**! Start one with \`mania-plan ${arg}\` first.`);
+            return msg.reply(`❌ No active plan for **${arg.toUpperCase()}**!`);
         }
 
-        // ВЗЕМАМЕ СТОЙНОСТТА ОТ ПЪРВИЯ РЕД (rows[0])
         const targetPlanId = res.rows[0].value; 
 
-        // 2. Опит за намиране на съобщението
-        const planMsg = await msg.channel.messages.fetch(targetPlanId).catch(() => null);
+        // 2. Опит за намиране на съобщението (Първо в кеша, после с fetch)
+        let planMsg = msg.channel.messages.cache.get(targetPlanId);
         if (!planMsg) {
-            return msg.reply(`❌ Original message for ${arg.toUpperCase()} not found. It might be in another channel or deleted.`);
+            planMsg = await msg.channel.messages.fetch(targetPlanId).catch(() => null);
         }
 
-        // 3. СЪБИРАМЕ ГЛАСОВЕТЕ
+        if (!planMsg) return msg.reply(`❌ Original message not found.`);
+
+        // 3. СЪБИРАМЕ ГЛАСОВЕТЕ ( fetch() само на реакциите, не на целия сървър)
         const reactionYes = planMsg.reactions.cache.get("✅");
         const usersYes = reactionYes ? await reactionYes.users.fetch() : new Map();
         const confirmed = usersYes.filter(u => !u.bot).map(u => `<@${u.id}>`);
@@ -189,13 +188,16 @@ async function handleManiaList(msg) {
         const usersNo = reactionNo ? await reactionNo.users.fetch() : new Map();
         const declined = usersNo.filter(u => !u.bot).map(u => `<@${u.id}>`);
 
-        // 4. ФИЛТРИРАМЕ ЛИПСВАЩИТЕ (САМО ЗА ТАЗИ ГИЛДИЯ)
-        const allMembers = await msg.guild.members.fetch();
+        // 4. ФИЛТРИРАМЕ ЛИПСВАЩИТЕ (ИЗПОЛЗВАМЕ РОЛЯТА ЗА КЕШ)
+        // Това е най-важната промяна - не ползваме guild.members.fetch()
+        const targetRole = msg.guild.roles.cache.get(ROLES[arg]);
+        if (!targetRole) return msg.reply("❌ Role not found!");
+
         const votedIds = [...usersYes.keys(), ...usersNo.keys()];
         
-        const missing = allMembers.filter(m => 
+        // Вземаме хората директно от ролята (от кеша на бота)
+        const missing = targetRole.members.filter(m => 
             !m.user.bot && 
-            m.roles.cache.has(ROLES[arg]) && 
             !votedIds.includes(m.id)
         ).map(m => `<@${m.id}>`);
 
@@ -218,7 +220,7 @@ async function handleManiaList(msg) {
             
             const mainChannel = msg.client.channels.cache.get(MAIN_CHANNEL_ID);
             if (mainChannel) {
-                await mainChannel.send(`🚨 **MANDATORY!** ${arg.toUpperCase()} members need to vote: ${missingText}`);
+                await mainChannel.send(`🚨 **MANDATORY!** ${arg.toUpperCase()} members: ${missingText}`);
             }
         } else {
             await msg.channel.send(`✅ Everyone from **${arg.toUpperCase()}** has voted!`);
@@ -227,10 +229,11 @@ async function handleManiaList(msg) {
         if (msg.deletable) await msg.delete().catch(() => {});
 
     } catch (e) {
-        console.error("Грешка в mania-list:", e);
-        msg.reply("❌ Error loading the list. Check if the database keys are correct.");
+        console.error("Грешка в mania-list:", e.message);
+        msg.reply("❌ Rate limited or error. Please wait 10-20 seconds.");
     }
 }
+
 
 
 /**
