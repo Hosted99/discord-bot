@@ -100,91 +100,86 @@ async function createPlan(msg, type, roleId, mainChannelId) {
 
 
 /**
- * СПИСЪК НА ПОТВЪРДИЛИТЕ (mania-list)
+ * ГЛАВНА ФУНКЦИЯ ЗА ОБРАБОТКА НА КОМАНДАТА
  */
-async function handleManiaList(msg) {
-
-    // 1.1. ID НА ГЛАВНИЯ ЧАТ (Където ще отиде "push" известието)
-    const MAIN_CHANNEL_ID = '1486343047632523398';
+async function handleManiaPlan(msg) {
+    // Правим целия текст малък и махаме излишни интервали
+    const content = msg.content.toLowerCase().trim();
     
-    // 1. Проверяваме дали има активен план в базата данни (файла)
-    let planData = { planId: null };
-    if (fs.existsSync(DB_PATH)) {
-        planData = JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
+    // ID на главния канал за известия
+    const MAIN_CHANNEL_ID = '1486343047632523398'; 
+
+    // --- НАСТРОЙКИ НА РОЛИТЕ ---
+    // ЗАМЕНИ ТЕЗИ ЧИСЛА С РЕАЛНИТЕ ID-ТА ОТ ТВОЯ СЪРВЪР
+    const ROLES = {
+        'g1': '123456789012345678', // ID на Роля за Гилдия 1
+        'g2': '876543210987654321'  // ID на Роля за Гилдия 2
+    };
+
+    // Вземаме само частта след "mania-plan" (аргумента g1, g2 или all)
+    const arg = content.replace('mania-plan', '').trim();
+
+    // ПРОВЕРКА ЗА ТРИТЕ ВАРИАНТА
+    if (arg === 'all') {
+        // Вариант 1: Пингваме всички (@everyone) и пускаме два плана
+        await createPlan(msg, 'g1', ROLES['g1'], MAIN_CHANNEL_ID, true);
+        await createPlan(msg, 'g2', ROLES['g2'], MAIN_CHANNEL_ID, true);
+    } 
+    else if (arg === 'g1' || arg === 'g2') {
+        // Вариант 2: Пингваме САМО ролята на конкретната гилдия (без everyone)
+        await createPlan(msg, arg, ROLES[arg], MAIN_CHANNEL_ID, false);
+    } 
+    else {
+        // Ако потребителят е сгрешил командата
+        const errorMsg = await msg.reply("❌ Напиши: `mania-plan g1`, `g2` или `all`.");
+        setTimeout(() => errorMsg.delete().catch(() => {}), 5000);
+        return;
     }
 
-    if (!planData.planId) return msg.reply("❌ No active plan found!");
+    // Изтриваме съобщението на потребителя за чистота в чата
+    if (msg.deletable) await msg.delete().catch(() => {});
+}
 
+/**
+ * ПОМОЩНА ФУНКЦИЯ ЗА СЪЗДАВАНЕ НА ПЛАНА
+ * type: 'g1' или 'g2'
+ * roleId: ID-то на ролята
+ * mainChannelId: ID на канала за известия
+ * useEveryone: true (ако искаме @everyone) или false (ако искаме само ролята)
+ */
+async function createPlan(msg, type, roleId, mainChannelId, useEveryone) {
+    const targetRolePing = `<@&${roleId}>`;
+    
+    // ЛОГИКА ЗА ПИНГ: Ако е 'all', добавяме @everyone, иначе само ролята
+    const pingContent = useEveryone ? `@everyone (${targetRolePing})` : targetRolePing;
+    
+    const guildName = type.toUpperCase();
+
+    // Създаване на Embed съобщението
+    const planEmbed = new EmbedBuilder()
+        .setTitle(`⚔️ MANIA FORMATION - ${guildName}`)
+        .setDescription(`${pingContent} Who will be able to play today?\n\n✅ - I'm in\n❌ - Can't play`)
+        .setColor(type === 'g1' ? "#00FF00" : "#0099FF") // Зелено за G1, Синьо за G2
+        .setTimestamp();
+
+    // Пращаме плана в текущия канал
+    const planMsg = await msg.channel.send({ 
+        content: pingContent, 
+        embeds: [planEmbed] 
+    });
+    
+    // Добавяме реакциите
+    await planMsg.react("✅");
+    await planMsg.react("❌");
+
+    // Опит за изпращане на известие в главния канал
     try {
-        // Опитваме се да намерим оригиналното съобщение на плана
-        const planMsg = await msg.channel.messages.fetch(planData.planId).catch(() => null);
-        if (!planMsg) return msg.reply("❌ Original plan not found!");
-
-        // 2. Събираме хората, гласували с ✅
-        const reactionYes = planMsg.reactions.cache.get("✅");
-        const usersYes = reactionYes ? await reactionYes.users.fetch() : new Map();
-        const confirmed = usersYes.filter(u => !u.bot).map(u => `<@${u.id}>`);
-
-        // Събираме хората, гласували с ❌
-        const reactionNo = planMsg.reactions.cache.get("❌");
-        const usersNo = reactionNo ? await reactionNo.users.fetch() : new Map();
-        const declined = usersNo.filter(u => !u.bot).map(u => `<@${u.id}>`);
-
-        // 3. Намираме тези, които все още не са гласували
-        const allMembers = await msg.guild.members.fetch();
-        const votedIds = [...usersYes.keys(), ...usersNo.keys()];
-        
-        // Филтрираме: да не е бот, да има поне една роля и да не е в списъка на гласувалите
-        const missing = allMembers.filter(m => 
-            !m.user.bot && 
-            m.roles.cache.size > 1 && 
-            !votedIds.includes(m.id)
-        ).map(m => `<@${m.id}>`);
-
-        // 4. Създаваме Embed-а със статуса (визуалната таблица)
-        const statusEmbed = new EmbedBuilder()
-            .setTitle("⚔️ CURRENT FORMATION STATUS")
-            .setDescription("The original plan is still active above! 👆")
-            .setColor("#3498db")
-            .addFields(
-                { name: `✅ CONFIRMED (${confirmed.length})`, value: confirmed.join(", ") || "None yet", inline: false },
-                { name: `❌ DECLINED (${declined.length})`, value: declined.join(", ") || "None", inline: false }
-            );
-
-        // Пращаме Embed-а в mania-reminder канала
-        await msg.channel.send({ embeds: [statusEmbed] });
-
-        // 5. Проверка дали има липсващи гласове
-        if (missing.length > 0) {
-            const missingText = missing.join(" "); // Правим списъка с пингове на един ред
-            
-            // Пращаме списъка в текущия канал (mania-reminder)
-            await msg.channel.send(`🔔 **Attention!** These players haven't voted:\n${missingText}`);
-        
-            // 6. ИЗВЕСТИЕ В ГЛАВНИЯ КАНАЛ (за да ги "светне" по телефона)
-            try {
-                // Търсим канала директно през API-то на Discord за по-сигурно
-                const mainChannel = await msg.client.channels.fetch(MAIN_CHANNEL_ID).catch(() => null);
-                if (mainChannel) {
-                    await mainChannel.send(`🚨 **MANDATORY ATTENTION!** 🚨\n\nThese players still need to vote for the Mania: ${missingText}\n\nGo to <#${msg.channel.id}> now!`);
-                } else {
-                    console.error("Грешка: Главният канал не е намерен. Провери ID-то!");
-                }
-            } catch (err) {
-                console.error("Грешка при пращане в главния канал:", err);
-            }
-        
-        } else {
-            // Ако всички са гласували
-            await msg.channel.send("✅ Everyone has voted!");
+        const mainChannel = msg.client.channels.cache.get(mainChannelId);
+        if (mainChannel) {
+            await mainChannel.send(`🚨 **${pingContent} A new Mania Plan for ${guildName} has been posted: ${planMsg.url}**`);
         }
-
-        // Изтриваме командата на потребителя (mania-list), за да е чист чата
-        if (msg.deletable) await msg.delete().catch(() => {});
-
-    } catch (e) {
-        console.error("Грешка в mania-list:", e);
-        msg.reply("Error fetching player lists.");
+    } catch (e) { 
+        console.error("Грешка при пращане в главния канал:", e.message); 
     }
 }
 
