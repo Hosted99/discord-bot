@@ -51,35 +51,51 @@ function initSchedulers(client, pool) {
  * ПУСКАНЕ НА ПЛАН (mania-plan)
  */
 async function handleManiaPlan(msg) {
-     // 1. Смени това число с ID-то на главния ти канал (десен бутон на канала -> Copy ID)
     const MAIN_CHANNEL_ID = '1486343047632523398'; 
 
-    
+    // --- НАСТРОЙКИ ЗА ГИЛДИИТЕ ---
+    const ROLES = {
+        'g1': '1490805399010545794', 
+        'g2': '1490805404710469642'  
+    };
 
-    
+    const args = msg.content.split(' ');
+    const guildType = args[1] ? args[1].toLowerCase() : null;
+
+    if (!guildType || !ROLES[guildType]) {
+        return msg.reply("❌ Моля, посочи гилдия! Използвай: `!mania-plan g1` или `!mania-plan g2`").then(m => setTimeout(() => m.delete(), 5000));
+    }
+
+    // ТУК Е ПРОМЯНАТА: Пингваме и everyone, и ролята
+    const targetRolePing = `<@&${ROLES[guildType]}>`;
+    const fullPing = `@everyone (${targetRolePing})`; // Комбиниран пинг
+    const guildName = guildType.toUpperCase();
+
     const planEmbed = new EmbedBuilder()
-        .setTitle("⚔️ MANIA FORMATION")
-        .setDescription("@everyone Who will be able to play today?\n\n✅ - I'm in\n❌ - Can't play")
-        .setColor("#00FF00");
+        .setTitle(`⚔️ MANIA FORMATION - ${guildName}`)
+        .setDescription(`${fullPing} Who will be able to play today?\n\n✅ - I'm in\n❌ - Can't play`)
+        .setColor(guildType === 'g1' ? "#00FF00" : "#0099FF");
 
-    const planMsg = await msg.channel.send({ content: "@everyone", embeds: [planEmbed] });
+    const planMsg = await msg.channel.send({ 
+        content: fullPing, // Пингът извън ембеда, за да светне нотификацията
+        embeds: [planEmbed] 
+    });
+    
     await planMsg.react("✅");
     await planMsg.react("❌");
     
-    // ЗАПИСВАМЕ ID-ТО ВЪВ ФАЙЛА
     fs.writeFileSync(DB_PATH, JSON.stringify({ planId: planMsg.id }, null, 2));
-    lastVotedString = ""; // Нулираме проверката за нов план
+    lastVotedString = "";
 
-    // --- НОВАТА ЧАСТ: Известие в главния канал ---
     try {
         const mainChannel = msg.client.channels.cache.get(MAIN_CHANNEL_ID);
         if (mainChannel) {
-            await mainChannel.send(`🚨 **@everyone A new Mania Plan has been posted in: ${planMsg.url}`);
+            // Пингваме everyone и в главния канал за съответната гилдия
+            await mainChannel.send(`🚨 **@everyone A new Mania Plan for ${targetRolePing} has been posted in: ${planMsg.url}**`);
         }
     } catch (error) {
         console.error("Не можах да пратя съобщение в главния канал:", error);
     }
-    // --------------------------------------------
 
     if (msg.deletable) await msg.delete().catch(() => {});
 }
