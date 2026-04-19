@@ -5,6 +5,8 @@ const fs = require('fs');
 const path = require('path');
 // Пътят отива една папка нагоре и влиза в 'data'
 const DB_PATH = path.join(__dirname, '..', 'data', 'database.json');
+const { pool } = require("./db"); // Вмъкваме връзката с PostgreSQL
+
 
 // Глобални променливи за модула
 let currentPlanMsgId = null;
