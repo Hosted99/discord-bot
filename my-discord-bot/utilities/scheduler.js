@@ -140,46 +140,43 @@ async function createPlan(msg, type, roleId, mainChannelId, useEveryone) {
 }
 
 
-/**
- * СПИСЪК НА ПОТВЪРДИЛИТЕ (mania-list)
- */
 async function handleManiaList(msg) {
     const MAIN_CHANNEL_ID = '1486343047632523398';
     const content = msg.content.toLowerCase().trim();
     
-    // Вземаме аргумента g1 или g2
-    const arg = content.replace('mania-list', '').trim();
+    // Вземаме точно g1 или g2
+    const parts = content.split(/\s+/);
+    const arg = parts[1]; 
 
     const ROLES = {
         'g1': '1490805399010545794',
         'g2': '1490805404710469642'
     };
 
-    if (arg !== 'g1' && arg !== 'g2') {
+    if (!arg || !ROLES[arg]) {
         return msg.reply("❌ Use: `mania-list g1` or `mania-list g2`.");
     }
 
     try {
-        // 1. ЧЕТЕМ ОТ БАЗАТА - Внимавай за името на ключа
+        // 1. ЧЕТЕМ ОТ БАЗАТА
         const dbKey = `planId_${arg}`;
         const res = await pool.query("SELECT value FROM global_vars WHERE key = $1", [dbKey]);
 
-        // Проверка дали има такъв запис
+        // ПРОВЕРКА: Има ли запис в базата?
         if (res.rows.length === 0) {
-            return msg.reply(`❌ No active plan found for **${arg.toUpperCase()}**!`);
+            return msg.reply(`❌ No active plan for **${arg.toUpperCase()}** in database.`);
         }
 
-        // --- КОРЕКЦИЯТА Е ТУК ---
-        // В PostgreSQL резултатът е масив, затова вземаме rows[0].value
+        // ВАЖНО: Правилният начин за вземане на стойността от Postgres
         const targetPlanId = res.rows[0].value; 
 
-        // 2. Опит за намиране на съобщението в канала
+        // 2. Намираме съобщението
         const planMsg = await msg.channel.messages.fetch(targetPlanId).catch(() => null);
         if (!planMsg) {
-            return msg.reply("❌ Original plan message was deleted or not found here!");
+            return msg.reply(`❌ Could not find the original message for ${arg.toUpperCase()}. It might be deleted.`);
         }
 
-        // 3. СЪБИРАНЕ НА ГЛАСОВЕТЕ
+        // 3. СЪБИРАМЕ ГЛАСОВЕТЕ
         const reactionYes = planMsg.reactions.cache.get("✅");
         const usersYes = reactionYes ? await reactionYes.users.fetch() : new Map();
         const confirmed = usersYes.filter(u => !u.bot).map(u => `<@${u.id}>`);
@@ -188,7 +185,7 @@ async function handleManiaList(msg) {
         const usersNo = reactionNo ? await reactionNo.users.fetch() : new Map();
         const declined = usersNo.filter(u => !u.bot).map(u => `<@${u.id}>`);
 
-        // 4. ФИЛТРИРАНЕ НА ЛИПСВАЩИ (САМО ЗА ТАЗИ ГИЛДИЯ)
+        // 4. ФИЛТРИРАМЕ ЛИПСВАЩИТЕ (САМО ЗА СЪОТВЕТНАТА ГИЛДИЯ)
         const allMembers = await msg.guild.members.fetch();
         const votedIds = [...usersYes.keys(), ...usersNo.keys()];
         
@@ -198,20 +195,19 @@ async function handleManiaList(msg) {
             !votedIds.includes(m.id)
         ).map(m => `<@${m.id}>`);
 
-        // 5. СЪЗДАВАНЕ НА ЕМБЕД
+        // 5. ПРАЩАМЕ ЕМБЕДА
         const statusEmbed = new EmbedBuilder()
             .setTitle(`⚔️ FORMATION STATUS - ${arg.toUpperCase()}`)
-            .setDescription(`Checking votes for: <@&${ROLES[arg]}>`)
+            .setDescription(`Checking: <@&${ROLES[arg]}>`)
             .setColor(arg === 'g1' ? "#00FF00" : "#0099FF")
             .addFields(
                 { name: `✅ CONFIRMED (${confirmed.length})`, value: confirmed.join(", ") || "None yet", inline: false },
                 { name: `❌ DECLINED (${declined.length})`, value: declined.join(", ") || "None", inline: false }
-            )
-            .setTimestamp();
+            );
 
         await msg.channel.send({ embeds: [statusEmbed] });
 
-        // 6. ИЗВЕСТИЯ
+        // 6. ПИНГВАМЕ ЛИПСВАЩИТЕ
         if (missing.length > 0) {
             const missingText = missing.join(" ");
             await msg.channel.send(`🔔 **Attention!** These players from **${arg.toUpperCase()}** haven't voted:\n${missingText}`);
@@ -228,7 +224,7 @@ async function handleManiaList(msg) {
 
     } catch (e) {
         console.error("Грешка в mania-list:", e);
-        msg.reply("❌ Error loading the list. Check console.");
+        msg.reply("❌ Error loading the list. Make sure you started a new plan first!");
     }
 }
 
