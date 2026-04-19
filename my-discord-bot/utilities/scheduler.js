@@ -139,11 +139,13 @@ async function createPlan(msg, type, roleId, mainChannelId, useEveryone) {
 
 
 /**
- * СПИСЪК НА ПОТВЪРДИЛИТЕ (mania-list) - АДАПТИРАН ЗА ДВЕ ГИЛДИИ
+ * СПИСЪК НА ПОТВЪРДИЛИТЕ (mania-list)
  */
 async function handleManiaList(msg) {
     const MAIN_CHANNEL_ID = '1486343047632523398';
     const content = msg.content.toLowerCase().trim();
+    
+    // Вземаме аргумента (g1 или g2)
     const arg = content.replace('mania-list', '').trim();
 
     const ROLES = {
@@ -156,18 +158,23 @@ async function handleManiaList(msg) {
     }
 
     try {
-        // Четем правилното ID от базата данни
+        // 1. ЧЕТЕМ ID-ТО ОТ БАЗАТА (global_vars)
         const dbKey = `planId_${arg}`;
         const res = await pool.query("SELECT value FROM global_vars WHERE key = $1", [dbKey]);
 
-        if (res.rows.length === 0) return msg.reply(`❌ No active plan for ${arg.toUpperCase()}`);
-        
+        // ПРОВЕРКА: Дали изобщо има запис за тази гилдия
+        if (res.rows.length === 0) {
+            return msg.reply(`❌ No active plan found for ${arg.toUpperCase()} in database!`);
+        }
+
+        // ВАЖНО: Вземаме стойността от първия ред [0]
         const targetPlanId = res.rows[0].value;
+
+        // 2. Опитваме се да намерим оригиналното съобщение
         const planMsg = await msg.channel.messages.fetch(targetPlanId).catch(() => null);
+        if (!planMsg) return msg.reply("❌ Original plan message not found in this channel!");
 
-        if (!planMsg) return msg.reply("❌ Original plan message not found!");
-
-        // Събираме гласовете от реакциите
+        // 3. СЪБИРАМЕ ГЛАСОВЕТЕ (✅ и ❌)
         const reactionYes = planMsg.reactions.cache.get("✅");
         const usersYes = reactionYes ? await reactionYes.users.fetch() : new Map();
         const confirmed = usersYes.filter(u => !u.bot).map(u => `<@${u.id}>`);
@@ -176,7 +183,7 @@ async function handleManiaList(msg) {
         const usersNo = reactionNo ? await reactionNo.users.fetch() : new Map();
         const declined = usersNo.filter(u => !u.bot).map(u => `<@${u.id}>`);
 
-        // Филтрираме липсващите хора САМО от конкретната гилдия
+        // 4. ФИЛТРИРАМЕ ЛИПСВАЩИТЕ (само хора с конкретната роля)
         const allMembers = await msg.guild.members.fetch();
         const votedIds = [...usersYes.keys(), ...usersNo.keys()];
         
@@ -186,18 +193,20 @@ async function handleManiaList(msg) {
             !votedIds.includes(m.id)
         ).map(m => `<@${m.id}>`);
 
-        // Изпращане на статус ембеда
+        // 5. СЪЗДАВАМЕ И ПРАЩАМЕ ЕМБЕДА
         const statusEmbed = new EmbedBuilder()
             .setTitle(`⚔️ FORMATION STATUS - ${arg.toUpperCase()}`)
+            .setDescription(`Formation for: <@&${ROLES[arg]}>`)
             .setColor(arg === 'g1' ? "#00FF00" : "#0099FF")
             .addFields(
                 { name: `✅ CONFIRMED (${confirmed.length})`, value: confirmed.join(", ") || "None", inline: false },
                 { name: `❌ DECLINED (${declined.length})`, value: declined.join(", ") || "None", inline: false }
-            );
+            )
+            .setTimestamp();
 
         await msg.channel.send({ embeds: [statusEmbed] });
 
-        // Пингване на липсващите в mania-reminder и главния канал
+        // 6. ПИНГВАМЕ ЛИПСВАЩИТЕ
         if (missing.length > 0) {
             const missingText = missing.join(" ");
             await msg.channel.send(`🔔 **Attention!** These players from **${arg.toUpperCase()}** haven't voted:\n${missingText}`);
@@ -206,15 +215,17 @@ async function handleManiaList(msg) {
             if (mainChannel) {
                 await mainChannel.send(`🚨 **MANDATORY!** ${arg.toUpperCase()} members need to vote: ${missingText}`);
             }
+        } else {
+            await msg.channel.send(`✅ Everyone from **${arg.toUpperCase()}** has voted!`);
         }
 
         if (msg.deletable) await msg.delete().catch(() => {});
 
     } catch (e) {
-        console.error("Error in mania-list:", e);
+        console.error("Грешка в mania-list:", e);
+        msg.reply("❌ Error fetching the list. Check bot console.");
     }
 }
-
 
 
 /**
