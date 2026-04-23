@@ -151,30 +151,26 @@ if (lowerContent.startsWith("mania-list")) {
     if (specialHandled) return;
 
     // --- 4. Преводач (ai-translator канал) ---
-    // --- 4. Преводач (ai-translator канал) ---
+   // --- 4. Преводач (ai-translator канал) ---
 if (msg.channel.name === 'ai-translator') {
     if (msg.author.bot) return;
     if (translationCooldown.has(msg.author.id)) return;
 
-    // СТЪПКА 1: Изчистване на текста
     const cleanedText = cleanDiscordContent(msg.content);
 
-    // СТЪПКА 2: Ако е под 3 символа или няма букви -> ИГНОРИРАЙ
-    if (!cleanedText || cleanedText.length < 3) return;
-
-    // СТЪПКА 3: ЛОКАЛНА ПРОВЕРКА ЗА АНГЛИЙСКИ (преди AI-то)
-    // Ако съобщението съдържа само латински букви и знаци и НЕ Е reply -> ИГНОРИРАЙ
-    const isOnlyLatin = /^[a-zA-Z\s\d\W]+$/.test(cleanedText);
-    if (isOnlyLatin && !msg.reference) {
-        return; 
-    }
+    // Спираме само ако е празно или прекалено късо (под 2 символа)
+    if (!cleanedText || cleanedText.length < 2) return;
 
     try {
         const analysis = await groq.chat.completions.create({
             messages: [
                 { 
                     role: "system", 
-                    content: "Analyze language. If the text is English (even with typos or mentioning other languages), respond with isEnglish: true. Respond ONLY JSON: {\"isEnglish\": boolean, \"detectedLang\": \"Language Name\", \"translatedText\": \"...\"}" 
+                    content: `You are a professional translator. 
+                    1. Detect the language. 
+                    2. If it is English, respond with {"isEnglish": true}.
+                    3. If it is NOT English (e.g. Polish, Spanish, Bulgarian), translate it to English and respond with {"isEnglish": false, "detectedLang": "Language Name", "translatedText": "..."}.
+                    Respond ONLY with JSON.` 
                 },
                 { role: "user", content: cleanedText }
             ],
@@ -182,19 +178,18 @@ if (msg.channel.name === 'ai-translator') {
             response_format: { type: "json_object" }
         });
 
-        // Вземаме JSON отговора
         const data = JSON.parse(analysis.choices[0].message.content);
 
-        // Проверка дали AI-то все пак е решило, че е английски
-        const aiSaysEnglish = data.isEnglish === true || data.detectedLang.toLowerCase().includes('eng');
+        // Проверка дали е английски
+        const isEnglish = data.isEnglish === true;
 
-        // Ако е английски и не е reply -> Игнорираме (втора защита)
-        if (aiSaysEnglish && !msg.reference) {
+        // АКО Е АНГЛИЙСКИ И НЯМА РЕПЛАЙ -> ИГНОРИРАЙ
+        if (isEnglish && !msg.reference) {
             return; 
         }
 
-        // СЛУЧАЙ А: Текстът НЕ е на английски -> Превеждаме към Английски
-        if (!aiSaysEnglish) {
+        // АКО НЕ Е АНГЛИЙСКИ -> ПРЕВЕЖДАЙ КЪМ АНГЛИЙСКИ
+        if (!isEnglish && data.translatedText) {
             const expireTime = new Date();
             expireTime.setHours(expireTime.getHours() + 5);
 
@@ -205,8 +200,8 @@ if (msg.channel.name === 'ai-translator') {
 
             await msg.reply(`🇺🇸 **English:** ${data.translatedText}`);
         } 
-        // СЛУЧАЙ Б: Текстът Е на английски, но Е REPLY -> Превеждаме обратно на езика на оригиналния автор
-        else if (msg.reference) {
+        // АКО Е АНГЛИЙСКИ И Е РЕПЛАЙ -> ПРЕВЕЖДАЙ НАЗАД
+        else if (isEnglish && msg.reference) {
             try {
                 const repliedMessage = await msg.channel.messages.fetch(msg.reference.messageId);
                 const res = await pool.query(
@@ -219,7 +214,7 @@ if (msg.channel.name === 'ai-translator') {
 
                     const backResult = await groq.chat.completions.create({
                         messages: [
-                            { role: "system", content: `Translate to ${targetLang}. Only translation, no extra text.` },
+                            { role: "system", content: `Translate to ${targetLang}. Only translation.` },
                             { role: "user", content: cleanedText }
                         ],
                         model: "llama-3.3-70b-versatile"
@@ -232,16 +227,14 @@ if (msg.channel.name === 'ai-translator') {
             }
         }
 
-        // Cooldown система
         translationCooldown.add(msg.author.id);
         setTimeout(() => translationCooldown.delete(msg.author.id), 5000);
 
     } catch (err) {
-        console.error("Groq/DB Error:", err.message);
+        console.error("Groq error:", err.message);
     }
     return;
 }
-
     
     // --- 4. Лека нощ ---
     const nightRegex = /\b(good night|nighty night)\b/i;
