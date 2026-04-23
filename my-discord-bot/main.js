@@ -20,12 +20,16 @@ const { logDeletedMessage } = require("./utilities/logger");
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 const translationCooldown = new Set();
 
-// премахва емоджита и снимки с :
+// за да игнори снмки,емоджита и д.р
 function cleanDiscordContent(content) {
     if (!content) return "";
     return content
-        .replace(/<a?:\w+:\d+>/g, '') // Премахва Discord емоджита
-        .replace(/https?:\/\/\S+/g, '') // Премахва линкове
+        // 1. Премахва Discord Custom Emojis (<:name:id> или <a:name:id>)
+        .replace(/<a?:\w+:\d+>/g, '') 
+        // 2. Премахва линкове (URL-и)
+        .replace(/https?:\/\/\S+/g, '') 
+        // 3. Премахва стандартни Unicode емоджита (за да не ги превежда като текст)
+        .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '')
         .trim();
 }
 
@@ -144,22 +148,21 @@ if (lowerContent.startsWith("mania-list")) {
 
     // --- 4. Преводач (ai-translator канал) ---
     if (msg.channel.name === 'ai-translator') {
-    // 1. Игнорираме ботове и празни съобщения
-    if (msg.author.bot) return;
+    if (msg.author.bot) return; // Игнорирай други ботове
     if (translationCooldown.has(msg.author.id)) return;
 
-    // 2. Чистим съобщението от емоджита и линкове
+    // СТЪПКА 1: Изчистваме съобщението
     const cleanedText = cleanDiscordContent(msg.content);
 
-    // 3. Ако е останал празен низ (било е само картинка/емоджи), спираме
-    if (!cleanedText) return;
+    // СТЪПКА 2: Ако съобщението е само картинка, линк или емоджи - ИГНОРИРАЙ
+    if (!cleanedText || cleanedText.length < 2) return;
 
     try {
         const analysis = await groq.chat.completions.create({
             messages: [
                 { 
                     role: "system", 
-                    content: "Analyze language. If NOT English, translate to English. Respond ONLY JSON: {\"isEnglish\": boolean, \"detectedLang\": \"Language Name\", \"translatedText\": \"...\"}" 
+                    content: "Analyze language. If the text is English (even with typos), respond with isEnglish: true. Respond ONLY JSON: {\"isEnglish\": boolean, \"detectedLang\": \"Language Name\", \"translatedText\": \"...\"}" 
                 },
                 { role: "user", content: cleanedText }
             ],
@@ -167,16 +170,20 @@ if (lowerContent.startsWith("mania-list")) {
             response_format: { type: "json_object" }
         });
 
+        // Внимавай за структурата на отговора (choices[0])
         const data = JSON.parse(analysis.choices[0].message.content);
 
-        // --- ЛОГИКА ЗА ИГНОРИРАНЕ ---
-        // Ако съобщението е на английски и НЕ е отговор на друго съобщение -> Игнорираме тотално
-        if (data.isEnglish && !msg.reference) {
+        // ПРОВЕРКА: Считаме го за английски, ако AI каже true ИЛИ в името на езика има "eng"
+        const isDetectedEnglish = data.isEnglish === true || 
+                                 data.detectedLang.toLowerCase().includes('eng');
+
+        // ЛОГИКА ЗА ИГНОРИРАНЕ: Английски + не е реплай = Мълчание
+        if (isDetectedEnglish && !msg.reference) {
             return; 
         }
 
-        // Случай 1: Съобщението НЕ е на английски -> Превеждаме го на английски
-        if (!data.isEnglish) {
+        // ВАРИАНТ А: Съобщението НЕ е на английски -> Превеждаме на английски
+        if (!isDetectedEnglish) {
             const expireTime = new Date();
             expireTime.setHours(expireTime.getHours() + 5);
 
@@ -187,7 +194,7 @@ if (lowerContent.startsWith("mania-list")) {
 
             await msg.reply(`🇺🇸 **English:** ${data.translatedText}`);
         } 
-        // Случай 2: Съобщението е на английски, но Е отговор (Reply) -> Превеждаме го обратно
+        // ВАРИАНТ Б: Съобщението Е на английски, но Е отговор (Reply) -> Превеждаме го обратно
         else if (msg.reference) {
             try {
                 const repliedMessage = await msg.channel.messages.fetch(msg.reference.messageId);
@@ -201,7 +208,7 @@ if (lowerContent.startsWith("mania-list")) {
 
                     const backResult = await groq.chat.completions.create({
                         messages: [
-                            { role: "system", content: `Translate to ${targetLang}. Only translation, no explanations.` },
+                            { role: "system", content: `Translate to ${targetLang}. Only translation.` },
                             { role: "user", content: cleanedText }
                         ],
                         model: "llama-3.3-70b-versatile"
@@ -219,11 +226,10 @@ if (lowerContent.startsWith("mania-list")) {
         setTimeout(() => translationCooldown.delete(msg.author.id), 5000);
 
     } catch (err) {
-        console.error("Groq/DB error:", err.message);
+        console.error("Groq error:", err.message);
     }
     return;
 }
-
     // --- 4. Лека нощ ---
     const nightRegex = /\b(good night|nighty night)\b/i;
     if (nightRegex.test(msg.content.toLowerCase())) {
