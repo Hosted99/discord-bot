@@ -20,6 +20,16 @@ const { logDeletedMessage } = require("./utilities/logger");
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 const translationCooldown = new Set();
 
+// премахва емоджита и снимки с :
+function cleanDiscordContent(content) {
+    if (!content) return "";
+    return content
+        .replace(/<a?:\w+:\d+>/g, '') // Премахва Discord емоджита
+        .replace(/https?:\/\/\S+/g, '') // Премахва линкове
+        .trim();
+}
+
+
 // 2. Инициализация на клиента
 const client = new Client({
     intents: [
@@ -134,68 +144,85 @@ if (lowerContent.startsWith("mania-list")) {
 
     // --- 4. Преводач (ai-translator канал) ---
     if (msg.channel.name === 'ai-translator') {
-        if (translationCooldown.has(msg.author.id)) return;
+    // 1. Игнорираме ботове и празни съобщения
+    if (msg.author.bot) return;
+    if (translationCooldown.has(msg.author.id)) return;
 
-        try {
-            const analysis = await groq.chat.completions.create({
-                messages: [
-                    { 
-                        role: "system", 
-                        content: "Analyze language. If NOT English, translate to English. Respond ONLY JSON: {\"isEnglish\": boolean, \"detectedLang\": \"Language Name\", \"translatedText\": \"...\"}" 
-                    },
-                    { role: "user", content: msg.content }
-                ],
-                model: "llama-3.3-70b-versatile",
-                response_format: { type: "json_object" }
-            });
+    // 2. Чистим съобщението от емоджита и линкове
+    const cleanedText = cleanDiscordContent(msg.content);
 
-            const data = JSON.parse(analysis.choices[0].message.content);
+    // 3. Ако е останал празен низ (било е само картинка/емоджи), спираме
+    if (!cleanedText) return;
 
-            if (!data.isEnglish) {
-                const expireTime = new Date();
-                expireTime.setHours(expireTime.getHours() + 5);
+    try {
+        const analysis = await groq.chat.completions.create({
+            messages: [
+                { 
+                    role: "system", 
+                    content: "Analyze language. If NOT English, translate to English. Respond ONLY JSON: {\"isEnglish\": boolean, \"detectedLang\": \"Language Name\", \"translatedText\": \"...\"}" 
+                },
+                { role: "user", content: cleanedText }
+            ],
+            model: "llama-3.3-70b-versatile",
+            response_format: { type: "json_object" }
+        });
 
-                await pool.query(
-                    "INSERT INTO translation_cache (user_id, last_lang, expires_at) VALUES ($1, $2, $3) ON CONFLICT (user_id) DO UPDATE SET last_lang = $2, expires_at = $3",
-                    [msg.author.id, data.detectedLang, expireTime]
+        const data = JSON.parse(analysis.choices[0].message.content);
+
+        // --- ЛОГИКА ЗА ИГНОРИРАНЕ ---
+        // Ако съобщението е на английски и НЕ е отговор на друго съобщение -> Игнорираме тотално
+        if (data.isEnglish && !msg.reference) {
+            return; 
+        }
+
+        // Случай 1: Съобщението НЕ е на английски -> Превеждаме го на английски
+        if (!data.isEnglish) {
+            const expireTime = new Date();
+            expireTime.setHours(expireTime.getHours() + 5);
+
+            await pool.query(
+                "INSERT INTO translation_cache (user_id, last_lang, expires_at) VALUES ($1, $2, $3) ON CONFLICT (user_id) DO UPDATE SET last_lang = $2, expires_at = $3",
+                [msg.author.id, data.detectedLang, expireTime]
+            );
+
+            await msg.reply(`🇺🇸 **English:** ${data.translatedText}`);
+        } 
+        // Случай 2: Съобщението е на английски, но Е отговор (Reply) -> Превеждаме го обратно
+        else if (msg.reference) {
+            try {
+                const repliedMessage = await msg.channel.messages.fetch(msg.reference.messageId);
+                const res = await pool.query(
+                    "SELECT last_lang FROM translation_cache WHERE user_id = $1 AND expires_at > NOW()",
+                    [repliedMessage.author.id]
                 );
 
-                await msg.reply(`🇺🇸 **English:** ${data.translatedText}`);
-            } 
-            else if (msg.reference) {
-                try {
-                    const repliedMessage = await msg.channel.messages.fetch(msg.reference.messageId);
-                    const res = await pool.query(
-                        "SELECT last_lang FROM translation_cache WHERE user_id = $1 AND expires_at > NOW()",
-                        [repliedMessage.author.id]
-                    );
+                if (res.rows.length > 0) {
+                    const targetLang = res.rows[0].last_lang;
 
-                    if (res.rows.length > 0) {
-                        const targetLang = res.rows[0].last_lang;
+                    const backResult = await groq.chat.completions.create({
+                        messages: [
+                            { role: "system", content: `Translate to ${targetLang}. Only translation, no explanations.` },
+                            { role: "user", content: cleanedText }
+                        ],
+                        model: "llama-3.3-70b-versatile"
+                    });
 
-                        const backResult = await groq.chat.completions.create({
-                            messages: [
-                                { role: "system", content: `Translate to ${targetLang}. Only translation.` },
-                                { role: "user", content: msg.content }
-                            ],
-                            model: "llama-3.3-70b-versatile"
-                        });
-
-                        await msg.reply(`🌍 **To ${targetLang}:** ${backResult.choices[0].message.content}`);
-                    }
-                } catch (err) {
-                    console.error("Reply translation error:", err.message);
+                    await msg.reply(`🌍 **To ${targetLang}:** ${backResult.choices[0].message.content}`);
                 }
+            } catch (err) {
+                console.error("Reply translation error:", err.message);
             }
-
-            translationCooldown.add(msg.author.id);
-            setTimeout(() => translationCooldown.delete(msg.author.id), 5000);
-
-        } catch (err) {
-            console.error("Groq error:", err.message);
         }
-        return;
+
+        // Коулдаун логика
+        translationCooldown.add(msg.author.id);
+        setTimeout(() => translationCooldown.delete(msg.author.id), 5000);
+
+    } catch (err) {
+        console.error("Groq/DB error:", err.message);
     }
+    return;
+}
 
     // --- 4. Лека нощ ---
     const nightRegex = /\b(good night|nighty night)\b/i;
