@@ -503,11 +503,11 @@ if (cmd === "!mania-help") {
         .setThumbnail("https://giphy.com")
         .addFields(
             { 
-                name: "📝 mania-plan", 
-                value: "Starts the daily sign-up. It pings @everyone and adds ✅/❌ reactions. The bot saves this post to track who is available." 
+                name: "📝 mania-plan g1/g2", 
+                value: "Starts the daily sign-up. It pings @everyone,only Guild1 or Guild2  and adds ✅/❌ reactions. The bot saves this post to track who is available." 
             },
             { 
-                name: "📜 mania-list", 
+                name: "📜 mania-list g1/g2", 
                 value: "Checks the reactions from the active plan. It lists confirmed players and **pings anyone who hasn't voted yet!** 🔔" 
             },
             { 
