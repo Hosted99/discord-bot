@@ -153,23 +153,21 @@ if (lowerContent.startsWith("mania-list")) {
    // --- 4. Преводач (ai-translator канал) ---
 if (msg.channel.name === 'ai-translator') {
     if (msg.author.bot) return;
-    if (translationCooldown.has(msg.author.id)) return;
 
+    // СТЪПКА 1: Изчистваме съобщението от боклуци
     const cleanedText = cleanDiscordContent(msg.content);
 
-    // Спираме само ако е празно или прекалено късо (под 2 символа)
-    if (!cleanedText || cleanedText.length < 2) return;
+    // СТЪПКА 2: Ако няма букви (само емоджита/снимки) -> ИГНОРИРАЙ ТОТАЛНО
+    if (!cleanedText || !/[a-zA-Zа-яА-Я]/.test(cleanedText)) return;
+
+    if (translationCooldown.has(msg.author.id)) return;
 
     try {
         const analysis = await groq.chat.completions.create({
             messages: [
                 { 
                     role: "system", 
-                    content: `You are a professional translator. 
-                    1. Detect the language. 
-                    2. If it is English, respond with {"isEnglish": true}.
-                    3. If it is NOT English (e.g. Polish, Spanish, Bulgarian), translate it to English and respond with {"isEnglish": false, "detectedLang": "Language Name", "translatedText": "..."}.
-                    Respond ONLY with JSON.` 
+                    content: "Analyze language. If the text is English, respond with {\"isEnglish\": true}. If NOT English, translate to English and respond ONLY JSON: {\"isEnglish\": boolean, \"detectedLang\": \"Language Name\", \"translatedText\": \"...\"}" 
                 },
                 { role: "user", content: cleanedText }
             ],
@@ -179,16 +177,12 @@ if (msg.channel.name === 'ai-translator') {
 
         const data = JSON.parse(analysis.choices[0].message.content);
 
-        // Проверка дали е английски
-        const isEnglish = data.isEnglish === true;
+        // ЛОГИКА ЗА ИГНОРИРАНЕ: Ако е английски и НЕ е отговор на някого
+        if (data.isEnglish && !msg.reference) return;
 
-        // АКО Е АНГЛИЙСКИ И НЯМА РЕПЛАЙ -> ИГНОРИРАЙ
-        if (isEnglish && !msg.reference) {
-            return; 
-        }
-
-        // АКО НЕ Е АНГЛИЙСКИ -> ПРЕВЕЖДАЙ КЪМ АНГЛИЙСКИ
-        if (!isEnglish && data.translatedText) {
+        // ВАРИАНТ А: Съобщението НЕ е на английски (напр. Полски, Испански)
+        if (!data.isEnglish) {
+            // САМО ТУК ЗАПИСВАМЕ В БАЗАТА – така избягваме "Unknown" или "Emoji" записи
             const expireTime = new Date();
             expireTime.setHours(expireTime.getHours() + 5);
 
@@ -199,8 +193,8 @@ if (msg.channel.name === 'ai-translator') {
 
             await msg.reply(`🇺🇸 **English:** ${data.translatedText}`);
         } 
-        // АКО Е АНГЛИЙСКИ И Е РЕПЛАЙ -> ПРЕВЕЖДАЙ НАЗАД
-        else if (isEnglish && msg.reference) {
+        // ВАРИАНТ Б: Съобщението е на английски, но Е отговор (Reply)
+        else if (msg.reference) {
             try {
                 const repliedMessage = await msg.channel.messages.fetch(msg.reference.messageId);
                 const res = await pool.query(
@@ -208,6 +202,7 @@ if (msg.channel.name === 'ai-translator') {
                     [repliedMessage.author.id]
                 );
 
+                // Превеждаме само ако в базата имаме валиден предишен език
                 if (res.rows.length > 0) {
                     const targetLang = res.rows[0].last_lang;
 
