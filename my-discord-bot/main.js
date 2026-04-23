@@ -20,17 +20,22 @@ const { logDeletedMessage } = require("./utilities/logger");
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 const translationCooldown = new Set();
 
-// за да игнори снмки,емоджита и д.р
 function cleanDiscordContent(content) {
     if (!content) return "";
-    return content
-        // 1. Премахва Discord Custom Emojis (<:name:id> или <a:name:id>)
-        .replace(/<a?:\w+:\d+>/g, '') 
-        // 2. Премахва линкове (URL-и)
-        .replace(/https?:\/\/\S+/g, '') 
-        // 3. Премахва стандартни Unicode емоджита (за да не ги превежда като текст)
-        .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '')
+    
+    // 1. Премахваме всичко излишно
+    let cleaned = content
+        .replace(/<a?:\w+:\d+>/g, '') // Discord емоджита
+        .replace(/https?:\/\/\S+/g, '') // Линкове
         .trim();
+
+    // 2. СУПЕР ПРОВЕРКА: Има ли изобщо букви или цифри?
+    // Ако съобщението съдържа САМО емоджита и специални знаци, това ще върне false
+    const hasActualText = /[a-zA-Zа-яА-Я0-9]/.test(cleaned);
+    
+    if (!hasActualText) return ""; 
+
+    return cleaned;
 }
 
 
@@ -153,6 +158,11 @@ if (lowerContent.startsWith("mania-list")) {
 
     // СТЪПКА 1: Изчистваме съобщението
     const cleanedText = cleanDiscordContent(msg.content);
+
+        // Ако текстът е празен ИЛИ е прекалено кратък (напр. само 1 символ), спираме
+if (!cleanedText || cleanedText.length < 2) {
+    return; 
+}
 
     // СТЪПКА 2: Ако съобщението е само картинка, линк или емоджи - ИГНОРИРАЙ
     if (!cleanedText || cleanedText.length < 2) return;
