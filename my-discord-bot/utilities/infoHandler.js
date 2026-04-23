@@ -25,8 +25,8 @@ const sendBotManual = async (guild) => {
             },
            { 
                 name: "⚔️ 2. Mania Battle System", 
-                value: "• **Step 1: `mania-plan`** - Start recruitment with ✅/❌ reactions.\n" +
-                       "• **Step 2: `mania-list`** - Get a live report of all confirmed players before the fight.\n" +
+                value: "• **Step 1: `mania-plan g1/g2/all`** - Start recruitment with ✅/❌ reactions.\n" +
+                       "• **Step 2: `mania-list g1/g2 `** - Get a live report of all confirmed players before the fight.\n" +
                        "• **Step 3: `mania-strategy <text>`** - Post the final formatted battle plan and ping everyone.\n" +
                            "*Format:* Boss Name - @Player1 @Player2 (use a new line for each boss)."
             },
