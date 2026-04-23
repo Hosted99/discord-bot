@@ -156,18 +156,25 @@ if (msg.channel.name === 'ai-translator') {
     if (msg.author.bot) return;
     if (translationCooldown.has(msg.author.id)) return;
 
-    // СТЪПКА 1: Изчистваме съобщението
+    // СТЪПКА 1: Изчистване на текста
     const cleanedText = cleanDiscordContent(msg.content);
 
-    // СТЪПКА 2: Ако съобщението е под 3 символа или няма букви (емоджита/знаци) -> ИГНОРИРАЙ
+    // СТЪПКА 2: Ако е под 3 символа или няма букви -> ИГНОРИРАЙ
     if (!cleanedText || cleanedText.length < 3) return;
+
+    // СТЪПКА 3: ЛОКАЛНА ПРОВЕРКА ЗА АНГЛИЙСКИ (преди AI-то)
+    // Ако съобщението съдържа само латински букви и знаци и НЕ Е reply -> ИГНОРИРАЙ
+    const isOnlyLatin = /^[a-zA-Z\s\d\W]+$/.test(cleanedText);
+    if (isOnlyLatin && !msg.reference) {
+        return; 
+    }
 
     try {
         const analysis = await groq.chat.completions.create({
             messages: [
                 { 
                     role: "system", 
-                    content: "Analyze language. If the text is English (even with typos), respond with isEnglish: true. If the text is nonsense or just characters, respond with isEnglish: true. Respond ONLY JSON: {\"isEnglish\": boolean, \"detectedLang\": \"Language Name\", \"translatedText\": \"...\"}" 
+                    content: "Analyze language. If the text is English (even with typos or mentioning other languages), respond with isEnglish: true. Respond ONLY JSON: {\"isEnglish\": boolean, \"detectedLang\": \"Language Name\", \"translatedText\": \"...\"}" 
                 },
                 { role: "user", content: cleanedText }
             ],
@@ -175,20 +182,19 @@ if (msg.channel.name === 'ai-translator') {
             response_format: { type: "json_object" }
         });
 
-        // Достъпваме съдържанието на съобщението от Groq
+        // Вземаме JSON отговора
         const data = JSON.parse(analysis.choices[0].message.content);
 
-        // ПРОВЕРКА ЗА ЕЗИК: Считаме го за английски, ако AI каже true ИЛИ името на езика съдържа "eng"
-        const isDetectedEnglish = data.isEnglish === true || 
-                                 data.detectedLang.toLowerCase().includes('eng');
+        // Проверка дали AI-то все пак е решило, че е английски
+        const aiSaysEnglish = data.isEnglish === true || data.detectedLang.toLowerCase().includes('eng');
 
-        // ЛОГИКА ЗА ИГНОРИРАНЕ: Английски + не е отговор (reply) = Мълчание
-        if (isDetectedEnglish && !msg.reference) {
+        // Ако е английски и не е reply -> Игнорираме (втора защита)
+        if (aiSaysEnglish && !msg.reference) {
             return; 
         }
 
-        // СЛУЧАЙ А: Съобщението НЕ е на английски -> Превеждаме към Английски
-        if (!isDetectedEnglish) {
+        // СЛУЧАЙ А: Текстът НЕ е на английски -> Превеждаме към Английски
+        if (!aiSaysEnglish) {
             const expireTime = new Date();
             expireTime.setHours(expireTime.getHours() + 5);
 
@@ -199,7 +205,7 @@ if (msg.channel.name === 'ai-translator') {
 
             await msg.reply(`🇺🇸 **English:** ${data.translatedText}`);
         } 
-        // СЛУЧАЙ Б: Съобщението Е на английски, но Е отговор (Reply) -> Превеждаме обратно
+        // СЛУЧАЙ Б: Текстът Е на английски, но Е REPLY -> Превеждаме обратно на езика на оригиналния автор
         else if (msg.reference) {
             try {
                 const repliedMessage = await msg.channel.messages.fetch(msg.reference.messageId);
@@ -231,7 +237,7 @@ if (msg.channel.name === 'ai-translator') {
         setTimeout(() => translationCooldown.delete(msg.author.id), 5000);
 
     } catch (err) {
-        console.error("Groq error:", err.message);
+        console.error("Groq/DB Error:", err.message);
     }
     return;
 }
