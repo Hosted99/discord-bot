@@ -23,11 +23,10 @@ const translationCooldown = new Set();
 // 1. Постави тази функция в началото на файла (около ред 22)
 function cleanDiscordContent(content) {
     if (!content) return "";
-    
-    // Премахва Discord емоджита (<:name:id>) и линкове
-    let cleaned = content
-        .replace(/<a?:\w+:\d+>/g, '') 
-        .replace(/https?:\/\/\S+/g, '')
+    return content
+        .replace(/<a?:\w+:\d+>/g, '') // Discord емоджита
+        .replace(/https?:\/\/\S+/g, '') // Линкове/Снимки
+        .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '') // Unicode емоджита
         .trim();
 
     // ПРОВЕРКА ЗА БУКВИ: Ако в съобщението няма нито една буква (латиница или кирилица),
