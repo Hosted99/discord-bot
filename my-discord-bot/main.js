@@ -20,24 +20,23 @@ const { logDeletedMessage } = require("./utilities/logger");
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 const translationCooldown = new Set();
 
+// 1. Постави тази функция в началото на файла (около ред 22)
 function cleanDiscordContent(content) {
     if (!content) return "";
     
-    // 1. Премахваме всичко излишно
+    // Премахва Discord емоджита (<:name:id>) и линкове
     let cleaned = content
-        .replace(/<a?:\w+:\d+>/g, '') // Discord емоджита
-        .replace(/https?:\/\/\S+/g, '') // Линкове
+        .replace(/<a?:\w+:\d+>/g, '') 
+        .replace(/https?:\/\/\S+/g, '')
         .trim();
 
-    // 2. СУПЕР ПРОВЕРКА: Има ли изобщо букви или цифри?
-    // Ако съобщението съдържа САМО емоджита и специални знаци, това ще върне false
-    const hasActualText = /[a-zA-Zа-яА-Я0-9]/.test(cleaned);
-    
-    if (!hasActualText) return ""; 
+    // ПРОВЕРКА ЗА БУКВИ: Ако в съобщението няма нито една буква (латиница или кирилица),
+    // значи е само емоджита, цифри или знаци. В такъв случай връщаме празен низ.
+    const hasLetters = /[a-zA-Zа-яА-Я]/.test(cleaned);
+    if (!hasLetters) return "";
 
     return cleaned;
 }
-
 
 // 2. Инициализация на клиента
 const client = new Client({
@@ -152,27 +151,23 @@ if (lowerContent.startsWith("mania-list")) {
     if (specialHandled) return;
 
     // --- 4. Преводач (ai-translator канал) ---
-    if (msg.channel.name === 'ai-translator') {
-    if (msg.author.bot) return; // Игнорирай други ботове
+    // --- 4. Преводач (ai-translator канал) ---
+if (msg.channel.name === 'ai-translator') {
+    if (msg.author.bot) return;
     if (translationCooldown.has(msg.author.id)) return;
 
     // СТЪПКА 1: Изчистваме съобщението
     const cleanedText = cleanDiscordContent(msg.content);
 
-        // Ако текстът е празен ИЛИ е прекалено кратък (напр. само 1 символ), спираме
-if (!cleanedText || cleanedText.length < 2) {
-    return; 
-}
-
-    // СТЪПКА 2: Ако съобщението е само картинка, линк или емоджи - ИГНОРИРАЙ
-    if (!cleanedText || cleanedText.length < 2) return;
+    // СТЪПКА 2: Ако съобщението е под 3 символа или няма букви (емоджита/знаци) -> ИГНОРИРАЙ
+    if (!cleanedText || cleanedText.length < 3) return;
 
     try {
         const analysis = await groq.chat.completions.create({
             messages: [
                 { 
                     role: "system", 
-                    content: "Analyze language. If the text is English (even with typos), respond with isEnglish: true. Respond ONLY JSON: {\"isEnglish\": boolean, \"detectedLang\": \"Language Name\", \"translatedText\": \"...\"}" 
+                    content: "Analyze language. If the text is English (even with typos), respond with isEnglish: true. If the text is nonsense or just characters, respond with isEnglish: true. Respond ONLY JSON: {\"isEnglish\": boolean, \"detectedLang\": \"Language Name\", \"translatedText\": \"...\"}" 
                 },
                 { role: "user", content: cleanedText }
             ],
@@ -180,19 +175,19 @@ if (!cleanedText || cleanedText.length < 2) {
             response_format: { type: "json_object" }
         });
 
-        // Внимавай за структурата на отговора (choices[0])
+        // Достъпваме съдържанието на съобщението от Groq
         const data = JSON.parse(analysis.choices[0].message.content);
 
-        // ПРОВЕРКА: Считаме го за английски, ако AI каже true ИЛИ в името на езика има "eng"
+        // ПРОВЕРКА ЗА ЕЗИК: Считаме го за английски, ако AI каже true ИЛИ името на езика съдържа "eng"
         const isDetectedEnglish = data.isEnglish === true || 
                                  data.detectedLang.toLowerCase().includes('eng');
 
-        // ЛОГИКА ЗА ИГНОРИРАНЕ: Английски + не е реплай = Мълчание
+        // ЛОГИКА ЗА ИГНОРИРАНЕ: Английски + не е отговор (reply) = Мълчание
         if (isDetectedEnglish && !msg.reference) {
             return; 
         }
 
-        // ВАРИАНТ А: Съобщението НЕ е на английски -> Превеждаме на английски
+        // СЛУЧАЙ А: Съобщението НЕ е на английски -> Превеждаме към Английски
         if (!isDetectedEnglish) {
             const expireTime = new Date();
             expireTime.setHours(expireTime.getHours() + 5);
@@ -204,7 +199,7 @@ if (!cleanedText || cleanedText.length < 2) {
 
             await msg.reply(`🇺🇸 **English:** ${data.translatedText}`);
         } 
-        // ВАРИАНТ Б: Съобщението Е на английски, но Е отговор (Reply) -> Превеждаме го обратно
+        // СЛУЧАЙ Б: Съобщението Е на английски, но Е отговор (Reply) -> Превеждаме обратно
         else if (msg.reference) {
             try {
                 const repliedMessage = await msg.channel.messages.fetch(msg.reference.messageId);
@@ -218,7 +213,7 @@ if (!cleanedText || cleanedText.length < 2) {
 
                     const backResult = await groq.chat.completions.create({
                         messages: [
-                            { role: "system", content: `Translate to ${targetLang}. Only translation.` },
+                            { role: "system", content: `Translate to ${targetLang}. Only translation, no extra text.` },
                             { role: "user", content: cleanedText }
                         ],
                         model: "llama-3.3-70b-versatile"
@@ -231,7 +226,7 @@ if (!cleanedText || cleanedText.length < 2) {
             }
         }
 
-        // Коулдаун логика
+        // Cooldown система
         translationCooldown.add(msg.author.id);
         setTimeout(() => translationCooldown.delete(msg.author.id), 5000);
 
@@ -240,6 +235,8 @@ if (!cleanedText || cleanedText.length < 2) {
     }
     return;
 }
+
+    
     // --- 4. Лека нощ ---
     const nightRegex = /\b(good night|nighty night)\b/i;
     if (nightRegex.test(msg.content.toLowerCase())) {
