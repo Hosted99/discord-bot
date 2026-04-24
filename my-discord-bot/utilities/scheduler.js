@@ -238,22 +238,22 @@ async function handleManiaList(msg) {
 
 /**
  * АВАРИЙНО ИЗПРАЩАНЕ НА ЛИЧНИ СЪОБЩЕНИЯ (mania-dm)
+ * Използваме лек fetch по роля, за да избегнем Rate Limit грешки.
  */
 async function handleManiaDM(msg) {
     console.log("[LOG] Starting mania-dm command...");
     
-    // Подготовка на текста и аргументите
+    // Подготовка на аргументите (g1 или g2)
     const content = msg.content.toLowerCase().trim();
     const parts = content.split(/\s+/);
-    const arg = parts[1]; // Вземаме g1 или g2
+    const arg = parts[1]; 
 
-    // Дефиниране на ролите (ID-тата, които ползваш в момента)
     const ROLES = {
         'g1': '1497360851156340836', 
         'g2': '1497360907137847396' 
     };
 
-    // Проверка дали потребителят е написал g1 или g2
+    // Проверка за валиден аргумент
     if (!arg || !ROLES[arg]) {
         return msg.reply("❌ Use: `mania-dm g1` or `mania-dm g2`.");
     }
@@ -264,60 +264,55 @@ async function handleManiaDM(msg) {
         const dbKey = `planId_${arg}`;
         const res = await pool.query("SELECT value FROM global_vars WHERE key = $1", [dbKey]);
 
-        // Ако няма активен план в базата данни
         if (!res.rows || res.rows.length === 0) {
-            return msg.reply(`❌ No active plan for **${arg.toUpperCase()}** found in database!`);
+            return msg.reply(`❌ No active plan for **${arg.toUpperCase()}** found!`);
         }
 
         const targetPlanId = res.rows[0].value;
-        
-        // Опит за намиране на съобщението в канала (чрез fetch, за да е сигурно)
         const planMsg = await msg.channel.messages.fetch(targetPlanId).catch(() => null);
 
         if (!planMsg) {
-            console.log("[LOG] Error: Original message not found in this channel.");
-            return msg.reply("❌ Original plan message not found.");
+            return msg.reply("❌ Original plan message not found in this channel.");
         }
 
         // 2. СЪБИРАНЕ НА ГЛАСОВЕТЕ (КОЙ Е ГЛАСУВАЛ)
         console.log("[LOG] Collecting voters from reactions...");
         let votedIds = [];
-        
-        // Минаваме през всички реакции на съобщението
         const reactions = planMsg.reactions.cache;
+        
         for (const [emoji, reaction] of reactions) {
-            // Гледаме само ✅ и ❌
             if (emoji === "✅" || emoji === "❌") {
                 const users = await reaction.users.fetch();
-                // Добавяме ID-то на всеки, който не е бот
                 users.forEach(u => { if(!u.bot) votedIds.push(u.id); });
             }
         }
-        console.log(`[LOG] Total voters found: ${votedIds.length}`);
+        console.log(`[LOG] Voters found: ${votedIds.length}`);
 
-        // 3. ОБНОВЯВАНЕ НА ЧЛЕНОВЕТЕ (ВАЖНО ЗА МАЛКИ СЪРВЪРИ)
-        // Това принуждава Discord да ни даде актуалния списък с хора, дори да са офлайн
-        console.log("[LOG] Fetching guild members to refresh cache...");
-        await msg.guild.members.fetch(); 
+        // 3. ОБНОВЯВАНЕ НА ЧЛЕНОВЕТЕ (ОПТИМИЗИРАНО ЗА RATE LIMIT)
+        // Вземаме САМО хората с тази роля, за да не товарим Discord
+        console.log(`[LOG] Fetching members for role ${arg.toUpperCase()}...`);
+        try {
+            await msg.guild.members.fetch({ role: ROLES[arg] });
+        } catch (fetchErr) {
+            console.error("[LOG] Warning: Failed to fetch some members:", fetchErr.message);
+        }
 
         const targetRole = msg.guild.roles.cache.get(ROLES[arg]);
-        if (!targetRole) return msg.reply("❌ Role not found in this server!");
+        if (!targetRole) return msg.reply("❌ Role not found!");
 
-        // 4. ФИЛТРИРАНЕ НА НЕГЛАСУВАЛИТЕ
-        // Вземаме само тези, които имат ролята, не са ботове и НЕ са в списъка votedIds
+        // 4. ФИЛТРИРАНЕ НА ЛИПСВАЩИТЕ
         const missingMembers = targetRole.members.filter(m => 
             !m.user.bot && 
             !votedIds.includes(m.id)
         );
 
-        console.log(`[LOG] Members missing: ${missingMembers.size}`);
+        console.log(`[LOG] Missing members count: ${missingMembers.size}`);
 
-        // Ако всички вече са гласували
         if (missingMembers.size === 0) {
             return msg.reply(`✅ Everyone in **${arg.toUpperCase()}** has already voted!`);
         }
 
-        // 5. ИЗПРАЩАНЕ НА ЛИЧНИТЕ СЪОБЩЕНИЯ (DM)
+        // 5. ИЗПРАЩАНЕ НА ЛИЧНИТЕ СЪОБЩЕНИЯ
         const statusMsg = await msg.channel.send(`🚨 Sending emergency DMs to **${missingMembers.size}** members...`);
         
         // Викаме помощната функция от dmHandler.js
@@ -327,16 +322,14 @@ async function handleManiaDM(msg) {
             arg.toUpperCase()
         );
 
-        // Обновяваме съобщението в чата с крайния отчет
-        await statusMsg.edit(`✅ **DM Campaign Finished!**\n- Successfully sent: ${report.successCount}\n- Failed: ${report.failCount} (private/locked profiles)`);
+        await statusMsg.edit(`✅ **DM Blast Finished!**\n- Sent: ${report.successCount}\n- Failed: ${report.failCount}`);
         
-        // Изтриваме оригиналната команда за по-чист чат
         if (msg.deletable) await msg.delete().catch(() => {});
 
     } catch (error) {
-        // Логване на фатални грешки (например проблем с базата или правата)
-        console.error("[LOG] FATAL ERROR in handleManiaDM:", error);
-        msg.reply("❌ A fatal error occurred. Please check the bot console.");
+        console.error("[LOG] FATAL ERROR:", error);
+        // Изписваме грешката директно в Discord за по-лесен дебъг
+        msg.reply(`❌ **FATAL ERROR:** \`\`\`${error.message}\`\`\``);
     }
 }
 
