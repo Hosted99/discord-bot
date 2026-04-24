@@ -1,6 +1,6 @@
 const cron = require("node-cron"); // Импортираме cron библиотеката за scheduling
 const { EmbedBuilder } = require("discord.js"); // Импортираме EmbedBuilder за красиви Discord съобщения
-const { sendEmergencyDMs } = require('./utilities/dmHandler.js');
+const { sendEmergencyDMs } = require('./dmHandler.js');
 const staticList = require("../data/staticReminders"); // Зареждаме статичните напомняния
 const fs = require('fs');
 const path = require('path');
