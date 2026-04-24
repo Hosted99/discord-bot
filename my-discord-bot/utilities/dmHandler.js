@@ -6,7 +6,7 @@
  * @param {string} planUrl - Линк към оригиналното съобщение на плана
  * @param {string} guildName - Името на гилдията (G1 или G2)
  */
-async function sendEmergencyDMs(membersToNotify, planUrl, guildName) {
+async function sendEmergencyDMs(member, planUrl, guildName) {
 
 const messageBody = `🚨 **EMERGENCY REMINDER - ${guildName}**\n\n` +
 `You haven't voted in today's Mania Plan yet! Please do it now.\n\n` +
