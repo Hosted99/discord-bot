@@ -237,83 +237,106 @@ async function handleManiaList(msg) {
 
 
 /**
- * ФУНКЦИЯ ЗА ОБРАБОТКА НА КОМАНДАТА mania-dm
+ * ФУНКЦИЯ ЗА ОБРАБОТКА НА КОМАНДАТА mania-dm С ЛОГОВЕ ЗА ДЕБЪГВАНЕ
  */
 async function handleManiaDM(msg) {
+    console.log("[LOG] Командата mania-dm е активирана");
+    
     const content = msg.content.toLowerCase().trim();
     const parts = content.split(/\s+/);
-    const arg = parts[1]; // Вземаме g1 или g2
+    const arg = parts[1]; 
+
+    console.log(`[LOG] Аргумент: ${arg}`);
 
     const ROLES = {
-        'g1': '1497360851156340836', ///////////////////////трябва да върна кода после 1490805399010545794
-        'g2': '1497360907137847396' ///////////////////////трябва да върна кода после  1490805404710469642
+        'g1': '1497360851156340836',
+        'g2': '1497360907137847396'
     };
 
-    // Проверка дали аргументът е валиден
     if (!arg || !ROLES[arg]) {
+        console.log("[LOG] Невалиден аргумент или липсваща роля");
         return msg.reply("❌ Use: `mania-dm g1` or `mania-dm g2`.");
     }
 
     try {
-        // 1. Вземаме ID-то на активния план от базата данни
+        // 1. Проверка на базата данни
+        console.log(`[LOG] Търся в БД ключ: planId_${arg}`);
         const dbKey = `planId_${arg}`;
+        
+        if (typeof pool === 'undefined') {
+            console.error("[LOG] ГРЕШКА: 'pool' (базата данни) не е дефиниран в този файл!");
+            return msg.reply("❌ Database connection error.");
+        }
+
         const res = await pool.query("SELECT value FROM global_vars WHERE key = $1", [dbKey]);
+        console.log(`[LOG] Резултат от БД: ${JSON.stringify(res.rows)}`);
 
         if (!res.rows || res.rows.length === 0) {
             return msg.reply(`❌ No active plan for **${arg.toUpperCase()}**!`);
         }
 
         const targetPlanId = res.rows[0].value;
-        
-        // Опитваме се да намерим съобщението на плана в канала
-        const planMsg = await msg.channel.messages.fetch(targetPlanId).catch(() => null);
+        console.log(`[LOG] Намерено ID на съобщение: ${targetPlanId}`);
 
-        if (!planMsg) return msg.reply("❌ Original plan message not found.");
+        // 2. Търсене на съобщението
+        console.log("[LOG] Опит за fetch на съобщението...");
+        const planMsg = await msg.channel.messages.fetch(targetPlanId).catch((err) => {
+            console.error(`[LOG] ГРЕШКА при fetch: ${err.message}`);
+            return null;
+        });
 
-        // 2. СЪБИРАМЕ ГЛАСОВЕТЕ (кой е гласувал с ✅ или ❌)
+        if (!planMsg) {
+            console.log("[LOG] Съобщението не беше намерено в този канал.");
+            return msg.reply("❌ Original plan message not found.");
+        }
+
+        // 3. Проверка на гласовете
+        console.log("[LOG] Събирам реакции...");
         const reactionYes = planMsg.reactions.cache.get("✅");
         const usersYes = reactionYes ? await reactionYes.users.fetch() : new Map();
         const reactionNo = planMsg.reactions.cache.get("❌");
         const usersNo = reactionNo ? await reactionNo.users.fetch() : new Map();
 
         const votedIds = [...usersYes.keys(), ...usersNo.keys()];
-        
-        // 3. ФИЛТРИРАМЕ ЧЛЕНОВЕТЕ С РОЛЯТА, КОИТО НЕ СА ГЛАСУВАЛИ
+        console.log(`[LOG] Гласували общо: ${votedIds.length}`);
+
+        // 4. Филтриране на ролята
         const targetRole = msg.guild.roles.cache.get(ROLES[arg]);
-        if (!targetRole) return msg.reply("❌ Role not found in server!");
+        if (!targetRole) {
+            console.log("[LOG] Ролята не беше намерена в сървъра.");
+            return msg.reply("❌ Role not found!");
+        }
         
-        const missingMembers = targetRole.members.filter(m => 
-            !m.user.bot && // да не е бот
-            !votedIds.includes(m.id) // да не е гласувал
-        );
+        const missingMembers = targetRole.members.filter(m => !m.user.bot && !votedIds.includes(m.id));
+        console.log(`[LOG] Намерени негласували: ${missingMembers.size}`);
 
         if (missingMembers.size === 0) {
-            return msg.reply(`✅ Everyone in **${arg.toUpperCase()}** has already voted!`);
+            return msg.reply(`✅ Everyone has already voted!`);
         }
 
-        // 4. ИЗПРАЩАНЕ НА ЛИЧНИ СЪОБЩЕНИЯ
-        const statusMsg = await msg.channel.send(`🚨 Sending emergency DMs to **${missingMembers.size}** members...`);
+        // 5. Извикване на dmHandler
+        console.log("[LOG] Извиквам sendEmergencyDMs...");
+        if (typeof sendEmergencyDMs === 'undefined') {
+            console.error("[LOG] ГРЕШКА: 'sendEmergencyDMs' не е импортната в scheduler.js!");
+            return msg.reply("❌ DM Handler module missing.");
+        }
+
+        const statusMsg = await msg.channel.send(`🚨 Sending emergency DMs...`);
         
-        // Викаме функцията от другия файл и чакаме отчета
         const report = await sendEmergencyDMs(
             Array.from(missingMembers.values()), 
             planMsg.url, 
             arg.toUpperCase()
         );
 
-        // Обновяваме съобщението в канала с крайния резултат
-        await statusMsg.edit(`✅ **DM Blast Finished!**\n- Sent: ${report.successCount}\n- Failed: ${report.failCount} (private profiles)`);
-
-        // Изтриваме командата на потребителя за чистота
-        if (msg.deletable) await msg.delete().catch(() => {});
+        console.log(`[LOG] Отчет: Успешни: ${report.successCount}, Провалени: ${report.failCount}`);
+        await statusMsg.edit(`✅ Done! Sent: ${report.successCount}, Failed: ${report.failCount}`);
 
     } catch (e) {
-        console.error("Error in mania-dm:", e.message);
-        msg.reply("❌ Error executing command. Check logs.");
+        console.error("[LOG] ФАТАЛНА ГРЕШКА:", e);
+        msg.reply("❌ Fatal error. Check console.");
     }
 }
-
-
 
 
 
