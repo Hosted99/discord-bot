@@ -28,7 +28,7 @@ async function handleNewMember(member) {
         if (welcomeChannel) {
             const welcomeEmbed = new EmbedBuilder()
                 .setTitle("⚓ New Pirate Arrived!")
-                .setDescription(`Welcome to the crew, ${member}! You are now a **Rookie**. Check the rules and start your journey! 🏴‍☠️`)
+                .setDescription(`Ahoy, pirate ${member}! 🏴‍☠️Welcome to the Pirate Queen’s Family, ruled by @ᐪˢ☠️Mari/Marika.Check #rules or risk walking the plank.Say hi at ⁠general.Drop your in-game profile pic to get a bounty for yourself ⚔️💰Now behave or at least get caught in style. ⚓`)
                 .setColor("#00ff99")
                 .setThumbnail(member.user.displayAvatarURL());
             await welcomeChannel.send({ embeds: [welcomeEmbed] });
