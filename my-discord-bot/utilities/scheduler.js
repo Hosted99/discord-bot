@@ -236,6 +236,86 @@ async function handleManiaList(msg) {
 }
 
 
+/**
+ * ФУНКЦИЯ ЗА ОБРАБОТКА НА КОМАНДАТА mania-dm
+ */
+async function handleManiaDM(msg) {
+    const content = msg.content.toLowerCase().trim();
+    const parts = content.split(/\s+/);
+    const arg = parts[1]; // Вземаме g1 или g2
+
+    const ROLES = {
+        'g1': '1490805399010545794',
+        'g2': '1490805404710469642'
+    };
+
+    // Проверка дали аргументът е валиден
+    if (!arg || !ROLES[arg]) {
+        return msg.reply("❌ Use: `mania-dm g1` or `mania-dm g2`.");
+    }
+
+    try {
+        // 1. Вземаме ID-то на активния план от базата данни
+        const dbKey = `planId_${arg}`;
+        const res = await pool.query("SELECT value FROM global_vars WHERE key = $1", [dbKey]);
+
+        if (!res.rows || res.rows.length === 0) {
+            return msg.reply(`❌ No active plan for **${arg.toUpperCase()}**!`);
+        }
+
+        const targetPlanId = res.rows[0].value;
+        
+        // Опитваме се да намерим съобщението на плана в канала
+        const planMsg = await msg.channel.messages.fetch(targetPlanId).catch(() => null);
+
+        if (!planMsg) return msg.reply("❌ Original plan message not found.");
+
+        // 2. СЪБИРАМЕ ГЛАСОВЕТЕ (кой е гласувал с ✅ или ❌)
+        const reactionYes = planMsg.reactions.cache.get("✅");
+        const usersYes = reactionYes ? await reactionYes.users.fetch() : new Map();
+        const reactionNo = planMsg.reactions.cache.get("❌");
+        const usersNo = reactionNo ? await reactionNo.users.fetch() : new Map();
+
+        const votedIds = [...usersYes.keys(), ...usersNo.keys()];
+        
+        // 3. ФИЛТРИРАМЕ ЧЛЕНОВЕТЕ С РОЛЯТА, КОИТО НЕ СА ГЛАСУВАЛИ
+        const targetRole = msg.guild.roles.cache.get(ROLES[arg]);
+        if (!targetRole) return msg.reply("❌ Role not found in server!");
+        
+        const missingMembers = targetRole.members.filter(m => 
+            !m.user.bot && // да не е бот
+            !votedIds.includes(m.id) // да не е гласувал
+        );
+
+        if (missingMembers.size === 0) {
+            return msg.reply(`✅ Everyone in **${arg.toUpperCase()}** has already voted!`);
+        }
+
+        // 4. ИЗПРАЩАНЕ НА ЛИЧНИ СЪОБЩЕНИЯ
+        const statusMsg = await msg.channel.send(`🚨 Sending emergency DMs to **${missingMembers.size}** members...`);
+        
+        // Викаме функцията от другия файл и чакаме отчета
+        const report = await sendEmergencyDMs(
+            Array.from(missingMembers.values()), 
+            planMsg.url, 
+            arg.toUpperCase()
+        );
+
+        // Обновяваме съобщението в канала с крайния резултат
+        await statusMsg.edit(`✅ **DM Blast Finished!**\n- Sent: ${report.successCount}\n- Failed: ${report.failCount} (private profiles)`);
+
+        // Изтриваме командата на потребителя за чистота
+        if (msg.deletable) await msg.delete().catch(() => {});
+
+    } catch (e) {
+        console.error("Error in mania-dm:", e.message);
+        msg.reply("❌ Error executing command. Check logs.");
+    }
+}
+
+
+
+
 
 
 /**
@@ -327,5 +407,4 @@ async function getMention(guild, target) {
 /**
  * Експортираме всички функции в един обект
  */
-module.exports = { initSchedulers, isValidCron, handleManiaPlan, handleManiaList, handleManiaStrategy,getMention 
-};
+module.exports = { initSchedulers, isValidCron, handleManiaPlan, handleManiaList, handleManiaStrategy,getMention, handleManiaDM };
