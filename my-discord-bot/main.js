@@ -131,6 +131,11 @@ if (lowerContent.startsWith("mania-list")) {
         return await handleManiaStrategy(msg, pool);
     }
 
+    // НОВАТА КОМАНДА
+    else if (content.startsWith('mania-dm')) {
+        await handleManiaDM(msg);
+    }
+
 
     
     // --- 2. Команди (!addrole / !removerole / !commands) ---
