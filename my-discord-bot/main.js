@@ -8,7 +8,8 @@ const {
     handleManiaPlan, 
     handleManiaList, 
     handleManiaStrategy,
-    handleManiaHelp // <--- Добави това
+    handleManiaHelp, // <--- Добави това
+    handleManiaDM
 } = require("./utilities/scheduler");
 const { handleCommands } = require("./utilities/commandHandler");
 const { handleSpecialChannels } = require("./utilities/specialChannels");
