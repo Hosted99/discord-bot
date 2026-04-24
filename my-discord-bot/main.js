@@ -132,9 +132,9 @@ if (lowerContent.startsWith("mania-list")) {
     }
 
     // НОВАТА КОМАНДА
-    else if (content.startsWith('mania-dm')) {
-        await handleManiaDM(msg);
-    }
+    else if (lowerContent.startsWith('mania-dm')) {
+    await handleManiaDM(msg);
+}
 
 
     
