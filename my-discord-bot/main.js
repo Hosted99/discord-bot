@@ -330,6 +330,14 @@ client.on('messageReactionAdd', async (reaction, user) => {
             await otherReaction.users.remove(user.id).catch(() => null);
         }
     }
+
+    // --- СЛУШАТЕЛ ЗА БУТОНИ (Belly Rush) ---
+client.on("interactionCreate", async (interaction) => {
+    try {
+        await shipSystem.handleShipInteraction(interaction);
+    } catch (error) {
+        console.error("Грешка при бутоните:", error);
+    }
 });
 
 // 9. Логване на бота
