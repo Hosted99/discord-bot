@@ -180,15 +180,14 @@ client.on("messageCreate", async (msg) => {
         // -----------------------
 
             // --- КОМАНДА ЗА МЕМЕТА ---
-        if (cmd === "!meme") {
+       if (cmd === "!meme") {
             await memeSystem.getRandomMeme(msg);
             return await msg.delete().catch(() => {});
         }
 
+        //  старите команди тук
         return await handleCommands(msg, pool);
-        
-        return await handleCommands(msg, pool);
-    }
+    } 
 
     // --- 3. Специални канали ---
     const specialHandled = await handleSpecialChannels(msg, pool);
