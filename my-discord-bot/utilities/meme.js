@@ -6,27 +6,31 @@ module.exports = {
         try {
             let data;
 
-            // пробваме до 5 пъти да намерим читав meme
-            for (let i = 0; i < 5; i++) {
+            for (let i = 0; i < 10; i++) {
                 const res = await fetch('https://meme-api.com/gimme/OnePiece,animememes');
                 const json = await res.json();
 
                 if (
                     json.url &&
                     json.url.match(/\.(jpg|jpeg|png|gif)$/) &&
-                    json.ups > 200 &&
+                    json.ups > 50 && // по-нисък праг
+                    !json.over_18 && // без NSFW
                     !json.title.toLowerCase().includes("chapter") &&
-                    !json.title.toLowerCase().includes("episode")
+                    !json.title.toLowerCase().includes("spoiler")
                 ) {
                     data = json;
                     break;
                 }
             }
 
-            if (!data) throw new Error("No good memes found");
+            // ако не намерим "перфектно" → пращаме нещо все пак
+            if (!data) {
+                const res = await fetch('https://meme-api.com/gimme/animememes');
+                data = await res.json();
+            }
 
             const embed = new EmbedBuilder()
-                .setTitle(data.title)
+                .setTitle(data.title || "One Piece Meme 🏴‍☠️")
                 .setImage(data.url)
                 .setColor('#ffcc00')
                 .setFooter({ text: `👍 ${data.ups} | r/${data.subreddit}` });
@@ -35,7 +39,7 @@ module.exports = {
 
         } catch (err) {
             console.error(err);
-            await msg.reply('Няма истински мемета 😭');
+            await msg.reply('Grand Line пак ни тролна 😭');
         }
 
         await msg.delete().catch(() => {});
