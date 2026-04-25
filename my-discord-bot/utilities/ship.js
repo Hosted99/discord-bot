@@ -17,25 +17,42 @@ module.exports = {
     // Функция за пращане на панела с @everyone и новия текст
     sendShipPanelDirect: async (channel) => {
         const embed = new EmbedBuilder()
-            .setTitle('🚢 Belly Rush - Ship Registration')
+            .setTitle('🚢 BELLY RUSH | Ship Registration')
             .setDescription(
-                '**Attention Sailors!** ⚓\n\n' +
-                'These buttons are for **active players** who participate in the event frequently or want to join the crew in a more interactive way. If you like switching ships or just want to be part of the action, grab a role!\n\n' +
-                '*Note: If you are a permanent crew member and don\'t feel like clicking, don\'t worry – your spot is already secured. This is mainly for those who want to manage their participation actively.*'
+                '***Attention Sailors!*** ⚓\n' +
+                'The fleet is preparing for departure. Get ready for battle!'
             )
-            .setColor('#2b2d31')
-            .setFooter({ text: 'Pick your ship and prepare for battle!' });
+            .addFields(
+                { 
+                    name: '🛡️ Active Crew', 
+                    value: 'These buttons are for **active players** who want to manage their participation. If you like switching ships or join frequently, pick your role below!', 
+                    inline: false 
+                },
+                { 
+                    name: '⚓ Permanent Crew', 
+                    value: 'Your spots are **secured**. If you don\'t feel like clicking, you are already part of the manifest. This is only for those who want to be active!', 
+                    inline: false 
+                }
+            )
+            .setColor('#2ecc71') // Свежо зелено за "Open registration"
+            .setThumbnail('https://flaticon.com') // Малка икона на кораб
+            // Можеш да добавиш голям банер тук:
+            .setImage('https://imgur.com') 
+            .setFooter({ 
+                text: '⚓ Pick your ship and prepare for battle! | Hosted by Captain', 
+                iconURL: 'https://flaticon.com' 
+            })
+            .setTimestamp();
 
         const row = new ActionRowBuilder().addComponents(
-            new ButtonBuilder().setCustomId('ship_1').setLabel('Ship 1').setStyle(ButtonStyle.Primary),
-            new ButtonBuilder().setCustomId('ship_2').setLabel('Ship 2').setStyle(ButtonStyle.Primary),
-            new ButtonBuilder().setCustomId('ship_3').setLabel('Ship 3').setStyle(ButtonStyle.Primary),
-            new ButtonBuilder().setCustomId('clear_all').setLabel('Clear Active Crew').setStyle(ButtonStyle.Danger)
+            new ButtonBuilder().setCustomId('ship_1').setLabel('Ship 1').setStyle(ButtonStyle.Primary).setEmoji('🚢'),
+            new ButtonBuilder().setCustomId('ship_2').setLabel('Ship 2').setStyle(ButtonStyle.Primary).setEmoji('🛥️'),
+            new ButtonBuilder().setCustomId('ship_3').setLabel('Ship 3').setStyle(ButtonStyle.Primary).setEmoji('⛵'),
+            new ButtonBuilder().setCustomId('clear_all').setLabel('Reset Fleet').setStyle(ButtonStyle.Danger).setEmoji('🗑️')
         );
 
-        // Пращаме @everyone таг заедно с панела
         await channel.send({ 
-            content: '@everyone The ship registration is now open!', 
+            content: '@everyone **The Belly Rush registration is now OPEN!** 🌊', 
             embeds: [embed], 
             components: [row] 
         });
