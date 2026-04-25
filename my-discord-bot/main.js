@@ -83,7 +83,24 @@ client.once("ready", async () => {
         guild.members.fetch().then(() => console.log(`✅ Кеширани членове за: ${guild.name}`));
     });
 
-    
+
+    // Вторник и Петък в 10:00 (Лондонско време)
+    cron.schedule('20 12 * * 2,5,6', async () => {
+        const bellyRushChannelId = 'ID_НА_TVOQ_BELLY_RUSH_КАНАЛ'; // Сложи реалното ID тук
+        
+        try {
+            const channel = await client.channels.fetch(bellyRushChannelId);
+            if (channel) {
+                // Използваме функцията от ships.js
+                await shipSystem.sendShipPanelDirect(channel);
+                console.log('✅ Automatic Belly Rush poll sent.');
+            }
+        } catch (err) {
+            console.error('❌ Error sending scheduled poll:', err.message);
+        }
+    }, {
+        timezone: "Europe/London"
+    });
 
     // Изпращане на Manual и Online статус във всеки сървър
     client.guilds.cache.forEach(async (guild) => {
