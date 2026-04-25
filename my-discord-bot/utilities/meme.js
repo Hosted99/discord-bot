@@ -2,47 +2,30 @@ const { EmbedBuilder } = require('discord.js');
 
 module.exports = {
     async getRandomMeme(msg) {
-        // Ръчно подбран списък с мемета, които ВИНАГИ работят
-        const stableMemes = [
-            "https://redd.it",
-            "https://redd.it",
-            "https://imgur.com",
-            "https://imgflip.com",
-            "https://redd.it",
-            "https://redd.it"
-        ];
-
         try {
-            // Първо пробваме пак API-то (може да се е събудило)
-            const response = await fetch('https://meme-api.com');
-            const data = await response.json();
+            // Използваме официалното Imgflip API
+            const response = await fetch('https://imgflip.com');
+            const json = await response.json();
 
-            // Проверяваме дали линкът е директна картинка
-            if (data.url && data.url.match(/\.(jpg|jpeg|png|gif)$/)) {
-                const embed = new EmbedBuilder()
-                    .setTitle(data.title || "Fresh Meme!")
-                    .setImage(data.url)
-                    .setColor('#ff4500')
-                    .setFooter({ text: `Source: r/${data.subreddit}` });
+            if (!json.success) throw new Error("Imgflip API failed");
 
-                await msg.channel.send({ embeds: [embed] });
-            } else {
-                throw new Error("Invalid API response");
-            }
+            // Imgflip връща списък от 100-те най-популярни мемета в момента
+            const memes = json.data.memes;
+            const randomMeme = memes[Math.floor(Math.random() * memes.length)];
+
+            const embed = new EmbedBuilder()
+                .setTitle(randomMeme.name) // Името на меме шаблона
+                .setImage(randomMeme.url) // Самата картинка
+                .setColor('#2ecc71') // Зелено
+                .setFooter({ text: 'Source: Imgflip API | Top 100 Templates' });
+
+            await msg.channel.send({ embeds: [embed] });
+            await msg.delete().catch(() => {});
 
         } catch (err) {
-            // АКО API-ТО ПАК ПРЕДАДЕ: Взимаме случаен линк от нашия списък
-            const fallbackMeme = stableMemes[Math.floor(Math.random() * stableMemes.length)];
-            
-            const fallbackEmbed = new EmbedBuilder()
-                .setTitle("The treasury was empty, but I found this! ⚓")
-                .setImage(fallbackMeme)
-                .setColor('#3498db');
-
-            await msg.channel.send({ embeds: [fallbackEmbed] });
-        } finally {
-            // Трием командата !meme в края
-            await msg.delete().catch(() => {});
+            console.error("Imgflip Error:", err.message);
+            // Ако и това падне, пращаме директен линк
+            await msg.channel.send("https://imgflip.com");
         }
     }
 };
