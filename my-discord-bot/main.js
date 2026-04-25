@@ -129,33 +129,9 @@ client.on("messageCreate", async (msg) => {
     if (lowerContent.startsWith("mania-dm")) {
         return await handleManiaDM(msg);
     }
-});
+}
 
-// --- СЛУШАТЕЛ ЗА РЕАКЦИИ (Махане на стария глас) ---
-client.on('messageReactionAdd', async (reaction, user) => {
-    if (user.bot) return;
 
-    const maniaEmojis = ['✅', '❌', '⏳'];
-    if (!maniaEmojis.includes(reaction.emoji.name)) return;
-
-    if (reaction.partial) await reaction.fetch().catch(() => null);
-    const { message } = reaction;
-
-    // Проверка дали е Mania Plan
-    if (!message.embeds[0]?.title?.includes('MANIA FORMATION')) return;
-
-    // Намираме другите реакции на същия човек и ги трием
-    const otherReactions = message.reactions.cache.filter(r => 
-        maniaEmojis.includes(r.emoji.name) && r.emoji.name !== reaction.emoji.name
-    );
-
-    for (const otherReaction of otherReactions.values()) {
-        const users = await otherReaction.users.fetch();
-        if (users.has(user.id)) {
-            await otherReaction.users.remove(user.id).catch(() => null);
-        }
-    }
-});
 
     
     // --- 2. Команди (!addrole / !removerole / !commands) ---
@@ -292,6 +268,32 @@ if (msg.channel.name === 'ai-translator') {
     return msg.reply({ embeds: [morningEmbed] });
 }
 
+});
+
+// --- СЛУШАТЕЛ ЗА РЕАКЦИИ (Махане на стария глас) ---
+client.on('messageReactionAdd', async (reaction, user) => {
+    if (user.bot) return;
+
+    const maniaEmojis = ['✅', '❌', '⏳'];
+    if (!maniaEmojis.includes(reaction.emoji.name)) return;
+
+    if (reaction.partial) await reaction.fetch().catch(() => null);
+    const { message } = reaction;
+
+    // Проверка дали е Mania Plan
+    if (!message.embeds[0]?.title?.includes('MANIA FORMATION')) return;
+
+    // Намираме другите реакции на същия човек и ги трием
+    const otherReactions = message.reactions.cache.filter(r => 
+        maniaEmojis.includes(r.emoji.name) && r.emoji.name !== reaction.emoji.name
+    );
+
+    for (const otherReaction of otherReactions.values()) {
+        const users = await otherReaction.users.fetch();
+        if (users.has(user.id)) {
+            await otherReaction.users.remove(user.id).catch(() => null);
+        }
+    }
 });
 
 // 9. Логване на бота
