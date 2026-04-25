@@ -37,7 +37,7 @@ module.exports = {
             .setColor('#2ecc71') // Свежо зелено за "Open registration"
             .setThumbnail('https://flaticon.com') // Малка икона на кораб
             // Можеш да добавиш голям банер тук:
-            .setImage('https://imgur.com') 
+            .setImage('https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExczVjbHA5emc1M3NuYmNybXZhNjlsNHk2OGtjbHMxODRzb2U0dGg1ZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/7zmLy0sYn9Y8O6BrlF/giphy.gif') 
             .setFooter({ 
                 text: '⚓ Pick your ship and prepare for battle! | Hosted by Captain', 
                 iconURL: 'https://flaticon.com' 
