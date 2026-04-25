@@ -16,9 +16,11 @@ async function sendEmergencyDMs(membersToNotify, planUrl, guildName) {
         // ВАЖНО: Дефинираме съобщението ВЪТРЕ в цикъла, 
         // за да може да използва информацията за конкретния 'member'
         const messageBody = `🚨 **EMERGENCY REMINDER - ${guildName}**\n\n` +
-        `You haven't voted in today's Mania Plan yet! Please do it now.\n\n` +
+        `You haven't voted in today's Mania Plan yet! Please do it now.\n Or **@Marika** will Spank you 😈😈😈 !!!! 🍑💥\n\n` +
         `🔗 **Click here to vote:** ${planUrl}\n` +
         `👉 Or check the channel: <#${member.guild.channels.cache.find(c => c.name.includes('mania'))?.id || ''}>`;
+      
+
 
         try {
             // Пропускаме, ако е бот
