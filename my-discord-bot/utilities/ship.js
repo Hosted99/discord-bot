@@ -2,7 +2,7 @@ const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('
 
 // --- КОНФИГУРАЦИЯ ---
 const CONFIG = {
-    ADMIN_ID: '1497553509392974004', // Сложи твоето Discord ID тук
+    ADMIN_ID: '190189929316352000', // Сложи твоето Discord ID тук
     ROLES: {
         'ship_1': '1490301070029623448', // Сложи ID на ролята за Кораб 1
         'ship_2': '1490478060322033838', // Сложи ID на ролята за Кораб 2
