@@ -180,11 +180,7 @@ client.on("messageCreate", async (msg) => {
         }  
         // -----------------------
 
-            // --- КОМАНДА ЗА МЕМЕТА ---
-     if (cmd === "!meme") {
-    // Просто извикай функцията без да триеш съобщението тук
-    return await memeSystem.getRandomMeme(msg);
-}
+        
 
         //  старите команди тук
         return await handleCommands(msg, pool);
