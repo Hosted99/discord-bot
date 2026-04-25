@@ -69,9 +69,13 @@ module.exports = {
 
         // 1. ИЗЧИСТВАНЕ
         if (customId === 'clear_all') {
-            if (user.id !== CONFIG.ADMIN_ID) {
-                return interaction.reply({ content: '❌ Only the administrator can reset crews!', ephemeral: true });
-            }
+           // 1. ИЗЧИСТВАНЕ
+        if (customId === 'clear_all') {
+            // Проверява дали потребителят е твоя ADMIN_ID ИЛИ има права на Administrator в сървъра
+            const isServerAdmin = member.permissions.has('Administrator');
+             if (user.id !== CONFIG.ADMIN_ID && !isServerAdmin) {
+        return interaction.reply({ content: '❌ Only the Captain or Server Admins can reset crews!', ephemeral: true });
+    }
             await interaction.deferReply({ ephemeral: true });
             let removed = 0;
             for (const roleId of Object.values(CONFIG.ROLES)) {
