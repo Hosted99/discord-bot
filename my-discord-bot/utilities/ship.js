@@ -30,7 +30,7 @@ module.exports = {
                 },
                 { 
                     name: '⚓ Permanent Crew', 
-                    value: 'Your spots are **secured**. If you don\'t feel like clicking, you are already part of the manifest. This is only for those who want to be active!', 
+                    value: 'Your spots are **secured**. If you don\'t feel like clicking, you are already part of the manifest. This is only for those who want to be active or have time on discord!', 
                     inline: false 
                 }
             )
