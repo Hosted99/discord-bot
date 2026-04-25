@@ -3,7 +3,7 @@ const { Client, GatewayIntentBits, EmbedBuilder } = require("discord.js");
 const path = require('path'); 
 const DB_PATH = path.join(__dirname, 'data', 'database.json');
 const cron = require('node-cron');
-const shipSystem = require('./utilities/ships.js');
+const shipSystem = require('./utilities/ship.js');
 const { pool, initDB } = require("./utilities/db");
 const { 
     initSchedulers, 
