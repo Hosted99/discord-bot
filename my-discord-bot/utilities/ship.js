@@ -1,29 +1,30 @@
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
 
-// --- КОНФИГУРАЦИЯ ---
+// --- CONFIGURATION ---
 const CONFIG = {
-    ADMIN_ID: '190189929316352000', // Твоето ID
+    ADMIN_ID: '190189929316352000', 
     ROLES: {
-        'ship_1': '1490301070029623448', // ID на mugi-ship
-        'ship_2': '1490478060322033838', // ID на mari-ship
-        'ship_3': '1497553509392974004'  // ID на goat-ship (ПРОВЕРИ ГО ПАК!)
+        'ship_1': '1490301070029623448', 
+        'ship_2': '1490478060322033838', 
+        'ship_3': '1497553509392974004'  
     },
-    CAPTAINS: [
-        '825016547138732082'
-    ],
-    PERMANENT_CREW: [
-        '529416192893517824'
-    ],
-    MAX_MEMBERS: 10 // Лимит на хора в кораб
+    CAPTAINS: ['825016547138732082'],
+    PERMANENT_CREW: ['529416192893517824'],
+    MAX_MEMBERS: 10
 };
 
 module.exports = {
-    // Функция за пращане на панела
+    // Функция за пращане на панела с @everyone и новия текст
     sendShipPanelDirect: async (channel) => {
         const embed = new EmbedBuilder()
             .setTitle('🚢 Belly Rush - Ship Registration')
-            .setDescription('Select your ship for today\'s event.\n\n*Note: Captains and permanent crew remain in their positions.*')
-            .setColor('#2b2d31');
+            .setDescription(
+                '**Attention Sailors!** ⚓\n\n' +
+                'These buttons are for **active players** who participate in the event frequently or want to join the crew in a more interactive way. If you like switching ships or just want to be part of the action, grab a role!\n\n' +
+                '*Note: If you are a permanent crew member and don\'t feel like clicking, don\'t worry – your spot is already secured. This is mainly for those who want to manage their participation actively.*'
+            )
+            .setColor('#2b2d31')
+            .setFooter({ text: 'Pick your ship and prepare for battle!' });
 
         const row = new ActionRowBuilder().addComponents(
             new ButtonBuilder().setCustomId('ship_1').setLabel('Ship 1').setStyle(ButtonStyle.Primary),
@@ -32,10 +33,14 @@ module.exports = {
             new ButtonBuilder().setCustomId('clear_all').setLabel('Clear Active Crew').setStyle(ButtonStyle.Danger)
         );
 
-        await channel.send({ embeds: [embed], components: [row] });
+        // Пращаме @everyone таг заедно с панела
+        await channel.send({ 
+            content: '@everyone The ship registration is now open!', 
+            embeds: [embed], 
+            components: [row] 
+        });
     },
 
-    // Обработка на бутоните
     handleShipInteraction: async (interaction) => {
         if (!interaction.isButton()) return;
         const { customId, member, guild, user } = interaction;
@@ -66,34 +71,24 @@ module.exports = {
             const targetRoleId = CONFIG.ROLES[customId];
             const role = guild.roles.cache.get(targetRoleId);
 
-            // ПРОВЕРКА 1: Съществува ли ролята?
-            if (!role) {
-                console.error(`❌ ГРЕШКА: Роля с ID ${targetRoleId} не е намерена в сървъра!`);
-                return interaction.reply({ content: '❌ Error: Role ID not found in this server.', ephemeral: true });
-            }
-
-            // ПРОВЕРКА 2: Защита за капитани
             if (CONFIG.PERMANENT_CREW.includes(member.id) || CONFIG.CAPTAINS.includes(member.id)) {
                 return interaction.reply({ content: '⚠️ Captains and permanent crew cannot change ships.', ephemeral: true });
             }
 
-            // ПРОВЕРКА 3: Лимит от 10 души
-            if (role.members.size >= CONFIG.MAX_MEMBERS && !member.roles.cache.has(targetRoleId)) {
+            if (role && role.members.size >= CONFIG.MAX_MEMBERS && !member.roles.cache.has(targetRoleId)) {
                 return interaction.reply({ content: `❌ This ship is full! (Max ${CONFIG.MAX_MEMBERS})`, ephemeral: true });
             }
 
             try {
                 await interaction.deferReply({ ephemeral: true });
 
-                // ПРЕМАХВАНЕ на стари роли за кораби
                 const allShipRoles = Object.values(CONFIG.ROLES);
                 for (const rId of allShipRoles) {
                     if (member.roles.cache.has(rId) && rId !== targetRoleId) {
-                        await member.roles.remove(rId).catch(e => console.log("Грешка при махане:", e.message));
+                        await member.roles.remove(rId).catch(() => {});
                     }
                 }
 
-                // ДОБАВЯНЕ на новата роля
                 if (!member.roles.cache.has(targetRoleId)) {
                     await member.roles.add(role);
                     return interaction.editReply(`✅ Joined **${role.name}**!`);
@@ -101,8 +96,7 @@ module.exports = {
                     return interaction.editReply('ℹ️ You are already in this crew.');
                 }
             } catch (err) {
-                console.error("❌ КРИТИЧНА ГРЕШКА:", err.message);
-                return interaction.editReply(`❌ Failed to assign role: ${err.message}`);
+                return interaction.editReply(`❌ Error: ${err.message}. Check bot role hierarchy!`);
             }
         }
     }
