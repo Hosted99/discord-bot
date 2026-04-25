@@ -331,7 +331,10 @@ client.on('messageReactionAdd', async (reaction, user) => {
         }
     }
 
-    // --- СЛУШАТЕЛ ЗА БУТОНИ (Belly Rush) ---
+  
+});
+
+// СЕГА СЛАГАМЕ БУТОНИТЕ ОТВЪН
 client.on("interactionCreate", async (interaction) => {
     try {
         await shipSystem.handleShipInteraction(interaction);
