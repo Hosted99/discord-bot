@@ -1,33 +1,43 @@
 const { EmbedBuilder } = require('discord.js');
+const fetch = require('node-fetch');
 
 module.exports = {
     async getRandomMeme(msg) {
         try {
-            // Променяме на MemePiece - там са истинските смешки!
-            const response = await fetch('https://meme-api.com');
-            const data = await response.json();
+            let data;
 
-            // Проверка дали е реална картинка и дали не е спойлер (NSFW)
-            if (!data.url || data.nsfw || !data.url.match(/\.(jpg|jpeg|png|gif)$/)) {
-                // Ако не ни хареса, пробваме пак автоматично
-                return this.getRandomMeme(msg);
+            // пробваме до 5 пъти да намерим читав meme
+            for (let i = 0; i < 5; i++) {
+                const res = await fetch('https://meme-api.com/gimme/OnePiece,animememes');
+                const json = await res.json();
+
+                if (
+                    json.url &&
+                    json.url.match(/\.(jpg|jpeg|png|gif)$/) &&
+                    json.ups > 200 &&
+                    !json.title.toLowerCase().includes("chapter") &&
+                    !json.title.toLowerCase().includes("episode")
+                ) {
+                    data = json;
+                    break;
+                }
             }
 
+            if (!data) throw new Error("No good memes found");
+
             const embed = new EmbedBuilder()
-                .setTitle(data.title.length > 256 ? "🏴‍☠️ One Piece Meme" : data.title)
-                .setURL(data.postLink)
+                .setTitle(data.title)
                 .setImage(data.url)
-                .setColor('#ffcc00') // Пиратско златно
-                .setFooter({ text: `😂 r/${data.subreddit} | 👍 ${data.ups} Upvotes` });
+                .setColor('#ffcc00')
+                .setFooter({ text: `👍 ${data.ups} | r/${data.subreddit}` });
 
             await msg.channel.send({ embeds: [embed] });
 
         } catch (err) {
-            console.error("Meme Error:", err.message);
-            await msg.channel.send('⚓ The Grand Line is foggy today! No memes found.');
+            console.error(err);
+            await msg.reply('Няма истински мемета 😭');
         }
 
-        // Изтриваме командата накрая
         await msg.delete().catch(() => {});
     }
 };
