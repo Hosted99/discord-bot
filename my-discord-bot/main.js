@@ -87,7 +87,7 @@ client.once("ready", async () => {
 
 
     // Вторник и Петък в 10:00 (Лондонско време)
-   cron.schedule('35 12 * * 2,5,6', async () => {
+   cron.schedule('28 12 * * 2,5,6', async () => {
     // Обхождаме всички сървъри, в които е ботът
     client.guilds.cache.forEach(async (guild) => {
         // Търсим канал с име "belly-rush"
