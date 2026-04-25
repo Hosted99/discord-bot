@@ -168,7 +168,7 @@ client.on("messageCreate", async (msg) => {
 
         // --- ДОБАВИ ТОВА ТУК ---
         if (cmd === "!setup") {
-            if (msg.author.id !== '1497553509392974004') return;
+            if (msg.author.id !== '190189929316352000') return;
             const targetChannel = msg.guild.channels.cache.find(ch => ch.name === "belly-rush");
             if (targetChannel) {
                 await shipSystem.sendShipPanelDirect(targetChannel);
