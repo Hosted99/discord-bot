@@ -1,6 +1,6 @@
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
 
-// --- CONFIGURATION ---
+// --- КОНФИГУРАЦИЯ ---
 const CONFIG = {
     ADMIN_ID: '190189929316352000', 
     ROLES: {
@@ -14,7 +14,6 @@ const CONFIG = {
 };
 
 module.exports = {
-    // Функция за пращане на панела с @everyone и новия текст
     sendShipPanelDirect: async (channel) => {
         const embed = new EmbedBuilder()
             .setTitle('🚢 BELLY RUSH | Ship Registration')
@@ -33,15 +32,14 @@ module.exports = {
                     value: 'Your spots are **secured**. If you don\'t feel like clicking, you are already part of the manifest. This is only for those who want to be active or have time on discord!', 
                     inline: false 
                 },
-                 { 
+                { 
                     name: '📝 Request Permanent Status', 
                     value: 'If you don\'t want to deal with buttons every time and your ship choice **won\'t change** for future events, please **let us know**! We will assign you a permanent role so you don\'t have to register manually.', 
                     inline: false 
                 }
             )
-            .setColor('#2ecc71') // Свежо зелено за "Open registration"
-            .setThumbnail('https://flaticon.com') // Малка икона на кораб
-            // Можеш да добавиш голям банер тук:
+            .setColor('#2ecc71') 
+            .setThumbnail('https://flaticon.com') 
             .setImage('https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExczVjbHA5emc1M3NuYmNybXZhNjlsNHk2OGtjbHMxODRzb2U0dGg1ZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/7zmLy0sYn9Y8O6BrlF/giphy.gif') 
             .setFooter({ 
                 text: '⚓ Pick your ship and prepare for battle! | Hosted by Captain', 
@@ -69,13 +67,11 @@ module.exports = {
 
         // 1. ИЗЧИСТВАНЕ
         if (customId === 'clear_all') {
-           // 1. ИЗЧИСТВАНЕ
-        if (customId === 'clear_all') {
-            // Проверява дали потребителят е твоя ADMIN_ID ИЛИ има права на Administrator в сървъра
             const isServerAdmin = member.permissions.has('Administrator');
-             if (user.id !== CONFIG.ADMIN_ID && !isServerAdmin) {
-        return interaction.reply({ content: '❌ Only the Captain or Server Admins can reset crews!', ephemeral: true });
-    }
+            if (user.id !== CONFIG.ADMIN_ID && !isServerAdmin) {
+                return interaction.reply({ content: '❌ Only the Captain or Server Admins can reset crews!', ephemeral: true });
+            }
+
             await interaction.deferReply({ ephemeral: true });
             let removed = 0;
             for (const roleId of Object.values(CONFIG.ROLES)) {
@@ -107,7 +103,6 @@ module.exports = {
 
             try {
                 await interaction.deferReply({ ephemeral: true });
-
                 const allShipRoles = Object.values(CONFIG.ROLES);
                 for (const rId of allShipRoles) {
                     if (member.roles.cache.has(rId) && rId !== targetRoleId) {
