@@ -4,9 +4,9 @@ const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('
 const CONFIG = {
     ADMIN_ID: '190189929316352000', 
     ROLES: {
-        'ship_1': '1490301070029623448', 
-        'ship_2': '1490478060322033838', 
-        'ship_3': '1497553509392974004'  
+        'mugi-ship': '1490301070029623448', 
+        'mari-ship': '1490478060322033838', 
+        'goat-ship': '1497553509392974004'  
     },
     CAPTAINS: ['825016547138732082'],
     PERMANENT_CREW: ['529416192893517824'],
