@@ -32,6 +32,11 @@ module.exports = {
                     name: '⚓ Permanent Crew', 
                     value: 'Your spots are **secured**. If you don\'t feel like clicking, you are already part of the manifest. This is only for those who want to be active or have time on discord!', 
                     inline: false 
+                },
+                 { 
+                    name: '📝 Request Permanent Status', 
+                    value: 'If you don\'t want to deal with buttons every time and your ship choice **won\'t change** for future events, please **let us know**! We will assign you a permanent role so you don\'t have to register manually.', 
+                    inline: false 
                 }
             )
             .setColor('#2ecc71') // Свежо зелено за "Open registration"
