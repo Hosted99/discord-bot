@@ -164,6 +164,21 @@ client.on("messageCreate", async (msg) => {
         if (cmd === "!addrole" || cmd === "!removerole" || cmd === "!addroleallts" || cmd === "!addroleallgm") {
             return await handleRoleCommands(msg, cmd, args);
         }
+
+
+        // --- ДОБАВИ ТОВА ТУК ---
+        if (cmd === "!setup") {
+            if (msg.author.id !== '1497553509392974004') return;
+            const targetChannel = msg.guild.channels.cache.find(ch => ch.name === "belly-rush");
+            if (targetChannel) {
+                await shipSystem.sendShipPanelDirect(targetChannel);
+                return await msg.delete().catch(() => {});
+            } else {
+                return msg.reply("❌ Error: Channel #belly-rush not found.");
+            }
+        }  
+        // -----------------------
+        
         return await handleCommands(msg, pool);
     }
 
