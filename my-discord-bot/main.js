@@ -334,7 +334,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
   
 });
 
-// СЕГА СЛАГАМЕ БУТОНИТЕ ОТВЪН
+//   БУТОНИТЕ 
 client.on("interactionCreate", async (interaction) => {
     try {
         await shipSystem.handleShipInteraction(interaction);
