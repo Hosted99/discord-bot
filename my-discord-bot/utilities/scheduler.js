@@ -59,12 +59,12 @@ async function handleManiaPlan(msg) {
     const content = msg.content.toLowerCase().trim();
     
     // ID на главния канал за автоматични известия
-    const MAIN_CHANNEL_ID = '1451310327114498069'; 
-
+    const MAIN_CHANNEL_ID = '1451310327114498069'; ///////////////////////трябва да върна кода после 1486343047632523398
+ 
     // Конфигурация на ролите за двете гилдии
     const ROLES = {
-        'g1': '1497360851156340836', 
-        'g2': '1497360907137847396'  
+        'g1': '1497360851156340836',   ///////////////////////трябва да върна кода после 1490805399010545794
+        'g2': '1497360907137847396'   ///////////////////////трябва да върна кода после  1490805404710469642
     };
 
     // Извличаме аргумента (all, g1 или g2)
@@ -225,7 +225,7 @@ async function handleManiaList(msg) {
             const missingText = missing.join(" ");
             
             // Съобщение в текущия канал
-            await msg.channel.send(`🔔 **Attention!** These players from **${arg.toUpperCase()}** haven't voted:\n${missingText}`);
+            await msg.channel.send(`🔔 **Attention!** These players from **${arg.toUpperCase()}** haven't voted or decided on their attendance yet:\n${missingText}`);
             
             // Съобщение в ГЛАВНИЯ КАНАЛ с препратка
             const mainChannel = msg.client.channels.cache.get(MAIN_CHANNEL_ID);
