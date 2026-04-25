@@ -85,22 +85,24 @@ client.once("ready", async () => {
 
 
     // Вторник и Петък в 10:00 (Лондонско време)
-    cron.schedule('20 12 * * 2,5,6', async () => {
-        const bellyRushChannelId = 'ID_НА_TVOQ_BELLY_RUSH_КАНАЛ'; // Сложи реалното ID тук
-        
-        try {
-            const channel = await client.channels.fetch(bellyRushChannelId);
-            if (channel) {
-                // Използваме функцията от ships.js
-                await shipSystem.sendShipPanelDirect(channel);
-                console.log('✅ Automatic Belly Rush poll sent.');
+   cron.schedule('35 12 * * 2,5,6', async () => {
+    // Обхождаме всички сървъри, в които е ботът
+    client.guilds.cache.forEach(async (guild) => {
+        // Търсим канал с име "belly-rush"
+        const targetChannel = guild.channels.cache.find(ch => ch.name === "belly-rush");
+
+        if (targetChannel) {
+            try {
+                await shipSystem.sendShipPanelDirect(targetChannel);
+                console.log(`✅ Sent poll to #${targetChannel.name} in ${guild.name}`);
+            } catch (err) {
+                console.error(`❌ Failed to send poll in ${guild.name}:`, err.message);
             }
-        } catch (err) {
-            console.error('❌ Error sending scheduled poll:', err.message);
         }
-    }, {
-        timezone: "Europe/London"
     });
+}, {
+    timezone: "Europe/London"
+});
 
     // Изпращане на Manual и Online статус във всеки сървър
     client.guilds.cache.forEach(async (guild) => {
