@@ -27,15 +27,25 @@ async function handleNewMember(member) {
 
         if (welcomeChannel) {
             const welcomeEmbed = new EmbedBuilder()
-                .setTitle("⚓ New Pirate Arrived!")
-                .setDescription(`Ahoy, pirate ${member}! 🏴‍☠️Welcome to the Pirate Queen’s Family, ruled by <@825016547138732082>.Check <#1497466531322527877> or risk walking the plank. Say hi at <#1486343047632523398>.
-                                Drop your in-game profile pic in <#1490838764057268392>, to get a bounty for yourself ⚔️💰Now behave or at least get caught in style. ⚓`)
-                .setColor("#00ff99")
-                .setThumbnail(member.user.displayAvatarURL());
+                .setTitle("⚓ New Pirate Aboard!")
+                .setDescription(
+                    `Ahoy, pirate ${member}! 🏴‍☠️\n\n` +
+                    `Welcome to the **Pirate Queen’s Family**, ruled by <@825016547138732082>.\n\n` +
+                    `📜 **The Pirate Code:** Check <#1497466531322527877> or risk walking the plank!\n` +
+                    `🍻 **The Tavern:** Say hi at <#1486343047632523398>.\n` +
+                    `💰 **Bounties:** Drop your in-game profile pic in <#1490838764057268392> to claim your reward! ⚔️\n\n` +
+                    `*Now behave, or at least get caught in style.* ⚓`
+                )
+                .setColor("#2ECC71") // Малко по-наситено "пиратско" зелено
+                .setThumbnail(member.user.displayAvatarURL({ dynamic: true, size: 256 }))
+                .setFooter({ text: `Member #${member.guild.memberCount}`, iconURL: member.guild.iconURL() })
+                .setTimestamp();
+
             await welcomeChannel.send({ embeds: [welcomeEmbed] });
         }
     } catch (err) { console.error("Welcome Error:", err.message); }
 }
+
 
 /**
  * Контрол на специалните пиратски роли чрез команди !addroleall !addrole и !removerole
