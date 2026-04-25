@@ -178,6 +178,14 @@ client.on("messageCreate", async (msg) => {
             }
         }  
         // -----------------------
+
+            // --- КОМАНДА ЗА МЕМЕТА ---
+        if (cmd === "!meme") {
+            await memeSystem.getRandomMeme(msg);
+            return await msg.delete().catch(() => {});
+        }
+
+        return await handleCommands(msg, pool);
         
         return await handleCommands(msg, pool);
     }
