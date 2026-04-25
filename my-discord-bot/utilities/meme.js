@@ -4,21 +4,22 @@ const { EmbedBuilder } = require('discord.js');
 module.exports = {
     async getRandomMeme(msg) {
         try {
-            // Взимаме случайно меме от API
+            // Използваме стабилно API за мемета от Reddit
             const response = await axios.get('https://meme-api.com');
             const data = response.data;
 
             const embed = new EmbedBuilder()
-                .setTitle(data.title)
-                .setURL(data.postLink)
-                .setImage(data.url)
-                .setColor('#ff4500')
-                .setFooter({ text: `👍 ${data.ups} | Subreddit: r/${data.subreddit}` });
+                .setTitle(data.title) // Заглавието на мемето
+                .setURL(data.postLink) // Линк към оригиналния пост
+                .setImage(data.url) // Самата картинка
+                .setColor('#ff4500') // Оранжев цвят (като Reddit)
+                .setFooter({ text: `👍 ${data.ups} upvotes | Source: r/${data.subreddit}` });
 
             await msg.reply({ embeds: [embed] });
         } catch (err) {
-            console.error(err);
-            msg.reply("❌ Не можах да намеря меме в момента.");
+            console.error("Грешка при меме командата:", err.message);
+            msg.reply("❌ Oops! The meme treasury is empty right now. Try again later!");
         }
     }
 };
+
