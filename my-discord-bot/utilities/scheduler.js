@@ -54,72 +54,66 @@ function initSchedulers(client, pool) {
 /**
  * ГЛАВНА ФУНКЦИЯ ЗА ОБРАБОТКА НА КОМАНДАТА mania-plan
  */
+/**
+ * ГЛАВНА ФУНКЦИЯ ЗА ОБРАБОТКА НА КОМАНДАТА mania-plan
+ */
 async function handleManiaPlan(msg) {
-    // Правим целия текст малък и махаме излишни интервали
     const content = msg.content.toLowerCase().trim();
     
     // ID на главния канал за известия
-    const MAIN_CHANNEL_ID = '1451310327114498069'; ///////////////////////трябва да върна кода после 1486343047632523398
+    const MAIN_CHANNEL_ID = '1451310327114498069'; 
 
-    // --- НАСТРОЙКИ НА РОЛИТЕ ---
     const ROLES = {
-        'g1': '1497360851156340836', // ID на Роля за Guild 1 ///////////////////////трябва да върна кода после 1490805399010545794
-        'g2': '1497360907137847396'  // ID на Роля за Guild 2 ///////////////////////трябва да върна кода после 1490805404710469642
+        'g1': '1497360851156340836', 
+        'g2': '1497360907137847396'  
     };
 
-    // Вземаме само аргумента след името на командата
     const arg = content.replace('mania-plan', '').trim();
 
-    // ПРОВЕРКА ЗА ТРИТЕ ВАРИАНТА: all, g1 или g2
     if (arg === 'all') {
-        // Пускаме планове и за двете гилдии с @everyone пинг
         await createPlan(msg, 'g1', ROLES['g1'], MAIN_CHANNEL_ID, true);
         await createPlan(msg, 'g2', ROLES['g2'], MAIN_CHANNEL_ID, true);
     } 
     else if (arg === 'g1' || arg === 'g2') {
-        // Пускаме план само за едната гилдия БЕЗ @everyone
         await createPlan(msg, arg, ROLES[arg], MAIN_CHANNEL_ID, false);
     } 
     else {
-        // Съобщение при грешна команда
         const errorMsg = await msg.reply("❌ Use: `mania-plan g1`, `g2` or `all`.");
         setTimeout(() => errorMsg.delete().catch(() => {}), 5000);
         return;
     }
 
-    // Изтриваме съобщението на потребителя
     if (msg.deletable) await msg.delete().catch(() => {});
 }
 
 /**
- * ПОМОЩНА ФУНКЦИЯ ЗА СЪЗДАВАНЕ НА ПЛАНА И ЗАПИС В БД
+ * ПОМОЩНА ФУНКЦИЯ ЗА СЪЗДАВАНЕ НА ПЛАНА С 3 БУТОНА
  */
 async function createPlan(msg, type, roleId, mainChannelId, useEveryone) {
     const targetRolePing = `<@&${roleId}>`;
-    
-    // Определяме дали да добавим @everyone към пинга
     const pingContent = useEveryone ? `@everyone (${targetRolePing})` : targetRolePing;
     const guildName = type.toUpperCase();
 
-    // Създаване на визуалния Embed
+    // Създаване на Embed с добавена трета опция (⏳)
     const planEmbed = new EmbedBuilder()
         .setTitle(`⚔️ MANIA FORMATION - ${guildName}`)
-        .setDescription(`${pingContent} Who will be able to play today?\n\n✅ - I'm in\n❌ - Can't play`)
+        .setDescription(`${pingContent} Who will be able to play today?\n\n✅ - I'm in\n❌ - Can't play\n⏳ - Not sure yet`)
         .setColor(type === 'g1' ? "#00FF00" : "#0099FF")
         .setTimestamp();
 
-    // Изпращане на съобщението
     const planMsg = await msg.channel.send({ 
         content: pingContent, 
         embeds: [planEmbed] 
     });
     
+    // Добавяне на трите реакции подред
     await planMsg.react("✅");
     await planMsg.react("❌");
+    await planMsg.react("⏳"); // Новият бутон за "Може би"
 
-    // ЗАПИС В БАЗАТА ДАННИ (PostgreSQL)
+    // ЗАПИС В БАЗАТА ДАННИ
     try {
-        const dbKey = `planId_${type}`; // Ключ: planId_g1 или planId_g2
+        const dbKey = `planId_${type}`;
         await pool.query(
             "INSERT INTO global_vars (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = $2",
             [dbKey, planMsg.id]
@@ -139,6 +133,7 @@ async function createPlan(msg, type, roleId, mainChannelId, useEveryone) {
         console.error("Error sending to main channel:", e.message); 
     }
 }
+
 
 
 
