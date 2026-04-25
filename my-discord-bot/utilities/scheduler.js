@@ -54,83 +54,97 @@ function initSchedulers(client, pool) {
 /**
  * ГЛАВНА ФУНКЦИЯ ЗА ОБРАБОТКА НА КОМАНДАТА mania-plan
  */
-/**
- * ГЛАВНА ФУНКЦИЯ ЗА ОБРАБОТКА НА КОМАНДАТА mania-plan
- */
 async function handleManiaPlan(msg) {
+    // Форматираме съдържанието на съобщението
     const content = msg.content.toLowerCase().trim();
     
-    // ID на главния канал за известия
+    // ID на главния канал за автоматични известия
     const MAIN_CHANNEL_ID = '1451310327114498069'; 
 
+    // Конфигурация на ролите за двете гилдии
     const ROLES = {
         'g1': '1497360851156340836', 
         'g2': '1497360907137847396'  
     };
 
+    // Извличаме аргумента (all, g1 или g2)
     const arg = content.replace('mania-plan', '').trim();
 
+    // Логика за изпълнение според аргумента
     if (arg === 'all') {
+        // Пускаме планове и за двете гилдии с @everyone
         await createPlan(msg, 'g1', ROLES['g1'], MAIN_CHANNEL_ID, true);
         await createPlan(msg, 'g2', ROLES['g2'], MAIN_CHANNEL_ID, true);
     } 
     else if (arg === 'g1' || arg === 'g2') {
+        // Пускаме план само за конкретната гилдия
         await createPlan(msg, arg, ROLES[arg], MAIN_CHANNEL_ID, false);
     } 
     else {
+        // Съобщение при грешно въведена команда
         const errorMsg = await msg.reply("❌ Use: `mania-plan g1`, `g2` or `all`.");
         setTimeout(() => errorMsg.delete().catch(() => {}), 5000);
         return;
     }
 
+    // Изтриваме командата на потребителя за чистота в чата
     if (msg.deletable) await msg.delete().catch(() => {});
 }
 
 /**
- * ПОМОЩНА ФУНКЦИЯ ЗА СЪЗДАВАНЕ НА ПЛАНА С 3 БУТОНА
+ * ПОМОЩНА ФУНКЦИЯ ЗА СЪЗДАВАНЕ НА ПЛАНА И ИЗПРАЩАНЕ НА ИЗВЕСТИЯ
  */
 async function createPlan(msg, type, roleId, mainChannelId, useEveryone) {
     const targetRolePing = `<@&${roleId}>`;
     const pingContent = useEveryone ? `@everyone (${targetRolePing})` : targetRolePing;
     const guildName = type.toUpperCase();
 
-    // Създаване на Embed с добавена трета опция (⏳)
+    // 1. Създаване на Embed съобщението с 3 опции (✅, ❌, ⏳)
     const planEmbed = new EmbedBuilder()
         .setTitle(`⚔️ MANIA FORMATION - ${guildName}`)
         .setDescription(`${pingContent} Who will be able to play today?\n\n✅ - I'm in\n❌ - Can't play\n⏳ - Not sure yet`)
         .setColor(type === 'g1' ? "#00FF00" : "#0099FF")
         .setTimestamp();
 
+    // 2. Изпращане на основния план в текущия канал
     const planMsg = await msg.channel.send({ 
         content: pingContent, 
         embeds: [planEmbed] 
     });
     
-    // Добавяне на трите реакции подред
+    // 3. Автоматично добавяне на трите реакции
     await planMsg.react("✅");
     await planMsg.react("❌");
-    await planMsg.react("⏳"); // Новият бутон за "Може би"
+    await planMsg.react("⏳"); // Бутон за "Може би"
 
-    // ЗАПИС В БАЗАТА ДАННИ
+    // 4. ЗАПИС В БАЗАТА ДАННИ (PostgreSQL)
     try {
         const dbKey = `planId_${type}`;
         await pool.query(
             "INSERT INTO global_vars (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = $2",
             [dbKey, planMsg.id]
         );
-        console.log(`✅ Saved ${dbKey} to DB.`);
+        console.log(`[LOG] Saved plan ID for ${type} to database.`);
     } catch (err) {
-        console.error("❌ DB Error:", err.message);
+        console.error("❌ Database Error:", err.message);
     }
 
-    // Известие в главния канал
+    // 5. ИЗВЕСТИЕ В ГЛАВНИЯ КАНАЛ (Подсигурено с fetch)
     try {
-        const mainChannel = msg.client.channels.cache.get(mainChannelId);
+        // Търсим канала първо в кеша, ако го няма - теглим го (fetch)
+        let mainChannel = msg.client.channels.cache.get(mainChannelId);
+        if (!mainChannel) {
+            mainChannel = await msg.client.channels.fetch(mainChannelId).catch(() => null);
+        }
+
         if (mainChannel) {
             await mainChannel.send(`🚨 **${pingContent} A new Mania Plan for ${guildName} has been posted: ${planMsg.url}**`);
+            console.log(`[LOG] Global notification sent to: ${mainChannelId}`);
+        } else {
+            console.error(`[LOG] Could not find channel with ID: ${mainChannelId}`);
         }
     } catch (e) { 
-        console.error("Error sending to main channel:", e.message); 
+        console.error("[LOG] Error sending notification to main channel:", e.message); 
     }
 }
 
