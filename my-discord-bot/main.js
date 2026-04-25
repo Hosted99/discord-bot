@@ -129,7 +129,7 @@ client.on("messageCreate", async (msg) => {
     if (lowerContent.startsWith("mania-dm")) {
         return await handleManiaDM(msg);
     }
-}
+
 
 
 
