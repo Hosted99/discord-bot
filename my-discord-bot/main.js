@@ -151,7 +151,9 @@ client.on("messageCreate", async (msg) => {
     if (lowerContent.startsWith("mania-dm")) {
         return await handleManiaDM(msg);
     }
-
+    if (lowerContent.startsWith("mania-strategy")) {
+        return await handleManiaStrategy(msg, pool);
+    }
 
 
 
