@@ -113,7 +113,7 @@ client.once("ready", async () => {
         await sendBotManual(guild).catch(err => console.log("Грешка при Manual msg:", err.message));
 
         // Търсене на канал за статус
-        const botChannel = guild.channels.cache.find(ch => ch.name === "│🤖│bot-info");
+        const botChannel = guild.channels.cache.find(ch => ch.name === "│⚙️│bot-status-commands");
         if (botChannel) {
             const aliveEmbed = new EmbedBuilder()
                 .setTitle("📡 System Status: Online")
