@@ -27,7 +27,7 @@ function initSchedulers(client, pool) {
 
         cron.schedule(rem.cron, () => {
             client.guilds.cache.forEach(async (guild) => {
-                const ch = guild.channels.cache.find(c => c.name === "reminders");
+                const ch = guild.channels.cache.find(c => c.name === "│📅│reminders");
                 if (ch) {
                     const mention = await getMention(guild, rem.target);
                     const finalMsg = typeof rem.message === 'function' ? rem.message() : rem.message;
