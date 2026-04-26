@@ -9,7 +9,7 @@ const noShipMessages = [
 ];
 
 async function handleSpecialChannels(msg) {
-    if (msg.channel.name === "repair-ship") {
+    if (msg.channel.name === "│🚢│repair-ship") {
         const content = msg.content.trim();
         const lowerContent = content.toLowerCase();
 
