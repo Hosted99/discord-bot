@@ -73,7 +73,7 @@ async function handleCommands(msg, pool) {
 // --- 2.1 КОМАНДА: !hero-list ---
 if (cmd === "!hero-list") {
     // Проверка дали командата се използва в правилния канал
-    if (msg.channel.name !== "unit-build") return msg.reply("❌ Use #unit-build channel!");
+    if (msg.channel.name !== "│🛠️│unit-build") return msg.reply("❌ Use #│🛠️│unit-build channel!");
     
     const heroesData = getHeroes();
     const allKeys = Object.keys(heroesData).sort(); // Сортираме имената по азбучен ред
@@ -117,7 +117,7 @@ if (cmd === "!hero-list") {
 
             // --- 2.2 КОМАНДА: !hero ---
     if (cmd === "!hero") {
-    if (msg.channel.name !== "unit-build") return msg.reply("❌ Use #unit-build!");
+    if (msg.channel.name !== "│🛠️│unit-build") return msg.reply("❌ Use #│🛠️│unit-build!");
     if (!args[0]) return msg.reply("⚠️ Specify hero! Example: `!hero mihawk`.");
 
     const heroesData = getHeroes();
@@ -156,7 +156,7 @@ if (cmd === "!hero-list") {
     // --- 3. КОМАНДА: !remind ---
 if (cmd === "!remind") {
     // Търсим канала 'reminders' по име
-    const targetCh = msg.guild.channels.cache.find(ch => ch.name === "reminders");
+    const targetCh = msg.guild.channels.cache.find(ch => ch.name === "│📅│reminders");
     
     // Проверка за наличие на канал и достатъчно аргументи (5 за cron + съобщение)
     if (!targetCh || args.length < 6) {
@@ -311,7 +311,7 @@ if (cmd === "!remind") {
 
     // --- 7. BOUNTY КОМАНДА: !wanted (СТИЛИЗИРАН ПЛАКАТ) ---
 if (cmd === "!wanted") {
-    const bountyChannel = msg.guild.channels.cache.find(ch => ch.name === "bounties");
+    const bountyChannel = msg.guild.channels.cache.find(ch => ch.name === "│💰│bounties");
     if (!bountyChannel) return msg.reply("❌ Error: Channel `bounties` not found!");
 
     // 7.1. Дефинираме таргета (споменат или автора)
