@@ -5,7 +5,7 @@ const { EmbedBuilder } = require("discord.js");
  */
 const sendBotManual = async (guild) => {
     // 1. Намираме канала по име
-    const infoChannel = guild.channels.cache.find(ch => ch.name === "bot-info");
+    const infoChannel = guild.channels.cache.find(ch => ch.name === "│🤖│bot-info");
     if (!infoChannel) return;
 
     // 2. Изчистваме старите съобщения (до 100), за да е винаги чисто и подредено
@@ -79,7 +79,7 @@ const sendFarewell = async (client) => {
     const guilds = client.guilds.cache;
     
     for (const [id, guild] of guilds) {
-        const botChannel = guild.channels.cache.find(ch => ch.name === "bot-only");
+        const botChannel = guild.channels.cache.find(ch => ch.name === "│🤖│bot-info");
         if (botChannel) {
             const farewellEmbed = new EmbedBuilder()
                 .setTitle("📡 System Status: Offline")
