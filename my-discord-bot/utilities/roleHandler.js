@@ -21,7 +21,7 @@ for (let i = 900; i >= 50; i -= 50) {
 async function handleNewMember(member) {
     try {
         const welcomeRole = member.guild.roles.cache.find(r => r.name === "Rookies");
-        const welcomeChannel = member.guild.channels.cache.find(ch => ch.name === "welcome");
+        const welcomeChannel = member.guild.channels.cache.find(ch => ch.name === "│👋│welcome");
 
         if (welcomeRole) await member.roles.add(welcomeRole);
 
