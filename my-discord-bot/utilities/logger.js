@@ -5,7 +5,7 @@ const { EmbedBuilder } = require("discord.js");
  * Изпраща лог съобщение в канал #admin-logs
  */
 async function sendLog(guild, embed) {
-    const logChannel = guild.channels.cache.find(ch => ch.name === "admin-logs");
+    const logChannel = guild.channels.cache.find(ch => ch.name === "│📑│admin-logs");
     if (logChannel) {
         await logChannel.send({ embeds: [embed] });
     }
