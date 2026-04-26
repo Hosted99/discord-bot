@@ -88,11 +88,11 @@ client.once("ready", async () => {
 
 
     // Вторник и Петък в 10:00 (Лондонско време)
-   cron.schedule('30 13 * * 2,5,6', async () => {
+   cron.schedule('00 10 * * 2,5', async () => {
     // Обхождаме всички сървъри, в които е ботът
     client.guilds.cache.forEach(async (guild) => {
         // Търсим канал с име "belly-rush"
-        const targetChannel = guild.channels.cache.find(ch => ch.name === "belly-rush");
+        const targetChannel = guild.channels.cache.find(ch => ch.name === "│🍱│belly-rush");
 
         if (targetChannel) {
             try {
@@ -113,7 +113,7 @@ client.once("ready", async () => {
         await sendBotManual(guild).catch(err => console.log("Грешка при Manual msg:", err.message));
 
         // Търсене на канал за статус
-        const botChannel = guild.channels.cache.find(ch => ch.name === "bot-only");
+        const botChannel = guild.channels.cache.find(ch => ch.name === "│🤖│bot-info");
         if (botChannel) {
             const aliveEmbed = new EmbedBuilder()
                 .setTitle("📡 System Status: Online")
@@ -172,7 +172,7 @@ client.on("messageCreate", async (msg) => {
         // --- ДОБАВИ ТОВА ТУК ---
         if (cmd === "!setup") {
             if (msg.author.id !== '190189929316352000') return;
-            const targetChannel = msg.guild.channels.cache.find(ch => ch.name === "belly-rush");
+            const targetChannel = msg.guild.channels.cache.find(ch => ch.name === "│🍱│belly-rush");
             if (targetChannel) {
                 await shipSystem.sendShipPanelDirect(targetChannel);
                 return await msg.delete().catch(() => {});
@@ -194,7 +194,7 @@ client.on("messageCreate", async (msg) => {
 
     // --- 4. Преводач (ai-translator канал) ---
    // --- 4. Преводач (ai-translator канал) ---
-if (msg.channel.name === 'ai-translator') {
+if (msg.channel.name === '│🌐│ai-translator') {
     if (msg.author.bot) return;
 
     // СТЪПКА 1: Изчистваме съобщението от боклуци
