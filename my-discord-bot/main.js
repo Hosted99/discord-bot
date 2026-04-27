@@ -5,6 +5,11 @@ const DB_PATH = path.join(__dirname, 'data', 'database.json');
 const cron = require('node-cron');
 const shipSystem = require('./utilities/ship.js');
 const { pool, initDB } = require("./utilities/db");
+
+///////
+const startBirthdayTimer = require('./bday.js');
+//////
+
 const levelingSystem = require('./utilities/leveling.js');
 const { 
     initSchedulers, 
@@ -84,6 +89,17 @@ client.once("ready", async () => {
     levelingSystem(client, { pool });
     
     console.log(`🤖 Онлайн като: ${client.user.tag}`);
+
+    
+    ////
+
+       // Стартираме таймера от bday.js
+    startBirthdayTimer(client); 
+});
+
+    ////
+
+    
 
     // --- ДОБАВИ ТОВА ТУК ---
     // Теглим всички членове на сървъра веднъж при пускане, за да ги има в кеша
