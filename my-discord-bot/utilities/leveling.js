@@ -4,7 +4,7 @@ const { EmbedBuilder, PermissionsBitField } = require('discord.js');
 const TARGET_GUILD_ID = '1451310326019526800'; 
 const LEVEL_UP_CHANNEL_ID = '1498450042908966922'; 
 const LOG_CHANNEL_ID = '1498450101482295307';   
-const STATS_CHANNEL_ID = '1498450115885666344';     //
+const STATS_CHANNEL_ID = '1498450115885666344';     
 // --------------------
 
 const xpCache = new Map();
@@ -48,7 +48,6 @@ const RANK_ROLES = {
     220: { name: "Grass Avoider 🌱❌", color: "#ffeb3b", msg: "Legend says he hasn't seen a tree since 2012. 👑🔥" }
 };
 
-// СМЕШНИ СЪОБЩЕНИЯ ЗА НИВА БЕЗ РАНГ
 const FUNNY_FALLBACKS = [
     "Still a nobody, but at least you're a louder nobody now. 🤡",
     "Level up! Sadly, your reputation is still 0. 📉",
@@ -85,33 +84,41 @@ module.exports = (client, poolObj) => {
 
         let userData = xpCache.get(userId) || { xp: 0, level: 1, needsUpdate: false };
 
-
-        // --- ДОБАВИ ТОВА ТУК (за Ниво 1) ---
+        // --- ЛОГИКА ЗА НИВО 1 (НОВОБРАНЦИ) ---
         if (userData.level === 1) {
-        const startRoleData = RANK_ROLES[1];
-        const hasRole = message.member.roles.cache.some(r => r.name === startRoleData.name);
-    
-        if (!hasRole) {
-        const startRole = await getOrCreateRole(message.guild, startRoleData);
-        if (startRole) await message.member.roles.add(startRole).catch(() => {});
+            const startRoleData = RANK_ROLES[1];
+            const hasRole = message.member.roles.cache.some(r => r.name === startRoleData.name);
+            
+            if (!hasRole) {
+                const startRole = await getOrCreateRole(message.guild, startRoleData);
+                if (startRole) {
+                    await message.member.roles.add(startRole).catch(() => {});
+                    const lvlChannel = client.channels.cache.get(LEVEL_UP_CHANNEL_ID);
+                    if (lvlChannel) {
+                        const embed = new EmbedBuilder()
+                            .setAuthor({ name: `${message.author.username} joined the crew!`, iconURL: 'https://imgur.com' })
+                            .setTitle('🏴‍☠️ NEW RECRUIT SPOTTED')
+                            .setDescription(`Welcome ${message.author} to the **Sailing Kingdom**!\n\n🔹 **Level:** \`1\`\n🔹 **Status:** **${startRoleData.name}**\n\n> *"${startRoleData.msg}"*`)
+                            .setThumbnail(message.author.displayAvatarURL({ dynamic: true }))
+                            .setColor(startRoleData.color)
+                            .setFooter({ text: 'Sailing Kingdom | Official Log', iconURL: message.guild.iconURL() })
+                            .setTimestamp();
+                        lvlChannel.send({ content: `⚓ **New Pirate Aboard!** ${message.author} has started their journey!`, embeds: [embed] });
+                    }
+                }
+            }
         }
-    }
-    // ----------------------------------
 
-
-
-        
         userData.xp += xpGain;
-
         let nextLevelXP = userData.level * 500; 
 
+        // --- ЛОГИКА ЗА LEVEL UP ---
         if (userData.xp >= nextLevelXP) {
             userData.level++;
             const roleData = RANK_ROLES[userData.level];
 
             const lvlChannel = client.channels.cache.get(LEVEL_UP_CHANNEL_ID);
             if (lvlChannel) {
-                // Избираме смешно съобщение, ако нивото няма ранг
                 const customMsg = roleData ? roleData.msg : FUNNY_FALLBACKS[Math.floor(Math.random() * FUNNY_FALLBACKS.length)];
                 const rankName = roleData ? roleData.name : "Just a Wanderer";
 
@@ -145,7 +152,7 @@ module.exports = (client, poolObj) => {
         xpCache.set(userId, userData);
     });
 
-    // СЕДМИЧЕН ТОП 10 (Leaderboard)
+    // СЕДМИЧЕН ТОП 10 (Класация)
     setInterval(async () => {
         const statsChannel = client.channels.cache.get(STATS_CHANNEL_ID);
         if (!statsChannel) return;
@@ -164,7 +171,7 @@ module.exports = (client, poolObj) => {
         } catch (e) { console.error(e); }
     }, 604800000);
 
-    // СИНХРОНИЗАЦИЯ НА 2 ЧАСА
+    // СИНХРОНИЗАЦИЯ НА 2 ЧАСА (7200000 ms)
     setInterval(async () => {
         let syncCount = 0;
         for (const [userId, data] of xpCache.entries()) {
