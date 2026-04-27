@@ -297,6 +297,12 @@ if (cmd === "!remind") {
         } catch (err) {
             console.error(err);
             return msg.reply("❌ I cannot send messages to that channel (check bot permissions)!");
+
+             // Изтриваме само командата и потвърждението след 1 минута
+            setTimeout(() => {
+                replyMsg.delete().catch(() => {}); // Трий отговора на бота
+                msg.delete().catch(() => {});      // Трий твоята команда (!sendto)
+            }, 60000); 
         }
     }
 
