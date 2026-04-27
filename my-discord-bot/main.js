@@ -95,7 +95,7 @@ client.once("ready", async () => {
 
        // Стартираме таймера от bday.js
     startBirthdayTimer(client); 
-});
+
 
     ////
 
