@@ -49,6 +49,17 @@ async function initDB() {
     `);
     console.log("✅ Table global_vars is ready.");
 
+    // Нова таблица специално за нивата и XP
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS levels (
+    user_id VARCHAR(50) PRIMARY KEY,
+    xp INTEGER DEFAULT 0,
+    level INTEGER DEFAULT 1,
+    username TEXT
+  );
+`);
+console.log("✅ Table levels is ready.");
+
     // Автоматично почистване на преводача при старт
     const deleteResult = await pool.query("DELETE FROM translation_cache WHERE expires_at < NOW()");
     if (deleteResult.rowCount > 0) {
