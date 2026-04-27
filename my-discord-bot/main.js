@@ -7,7 +7,7 @@ const shipSystem = require('./utilities/ship.js');
 const { pool, initDB } = require("./utilities/db");
 
 ///////
-const startBirthdayTimer = require('./bday.js');
+const startBirthdayTimer = require('./utilities/bday.js');
 //////
 
 const levelingSystem = require('./utilities/leveling.js');
