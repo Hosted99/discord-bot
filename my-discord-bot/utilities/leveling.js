@@ -4,7 +4,7 @@ const { EmbedBuilder, PermissionsBitField } = require('discord.js');
 const TARGET_GUILD_ID = '1451310326019526800'; 
 const LEVEL_UP_CHANNEL_ID = '1498450042908966922'; 
 const LOG_CHANNEL_ID = '1498450101482295307';   
-const STATS_CHANNEL_ID = '1498450115885666344';     
+const STATS_CHANNEL_ID = '1498450115885666344';     //
 // --------------------
 
 const xpCache = new Map();
