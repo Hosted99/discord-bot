@@ -1,10 +1,10 @@
 const { EmbedBuilder, PermissionsBitField } = require('discord.js');
 
 // --- КОНФИГУРАЦИЯ (Сложи твоите ID-та тук) ---
-const TARGET_GUILD_ID = 'ID_НА_ТВОЯ_СЪРВЪР'; 
-const LEVEL_UP_CHANNEL_ID = 'ID_НА_КАНАЛА_RANK_UPS'; 
-const LOG_CHANNEL_ID = 'ID_НА_КАНАЛА_SYSTEM_LOGS';   
-const STATS_CHANNEL_ID = 'ID_НА_КАНАЛА_MOST_WANTED';     
+const TARGET_GUILD_ID = '1486343040162468003'; 
+const LEVEL_UP_CHANNEL_ID = '1498426382219481248'; 
+const LOG_CHANNEL_ID = '1498426571806085192';   
+const STATS_CHANNEL_ID = '1498426456143958027';     
 // ----------------------------------------------
 
 const xpCache = new Map();
