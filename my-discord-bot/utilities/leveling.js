@@ -1,7 +1,7 @@
 const { EmbedBuilder, PermissionsBitField } = require('discord.js');
 
 // --- КОНФИГУРАЦИЯ ---
-const TARGET_GUILD_ID = 'ID_НА_ТВОЯ_СЪРВЪР'; 
+const TARGET_GUILD_ID = '1486343040162468003'; 
 const LOG_CHANNEL_ID = 'ID_НА_ЛОГ_КАНАЛА';   
 const STATS_CHANNEL_ID = 'ID_ЗА_ТОП_10';     
 // --------------------
