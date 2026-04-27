@@ -140,5 +140,5 @@ module.exports = (client, poolObj) => {
                 logChannel.send({ embeds: [logEmbed] });
             }
         }
-    }, 900000); 
+    }, 3600000); 
 };
