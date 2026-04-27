@@ -84,6 +84,23 @@ module.exports = (client, poolObj) => {
         let xpGain = message.attachments.size > 0 ? 35 : 15; 
 
         let userData = xpCache.get(userId) || { xp: 0, level: 1, needsUpdate: false };
+
+
+        // --- ДОБАВИ ТОВА ТУК (за Ниво 1) ---
+        if (userData.level === 1) {
+        const startRoleData = RANK_ROLES[1];
+        const hasRole = message.member.roles.cache.some(r => r.name === startRoleData.name);
+    
+        if (!hasRole) {
+        const startRole = await getOrCreateRole(message.guild, startRoleData);
+        if (startRole) await message.member.roles.add(startRole).catch(() => {});
+        }
+    }
+    // ----------------------------------
+
+
+
+        
         userData.xp += xpGain;
 
         let nextLevelXP = userData.level * 500; 
