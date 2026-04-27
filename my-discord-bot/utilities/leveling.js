@@ -11,42 +11,56 @@ const xpCache = new Map(); // Кеш памет за XP
 
 // СПИСЪК С 35 РОЛИ, ЦВЕТОВЕ И СЪОБЩЕНИЯ
 const RANK_ROLES = {
-    1:   { name: "Bilge Rat", color: "#7f8c8d", msg: "Welcome aboard, scallywag! Start scrubbing the floors! 🐀" },
-    3:   { name: "Deck Hand", color: "#95a5a6", msg: "You've earned your spot on the deck. Keep an eye on the horizon! 🌊" },
-    5:   { name: "Swabber", color: "#bdc3c7", msg: "The deck is shining! You're getting the hang of this. 🧹" },
-    7:   { name: "Cabin Boy", color: "#ecf0f1", msg: "Keep the captain's boots clean and you might survive! 👞" },
-    10:  { name: "Ship's Cook", color: "#e67e22", msg: "The crew is hungry! Grab the grog and start cooking! 🍳" },
-    13:  { name: "Powder Monkey", color: "#d35400", msg: "Run fast with that gunpowder, or things will go boom! 💣" },
-    16:  { name: "Lighthouse Keeper", color: "#f39c12", msg: "Guide us through the fog, old soul. 🏮" },
-    20:  { name: "Helmsman", color: "#2ecc71", msg: "Hold the wheel steady! We sail for glory! ⚓" },
-    24:  { name: "Lookout", color: "#27ae60", msg: "Land ho! Your eyes are as sharp as a cutlass. 🔭" },
-    28:  { name: "Oarsman", color: "#16a085", msg: "Row until your hands bleed! We need more speed! 🛶" },
-    32:  { name: "Boatswain", color: "#1abc9c", msg: "Keep the crew in line! No slacking on my ship! ⛓️" },
-    36:  { name: "Musketeer", color: "#3498db", msg: "Ready... Aim... Fire! Your aim is true. 🔫" },
-    40:  { name: "Master Gunner", color: "#2980b9", msg: "Show them the power of our cannons! 💥" },
-    45:  { name: "Cannoneer", color: "#c0392b", msg: "Another broadside! Send them to the locker! 🌊" },
-    50:  { name: "Shipwright", color: "#a0522d", msg: "Patch the holes! This ship must never sink. 🛠️" },
-    55:  { name: "Quartermaster", color: "#d35400", msg: "Split the loot fairly, or face the plank! 💰" },
-    60:  { name: "First Mate", color: "#e74c3c", msg: "The Captain's right hand. Respect is earned. ⚔️" },
-    65:  { name: "Navigator", color: "#34495e", msg: "The stars are our only map. Lead the way. 🧭" },
-    70:  { name: "Sloop Captain", color: "#8e44ad", msg: "A small ship, but a brave heart. ⛵" },
-    75:  { name: "Brigantine Captain", color: "#9b59b6", msg: "Master of the mid-seas. Fast and deadly! 🏹" },
-    80:  { name: "Frigate Captain", color: "#f1c40f", msg: "A true man-o-war! None shall pass! 🛡️" },
-    85:  { name: "Galleon Commander", color: "#f39c12", msg: "The gold is ours! Guard the treasure! 💎" },
-    90:  { name: "Corsair", color: "#e67e22", msg: "A shadow in the night. Strike fast! 🗡️" },
-    95:  { name: "Privateer", color: "#d35400", msg: "Sailing under the crown's shadow. 🎖️" },
-    100: { name: "Sea Rover", color: "#c0392b", msg: "A century of sailing! You are a legend. 🏴‍☠️" },
-    110: { name: "Commodore", color: "#e91e63", msg: "Leading the fleet to victory! 🚩" },
-    120: { name: "Rear Admiral", color: "#9c27b0", msg: "The strategy is yours. Conquer them all! 📈" },
-    130: { name: "Vice Admiral", color: "#673ab7", msg: "Your word is law on the ocean. 📜" },
-    140: { name: "Fleet Admiral", color: "#3f51b5", msg: "The entire armada bows to you! 🚢" },
-    150: { name: "Scourge of the Ocean", color: "#2196f3", msg: "Even the Kraken fears your name! 🐙" },
-    160: { name: "Sea Lord", color: "#00bcd4", msg: "The tides obey your command. 🔱" },
-    170: { name: "Tide Master", color: "#009688", msg: "Master of the deep blue. 🌀" },
-    180: { name: "Legendary Pirate", color: "#ffeb3b", msg: "The legends were true... You are the king! 👑" },
-    190: { name: "Pirate King", color: "#f1c40f", msg: "Every port in the world knows your flag! 🌎" },
-    200: { name: "Immortal Captain", color: "#ffffff", msg: "Death has no power over you. Sail forever! ✨" }
+    // 🐌 Low Activity (just started typing)
+    1:   { name: "Silent Snail 🐌", color: "#7f8c8d", msg: "Welcome to the crew... or are you just watching? 👀" },
+    3:   { name: "Keyboard Lost", color: "#95a5a6", msg: "Did you drop your keyboard in the ocean? Say something! 🌊" },
+    5:   { name: "Typing… (forever)", color: "#bdc3c7", msg: "The bubble is there, but no message. Suspicious... 💬" },
+    8:   { name: "Sea Lurker", color: "#7f8c8d", msg: "Hiding in the deep sea of the chat? We see you! 🐙" },
+    10:  { name: "Background NPC", color: "#95a5a6", msg: "The main characters are talking, keep up! 🎮" },
+
+    // 💬 Starting to talk
+    15:  { name: "Chat Rookie", color: "#2ecc71", msg: "First steps into the world of chatter! ⚓" },
+    20:  { name: "Word Dripper", color: "#27ae60", msg: "One word at a time... you're getting there. 💧" },
+    25:  { name: "Slow Typist", color: "#16a085", msg: "Slow and steady wins the race? Not in a pirate fight! 🐢" },
+    30:  { name: "Casual Talker", color: "#2ecc71", msg: "Just enjoying a grog and a chat in the tavern. 🍻" },
+    35:  { name: "Den Den Beginner", color: "#1abc9c", msg: "Starting to use the Den Den Mushi properly! 📞" },
+
+    // 📈 Getting active
+    40:  { name: "Message Machine", color: "#3498db", msg: "You're starting to pump those numbers up! ⚙️" },
+    45:  { name: "Chat Sailor", color: "#2980b9", msg: "Sailing through the sea of messages! ⛵" },
+    50:  { name: "Spam Apprentice", color: "#3498db", msg: "You're learning the dark arts of spamming... ✍️" },
+    55:  { name: "Typing Pirate", color: "#2980b9", msg: "Your fingers are fast as a cutlass! ⚔️" },
+    60:  { name: "Den Den Caller", color: "#34495e", msg: "Bero-bero-bero-bero! You never hang up! 🐌🔊" },
+
+    // 😂 Clearly addicted
+    65:  { name: "Keyboard Warrior", color: "#9b59b6", msg: "Your keyboard is your strongest weapon! 🛡️" },
+    70:  { name: "Spam Cannon", color: "#8e44ad", msg: "Boom! Messages flying everywhere! 💣" },
+    75:  { name: "Chat Addict", color: "#9b59b6", msg: "You can't go 5 minutes without checking the chat, can you? 💉" },
+    80:  { name: "Message Storm", color: "#8e44ad", msg: "A literal hurricane of words! 🌪️" },
+    85:  { name: "No-Life Sailor", color: "#34495e", msg: "Is there even a real world outside the ship? 🏚️" },
+
+    // 🔥 High activity (spam mode)
+    90:  { name: "Typing Beast", color: "#e67e22", msg: "Your hands are a blur! Stop them if you can! 🦁" },
+    95:  { name: "Chat Hurricane", color: "#d35400", msg: "The chat is shaking from your activity! 💨" },
+    100: { name: "Infinite Talker", color: "#e67e22", msg: "Does this guy ever stop for breath? ♾️" },
+    110: { name: "Spam Lord", color: "#d35400", msg: "All hail the master of the fast type! 👑" },
+    120: { name: "Den Den Master", color: "#e67e22", msg: "You own the communication lines of the New World! 📞💎" },
+
+    // 💀 Too much…
+    130: { name: "Touch Grass Needed", color: "#e74c3c", msg: "Go outside. Seriously. The sun won't hurt you. 🌱❌" },
+    140: { name: "Sleep Is Optional", color: "#c0392b", msg: "Sleep is for the weak. Spam is for the legends. 💤" },
+    150: { name: "Server Resident", color: "#e74c3c", msg: "You literally live in this server now. Rent is due! 🏠" },
+    160: { name: "Keyboard Destroyer", color: "#c0392b", msg: "How many mechanical keyboards have you broken so far? ⌨️💥" },
+    170: { name: "No Break Pirate", color: "#e74c3c", msg: "Breaks are for marines. Pirates never stop! ⚓" },
+
+    // 👑 Absolute legends
+    180: { name: "Chat Emperor", color: "#f1c40f", msg: "Your words rule these waters! 👑" },
+    190: { name: "Spam Yonko", color: "#f39c12", msg: "One of the four Great Spam-lords of the sea! 🚩" },
+    200: { name: "Message King", color: "#f1c40f", msg: "The ultimate title for the ultimate talker! 🏆" },
+    210: { name: "Server Overlord", color: "#ffffff", msg: "The server is your kingdom, and we just live in it. ✨" },
+    220: { name: "Grass Avoider 🌱❌", color: "#ffeb3b", msg: "Legend says he hasn't seen a tree since 2012. 👑🔥" }
 };
+
 
 // Функция за запис в таблица "levels"
 async function saveToDatabase(pool, userId, data) {
