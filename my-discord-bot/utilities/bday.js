@@ -3,7 +3,7 @@ const { EmbedBuilder } = require('discord.js');
 module.exports = (client) => {
     // --- CONFIGURATION ---
    const TARGET_HOUR = 2;         // Сега е 2 часа
-const TARGET_MINUTE = 12;      // :00
+const TARGET_MINUTE = 17;      // :00
     const CHANNEL_ID = '1490378124259758261';
     const FRIEND_ID = '190189929316352000';
     // ---------------------
