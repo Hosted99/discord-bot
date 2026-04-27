@@ -1,14 +1,14 @@
 const { EmbedBuilder, PermissionsBitField } = require('discord.js');
 
 // --- КОНФИГУРАЦИЯ ---
-const TARGET_GUILD_ID = '1486343040162468003'; 
+const TARGET_GUILD_ID = 'ID_НА_ТВОЯ_СЪРВЪР'; 
+const LEVEL_UP_CHANNEL_ID = 'ID_НА_КАНАЛА_ЗА_НИВА'; // Сложи ID на канала, който ще създадеш
 const LOG_CHANNEL_ID = 'ID_НА_ЛОГ_КАНАЛА';   
 const STATS_CHANNEL_ID = 'ID_ЗА_ТОП_10';     
 // --------------------
 
 const xpCache = new Map(); 
 
-// ПЪЛЕН СПИСЪК С 35 ПИРАТСКИ РОЛИ
 const RANK_ROLES = {
     1:   { name: "Bilge Rat", color: "#7f8c8d" },
     3:   { name: "Deck Hand", color: "#95a5a6" },
@@ -47,16 +47,12 @@ const RANK_ROLES = {
     200: { name: "Immortal Captain", color: "#ffffff" }
 };
 
-// Функция за запис в таблица "levels"
 async function saveToDatabase(pool, userId, data) {
-    const query = `
-        INSERT INTO levels (user_id, xp, level) VALUES ($1, $2, $3) 
-        ON CONFLICT (user_id) DO UPDATE SET xp = $2, level = $3;
-    `;
+    const query = `INSERT INTO levels (user_id, xp, level) VALUES ($1, $2, $3) 
+                   ON CONFLICT (user_id) DO UPDATE SET xp = $2, level = $3;`;
     await pool.query(query, [userId, data.xp, data.level]);
 }
 
-// Функция за автоматично управление на роли
 async function getOrCreateRole(guild, roleData) {
     if (!guild.members.me.permissions.has(PermissionsBitField.Flags.ManageRoles)) return null;
     let role = guild.roles.cache.find(r => r.name === roleData.name);
@@ -67,7 +63,7 @@ async function getOrCreateRole(guild, roleData) {
                 color: roleData.color,
                 reason: 'Automated Leveling System'
             });
-        } catch (e) { console.error("Error creating role:", e); }
+        } catch (e) { console.error(e); }
     }
     return role;
 }
@@ -76,7 +72,7 @@ module.exports = (client, poolObj) => {
     const pool = poolObj.pool;
 
     client.on('messageCreate', async (message) => {
-        // Проверка: Работи само в зададения сървър и игнорира ботове
+        // Проверка за сървър и ботове
         if (message.author.bot || !message.guild || message.guild.id !== TARGET_GUILD_ID) return;
 
         const userId = message.author.id;
@@ -89,9 +85,21 @@ module.exports = (client, poolObj) => {
 
         if (userData.xp >= nextLevelXP) {
             userData.level++;
-            message.reply(`🏴‍☠️ **Level Up!** Congratulations ${message.author}, you are now level **${userData.level}**!`);
 
-            // Проверка дали на това ниво се дава роля
+            // ПРАЩАНЕ В ОПРЕДЕЛЕН КАНАЛ
+            const lvlChannel = client.channels.cache.get(LEVEL_UP_CHANNEL_ID);
+            if (lvlChannel) {
+                const embed = new EmbedBuilder()
+                    .setTitle('🏴‍☠️ Rank Up!')
+                    .setDescription(`Congratulations ${message.author}! You've reached **Level ${userData.level}**!`)
+                    .setThumbnail(message.author.displayAvatarURL())
+                    .setColor('#f1c40f')
+                    .setTimestamp();
+                
+                lvlChannel.send({ content: `${message.author}`, embeds: [embed] });
+            }
+
+            // Роли и База данни
             if (RANK_ROLES[userData.level]) {
                 const role = await getOrCreateRole(message.guild, RANK_ROLES[userData.level]);
                 if (role) await message.member.roles.add(role).catch(() => {});
@@ -113,13 +121,12 @@ module.exports = (client, poolObj) => {
             const embed = new EmbedBuilder()
                 .setTitle('🏆 Weekly Top 10 Pirates')
                 .setColor('#f1c40f')
-                .setTimestamp()
                 .setDescription(res.rows.map((row, i) => `**${i + 1}.** <@${row.user_id}> — Level \`${row.level}\` (${row.xp} XP)`).join('\n') || "No data.");
             statsChannel.send({ embeds: [embed] });
-        } catch (e) { console.error("Leaderboard error:", e); }
+        } catch (e) { console.error(e); }
     }, 604800000);
 
-    // Синхронизация на всеки 15 минути
+    // Синхронизация на всеки 1 час (3600000 ms)
     setInterval(async () => {
         let syncCount = 0;
         for (const [userId, data] of xpCache.entries()) {
@@ -134,11 +141,11 @@ module.exports = (client, poolObj) => {
             if (logChannel) {
                 const logEmbed = new EmbedBuilder()
                     .setTitle('📊 Leveling Sync')
-                    .setDescription(`Successfully synced **${syncCount}** active members to table "levels".`)
+                    .setDescription(`Synced **${syncCount}** active members.`)
                     .setColor('#2ecc71')
                     .setTimestamp();
                 logChannel.send({ embeds: [logEmbed] });
             }
         }
-    }, 3600000); 
+    }, 7200000); 
 };
