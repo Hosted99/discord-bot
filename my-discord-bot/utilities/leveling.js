@@ -10,14 +10,12 @@ const STATS_CHANNEL_ID = '1498426456143958027';
 
 const xpCache = new Map();
 
-// Функция за визуален прогрес бар
 function createProgressBar(current, total, size = 10) {
     const progress = Math.min(size, Math.floor((current / total) * size));
     const emptyProgress = size - progress;
     return `\`[${'▇'.repeat(progress)}${'—'.repeat(emptyProgress)}]\` ${Math.floor((current / total) * 100)}%`;
 }
 
-// СПИСЪК С РОЛИТЕ (35 БРОЯ)
 const RANK_ROLES = {
     1:   { name: "Silent Snail 🐌", color: "#7f8c8d", msg: "Welcome to the crew... or are you just watching? 👀" },
     3:   { name: "Keyboard Lost", color: "#95a5a6", msg: "Did you drop your keyboard in the ocean? Say something! 🌊" },
@@ -62,72 +60,68 @@ const FUNNY_FALLBACKS = [
     "Congratulations! You've achieved... absolutely nothing new. ✨"
 ];
 
+// Функция за запис
 async function saveToDatabase(pool, userId, data) {
-    const query = `
-        INSERT INTO levels (user_id, xp, level, username) VALUES ($1, $2, $3, $4) 
-        ON CONFLICT (user_id) DO UPDATE SET xp = $2, level = $3, username = $4;
-    `;
+    const query = `INSERT INTO levels (user_id, xp, level, username) VALUES ($1, $2, $3, $4) ON CONFLICT (user_id) DO UPDATE SET xp = $2, level = $3, username = $4;`;
     try { await pool.query(query, [userId, data.xp, data.level, data.username]); } catch (e) { console.error("DB Error:", e); }
 }
 
 async function getOrCreateRole(guild, roleData) {
     if (!guild.members.me.permissions.has(PermissionsBitField.Flags.ManageRoles)) return null;
     let role = guild.roles.cache.find(r => r.name === roleData.name);
-    if (!role) {
-        try { role = await guild.roles.create({ name: roleData.name, color: roleData.color, reason: 'Automated Rank' }); } catch (e) { console.error(e); }
-    }
+    if (!role) { try { role = await guild.roles.create({ name: roleData.name, color: roleData.color, reason: 'Automated Rank' }); } catch (e) { console.error(e); } }
     return role;
 }
 
 module.exports = (client, poolObj) => {
     const pool = poolObj.pool;
 
-    // --- ФУНКЦИЯ ЗА ЗАРЕЖДАНЕ НА КЕША ОТ NEON ---
+    // --- ЗАЩИТА 1: ЗАРЕЖДАНЕ НА КЕША ПРИ СТАРТ ---
     async function loadCacheFromDB() {
         try {
             const res = await pool.query('SELECT user_id, xp, level, username FROM levels');
             res.rows.forEach(row => {
-                xpCache.set(row.user_id, {
-                    xp: parseInt(row.xp),
-                    level: parseInt(row.level),
-                    username: row.username,
-                    needsUpdate: false
-                });
+                xpCache.set(row.user_id, { xp: parseInt(row.xp), level: parseInt(row.level), username: row.username, needsUpdate: false });
             });
-            console.log(`[System] Заредени ${res.rowCount} профила от Neon DB в кеша.`);
-        } catch (e) {
-            console.error("[System] Грешка при зареждане на кеша:", e);
-        }
+            console.log(`[System] Заредени ${res.rowCount} профила от Neon.`);
+        } catch (e) { console.error("Грешка при зареждане на кеша:", e); }
     }
 
-    // Стартираме зареждането веднага щом бота се свърже с базата
     loadCacheFromDB();
 
     client.on('messageCreate', async (message) => {
         if (message.author.bot || !message.guild || message.guild.id !== TARGET_GUILD_ID) return;
         const userId = message.author.id;
 
-        // --- КОМАНДА !RANK ---
-        if (message.content.toLowerCase().startsWith('!rank')) {
-            const rankChannel = client.channels.cache.get(LEVEL_UP_CHANNEL_ID);
-            if (!rankChannel) return;
-            message.delete().catch(() => {});
-
-            let userData = xpCache.get(userId);
-            
-            // Ако го няма в кеша, пробваме директно от базата (втора защита)
-            if (!userData) {
-                const dbRes = await pool.query('SELECT xp, level, username FROM levels WHERE user_id = $1', [userId]);
-                if (dbRes.rows.length > 0) {
-                    userData = { xp: dbRes.rows[0].xp, level: dbRes.rows[0].level, username: dbRes.rows[0].username, needsUpdate: false };
-                    xpCache.set(userId, userData);
-                } else {
-                    userData = { xp: 0, level: 1, username: message.member.displayName, needsUpdate: false };
-                }
+        // --- ЗАЩИТА 2: ПРОВЕРКА В БД, АКО ЛИПСВА В КЕША ---
+        let userData = xpCache.get(userId);
+        if (!userData) {
+            const dbRes = await pool.query('SELECT xp, level, username FROM levels WHERE user_id = $1', [userId]);
+            if (dbRes.rows.length > 0) {
+                userData = { xp: parseInt(dbRes.rows[0].xp), level: parseInt(dbRes.rows[0].level), username: dbRes.rows[0].username, needsUpdate: false };
+            } else {
+                userData = { xp: 0, level: 1, username: message.member.displayName, needsUpdate: true };
             }
+            xpCache.set(userId, userData);
+        }
 
+        // Автоматична роля за Ниво 1 (Recruit)
+        if (userData.level === 1) {
+            const role1 = RANK_ROLES[1];
+            if (!message.member.roles.cache.some(r => r.name === role1.name)) {
+                const role = await getOrCreateRole(message.guild, role1);
+                if (role) await message.member.roles.add(role).catch(() => {});
+            }
+        }
+
+        // --- КОМАНДА !RANK (С ОБРАТНО БРОЕНЕ) ---
+        if (message.content.toLowerCase().startsWith('!rank')) {
+            message.delete().catch(() => {});
+            const rankChannel = client.channels.cache.get(LEVEL_UP_CHANNEL_ID) || message.channel;
             const nextXP = userData.level * 500;
             const roleInfo = RANK_ROLES[userData.level];
+            let timeLeft = 60;
+
             const embed = new EmbedBuilder()
                 .setTitle(`⚓ ${message.member.displayName}'s Status`)
                 .setThumbnail(message.author.displayAvatarURL({ dynamic: true }))
@@ -137,11 +131,17 @@ module.exports = (client, poolObj) => {
                     { name: '📈 Level', value: `\`${userData.level}\``, inline: true },
                     { name: '📊 Progress', value: createProgressBar(userData.xp, nextXP), inline: false }
                 )
-                .setFooter({ text: 'Auto-deleting in 60s' });
+                .setFooter({ text: `Auto-deleting in ${timeLeft}s` });
 
-            return rankChannel.send({ content: `⚓ ${message.author}, check your status:`, embeds: [embed] }).then(msg => {
-                setTimeout(() => msg.delete().catch(() => {}), 60000);
-            });
+            const rankMsg = await rankChannel.send({ content: `⚓ ${message.author}, check your status:`, embeds: [embed] });
+
+            const countdown = setInterval(async () => {
+                timeLeft -= 10;
+                if (timeLeft <= 0) { clearInterval(countdown); return rankMsg.delete().catch(() => {}); }
+                const updatedEmbed = EmbedBuilder.from(embed).setFooter({ text: `Auto-deleting in ${timeLeft}s` });
+                await rankMsg.edit({ embeds: [updatedEmbed] }).catch(() => clearInterval(countdown));
+            }, 10000);
+            return;
         }
 
         // --- КОМАНДА !TOP ---
