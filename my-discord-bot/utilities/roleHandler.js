@@ -16,7 +16,7 @@ for (let i = 900; i >= 50; i -= 50) {
 }
 
 /**
- * Автоматично посрещане
+ * 1. ПОСРЕЩАНЕ И ВЕРИФИКАЦИЯ (НОВИЯТ КОД)
  */
 async function handleNewMember(member) {
     if (!ALLOWED_GUILDS.includes(member.guild.id)) return;
@@ -28,9 +28,7 @@ async function handleNewMember(member) {
         if (rookieRole) await member.roles.add(rookieRole);
 
         if (welcomeChannel) {
-            if (lastWelcomeMessage) {
-                await lastWelcomeMessage.delete().catch(() => {});
-            }
+            if (lastWelcomeMessage) await lastWelcomeMessage.delete().catch(() => {});
 
             const welcomeEmbed = new EmbedBuilder()
                 .setTitle("⚓ New Pirate Aboard!")
@@ -38,7 +36,7 @@ async function handleNewMember(member) {
                     `Ahoy, pirate ${member}! 🏴‍☠️\n\n` +
                     `Welcome to the **Pirate Queen’s Family**.\n\n` +
                     `📜 **The Pirate Code:** Check <#1497466531322527877>.\n` +
-                    `💰 **Верификация:** Натисни бутона долу, за да въведеш никнейма си, да премахнеш роля **Rookies** и да получиш **Player** достъп! ⚔️`
+                    `💰 **Верификация:** Натисни бутона долу, за да въведеш никнейма си. Ролята **Rookies** ще бъде премахната и ще получиш **Player** достъп! ⚔️`
                 )
                 .setColor("#2ECC71")
                 .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
@@ -52,22 +50,17 @@ async function handleNewMember(member) {
                     .setStyle(ButtonStyle.Success)
             );
 
-            lastWelcomeMessage = await welcomeChannel.send({ 
-                content: `${member}`, 
-                embeds: [welcomeEmbed], 
-                components: [row] 
-            });
+            lastWelcomeMessage = await welcomeChannel.send({ content: `${member}`, embeds: [welcomeEmbed], components: [row] });
         }
     } catch (err) { console.error("Welcome Error:", err.message); }
 }
 
 /**
- * Обработка на бутона и формата за никнейм
+ * 2. ОБРАБОТКА НА БУТОНА И МОДАЛА (НОВИЯТ КОД)
  */
 async function handleInteraction(interaction) {
     if (!interaction.guild || !ALLOWED_GUILDS.includes(interaction.guild.id)) return;
 
-    // 1. Отваряне на прозореца при натискане на бутона
     if (interaction.isButton() && interaction.customId === 'start_verify') {
         const modal = new ModalBuilder()
             .setCustomId('nick_modal')
@@ -77,44 +70,34 @@ async function handleInteraction(interaction) {
             .setCustomId('new_nickname')
             .setLabel("Въведи твоя никнейм:")
             .setStyle(TextInputStyle.Short)
-            .setPlaceholder("Пример: Monkey D. Luffy")
-            .setMinLength(2)
-            .setMaxLength(32)
             .setRequired(true);
 
         modal.addComponents(new ActionRowBuilder().addComponents(nameInput));
         return interaction.showModal(modal);
     }
 
-    // 2. Обработка на изпратения никнейм
     if (interaction.isModalSubmit() && interaction.customId === 'nick_modal') {
         const newNick = interaction.fields.getTextInputValue('new_nickname');
-        
+        const { guild, member } = interaction;
+
         try {
-            const rookieRole = interaction.guild.roles.cache.find(r => r.name === "Rookies");
-            const playerRole = interaction.guild.roles.cache.find(r => r.name === "Player");
+            let playerRole = guild.roles.cache.find(r => r.name === "Player");
+            if (!playerRole) {
+                playerRole = await guild.roles.create({ name: 'Player', color: '#3498db', reason: 'Auto-created' });
+            }
 
-            // Сменяме никнейма
-            await interaction.member.setNickname(newNick);
+            const rookieRole = guild.roles.cache.find(r => r.name === "Rookies");
 
-            // Сменяме ролите (Махаме Rookies, Даваме Player)
-            if (rookieRole) await interaction.member.roles.remove(rookieRole);
-            if (playerRole) await interaction.member.roles.add(playerRole);
+            await member.setNickname(newNick);
+            if (rookieRole) await member.roles.remove(rookieRole);
+            await member.roles.add(playerRole);
 
-            await interaction.reply({ 
-                content: `✅ Твоят никнейм е променен на **${newNick}**! Вече си **Player** и имаш пълен достъп.`, 
-                ephemeral: true 
-            });
+            await interaction.reply({ content: `✅ Успешна регистрация, **${newNick}**!`, ephemeral: true });
         } catch (err) {
-            console.error(err);
-            await interaction.reply({ 
-                content: "❌ Не мога да променя никнейма ти. Провери дали ботът има нужните права!", 
-                ephemeral: true 
-            });
+            await interaction.reply({ content: "❌ Грешка! Ботът няма права над вашата роля.", ephemeral: true });
         }
     }
 }
-
 
 
 ///__________________________________ТЕСТ
