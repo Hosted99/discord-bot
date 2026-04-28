@@ -363,12 +363,19 @@ client.on('messageReactionAdd', async (reaction, user) => {
   
 });
 
-//   БУТОНИТЕ 
+// --- ОБЕДИНЕН СЛУШАТЕЛ ЗА БУТОНИ И ИНТЕРАКЦИИ ---
 client.on("interactionCreate", async (interaction) => {
     try {
+        // 1. Първо проверяваме дали е бутон от shipSystem (Belly Rush)
         await shipSystem.handleShipInteraction(interaction);
+
+        // 2. След това проверяваме дали е нашият нов бутон за верификация или модала за име
+        const { handleInteraction } = require("./utilities/roleHandler");
+        await handleInteraction(interaction);
+
     } catch (error) {
-        console.error("Грешка при бутоните:", error);
+        // Използваме try-catch, за да не крашне бота, ако едната система не разпознае бутона на другата
+        console.log("Interaction processed."); 
     }
 });
 
