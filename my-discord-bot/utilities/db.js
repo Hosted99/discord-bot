@@ -60,6 +60,14 @@ await pool.query(`
 `);
 console.log("✅ Table levels is ready.");
 
+    // Таблица за постоянния екипаж (Belly Rush)
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS permanent_crew (
+    user_id VARCHAR(50) PRIMARY KEY
+  );
+`);
+console.log("✅ Table permanent_crew is ready.");
+
     // Автоматично почистване на преводача при старт
     const deleteResult = await pool.query("DELETE FROM translation_cache WHERE expires_at < NOW()");
     if (deleteResult.rowCount > 0) {
