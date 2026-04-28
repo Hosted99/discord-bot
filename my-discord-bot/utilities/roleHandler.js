@@ -79,32 +79,41 @@ async function handleInteraction(interaction) {
     if (interaction.isModalSubmit() && interaction.customId === 'nick_modal') {
         const newNick = interaction.fields.getTextInputValue('new_nickname');
         const { guild, member } = interaction;
-
+        if (member.roles.cache.some(r => r.name === "Player")) {
+    return interaction.reply({
+        content: "⚠️ Вече си верифициран!",
+        ephemeral: true
+    });
+}
         try {
-            let playerRole = guild.roles.cache.find(r => r.name === "Player");
-            if (!playerRole) {
-                playerRole = await guild.roles.create({ name: 'Player', color: '#3498db', reason: 'Auto-created' });
-            }
-
-            const rookieRole = guild.roles.cache.find(r => r.name === "Rookies");
-
-            await member.setNickname(newNick);
-            if (rookieRole) await member.roles.remove(rookieRole);
-            await member.roles.add(playerRole);
-
-            
-            await interaction.reply({ 
-            content: `✅ Успешна регистрация, **${newNick}**!`, 
-            flags: [MessageFlags.Ephemeral]         
-            });
-
-
-
-            
-        } catch (err) {
-            await interaction.reply({ content: "❌ Грешка! Ботът няма права над вашата роля.", ephemeral: true });
-        }
+    let playerRole = guild.roles.cache.find(r => r.name === "Player");
+    if (!playerRole) {
+        playerRole = await guild.roles.create({ name: 'Player', color: '#3498db', reason: 'Auto-created' });
     }
+
+    const rookieRole = guild.roles.cache.find(r => r.name === "Rookies");
+
+    await member.setNickname(newNick);
+
+    if (rookieRole && member.roles.cache.has(rookieRole.id)) {
+        await member.roles.remove(rookieRole);
+    }
+
+    if (!member.roles.cache.has(playerRole.id)) {
+        await member.roles.add(playerRole);
+    }
+
+    await interaction.reply({ 
+        content: `✅ Успешна регистрация, **${newNick}**!`, 
+        ephemeral: true
+    });
+
+} catch (err) {
+    console.error(err);
+    await interaction.reply({ 
+        content: "❌ Грешка! Провери role hierarchy.", 
+        ephemeral: true 
+    });
 }
 
 
