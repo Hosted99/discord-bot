@@ -177,7 +177,39 @@ client.on("messageCreate", async (msg) => {
     }
 
 
+/////--------ТЕСТ---------
 
+    client.on('messageCreate', async (message) => {
+    if (message.content === '!setupverify') {
+        // Проверява дали командата се пише в правилния сървър
+        if (message.guild.id !== 'ТВОЕТО_SERVER_ID') return; 
+        
+        if (!message.member.permissions.has('Administrator')) return;
+
+        const row = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+                .setCustomId('start_verify')
+                .setLabel('Цъкни за име')
+                .setStyle(ButtonStyle.Primary)
+        );
+
+        const embed = new EmbedBuilder()
+            .setTitle('Добре дошли!')
+            .setDescription('Натиснете бутона, за да влезете.');
+
+        await message.channel.send({ embeds: [embed], components: [row] });
+    }
+});
+
+    
+////_______
+
+
+
+
+
+
+    
     
     // --- 2. Команди (!addrole / !removerole / !commands) ---
     if (msg.content.startsWith("!")) {
