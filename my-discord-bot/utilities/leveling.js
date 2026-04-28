@@ -125,7 +125,7 @@ module.exports = (client, poolObj) => {
 
             const statsChannel = client.channels.cache.get(STATS_CHANNEL_ID);
             if (!statsChannel) return;
-            message.delete().catch(() => {});
+            message.delete().catch(() => {}), 30000;
 
             // 1. Извличаме данните от Neon
             const res = await pool.query('SELECT username, level, xp FROM levels ORDER BY level DESC, xp DESC LIMIT 10');
@@ -159,7 +159,8 @@ module.exports = (client, poolObj) => {
         // --- КОМАНДА !SYNC (Админ) ---
         if (message.content.toLowerCase() === '!sync' && message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
             const logChannel = client.channels.cache.get(LOG_CHANNEL_ID);
-            message.delete().catch(() => {}), 30000;
+            message.delete().catch(() => {}), 30000; 
+            
             let count = 0;
             for (const [id, data] of xpCache.entries()) { 
                 if (data.needsUpdate) { 
@@ -168,9 +169,18 @@ module.exports = (client, poolObj) => {
                     count++; 
                 } 
             }
-            if (logChannel) logChannel.send(`✅ Manual sync by **${message.member.displayName}**: **${count}** profiles updated.`);
+
+            if (logChannel) {
+                const syncEmbed = new EmbedBuilder()
+                    .setTitle('♻️ Manual Sync Executed')
+                    .setDescription(`Admin **${message.member.displayName}** triggered a manual sync.\nUpdated **${count}** pirate profiles in Neon.`)
+                    .setColor('#2ecc71')
+                    .setTimestamp();
+                logChannel.send({ embeds: [syncEmbed] });
+            }
             return;
         }
+
 
         // --- ЛОГИКА ЗА XP ---
         let xpGain = message.attachments.size > 0 ? 35 : 15; 
