@@ -256,4 +256,5 @@ async function updateBountyRole(member, amount) {
     return null;
 }
 
-module.exports = { handleNewMember, handleRoleCommands, updateBountyRole };
+module.exports = { handleNewMember, handleRoleCommands, updateBountyRole, handleInteraction };
+
