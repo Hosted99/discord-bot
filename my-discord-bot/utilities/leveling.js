@@ -1,6 +1,6 @@
 const { EmbedBuilder, PermissionsBitField } = require('discord.js');
 const cron = require('node-cron');
-
+//a
 // --- КОНФИГУРАЦИЯ ---
 const TARGET_GUILD_ID = '1486343040162468003'; 
 const LEVEL_UP_CHANNEL_ID = '1498426382219481248'; 
