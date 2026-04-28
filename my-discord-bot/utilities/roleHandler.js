@@ -28,7 +28,7 @@ async function handleNewMember(member) {
   if (!ALLOWED_GUILDS.includes(member.guild.id)) return;
 
   try {
-    const rookieRole = member.guild.roles.cache.get(ROLES.ROOKIES);
+    const rookieRole = member.guild.roles.cache.get(managedRoles.Rookies);
     const welcomeChannel = member.guild.channels.cache.find(
       ch => ch.name === "│👋│welcome"
     );
@@ -87,7 +87,7 @@ async function handleInteraction(interaction) {
   if (interaction.isButton() && interaction.customId === "start_verify") {
     const modal = new ModalBuilder()
       .setCustomId("nick_modal")
-      .setTitle("Регистрация");
+      .setTitle("register");
 
    const input = new TextInputBuilder()
     .setCustomId("new_nickname")
@@ -110,8 +110,8 @@ async function handleInteraction(interaction) {
     const newNick = interaction.fields.getTextInputValue("new_nickname");
 
     try {
-      const playerRole = guild.roles.cache.get(ROLES.PLAYER);
-      const rookieRole = guild.roles.cache.get(ROLES.ROOKIES);
+      const playerRole = guild.roles.cache.get(managedRoles.Player);
+      const rookieRole = guild.roles.cache.get(managedRoles.Rookies);
 
       // already verified
       if (playerRole && member.roles.cache.has(playerRole.id)) {
