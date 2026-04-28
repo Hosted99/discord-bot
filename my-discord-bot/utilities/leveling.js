@@ -112,14 +112,30 @@ module.exports = (client, poolObj) => {
             xpCache.set(userId, userData);
         }
 
-        // Автоматично даване на роля за Ниво 1, ако липсва
-        if (userData.level === 1) {
-            const role1 = RANK_ROLES[1];
-            if (!message.member.roles.cache.some(r => r.name === role1.name)) {
-                const role = await getOrCreateRole(message.guild, role1);
-                if (role) await message.member.roles.add(role).catch(() => {});
+           // --- ЛОГИКА ЗА АВТОМАТИЧНА РОЛЯ (НИВО 1) ---
+        const allRankNames = Object.values(RANK_ROLES).map(r => r.name);
+        const hasLevelRole = message.member.roles.cache.some(role => allRankNames.includes(role.name));
+
+        if (!hasLevelRole && userData.level >= 1) {
+            const role1 = RANK_ROLES[1]; 
+            const role = await getOrCreateRole(message.guild, role1);
+            if (role) {
+                await message.member.roles.add(role).catch(() => {});
+                
+                // Приветствие в канала за нива
+                const lvlChannel = client.channels.cache.get(LEVEL_UP_CHANNEL_ID);
+                if (lvlChannel) {
+                    const welcomeEmbed = new EmbedBuilder()
+                        .setAuthor({ name: `${message.member.displayName} joined the crew!`, iconURL: message.author.displayAvatarURL() })
+                        .setTitle('🏴‍☠️ NEW RECRUIT SPOTTED')
+                        .setDescription(`Welcome ${message.author}!\n🔹 **Status:** **${role1.name}**\n\n> *"${role1.msg}"*`)
+                        .setThumbnail(message.author.displayAvatarURL({ dynamic: true }))
+                        .setColor(role1.color);
+                    lvlChannel.send({ embeds: [welcomeEmbed] });
+                }
             }
         }
+
 
         // --- КОМАНДА !RANK (С ОБРАТНО БРОЕНЕ И АВТОМАТИЧНО ИЗТРИВАНЕ) ---
         if (message.content.toLowerCase().startsWith('!rank')) {
@@ -182,7 +198,12 @@ module.exports = (client, poolObj) => {
             for (const [id, data] of xpCache.entries()) { if (data.needsUpdate) { await saveToDatabase(pool, id, data); data.needsUpdate = false; count++; } }
             const logChannel = client.channels.cache.get(LOG_CHANNEL_ID);
             if (logChannel) {
-                const syncEmbed = new EmbedBuilder().setTitle('♻️ Manual Sync Executed').setDescription(`Updated **${count}** pirate profiles in Neon.`).setColor('#2ecc71').setTimestamp();
+                const syncEmbed = new EmbedBuilder()
+                    .setTitle('♻️ Manual Sync Executed')
+                    .setDescription(`Admin **${message.member.displayName}** triggered a manual sync.\nUpdated **${count}** pirate profiles in Neon.`)
+                    .setColor('#2ecc71') // Зеленият цвят от снимката
+                    .setTimestamp();
+                
                 logChannel.send({ embeds: [syncEmbed] });
             }
             return;
