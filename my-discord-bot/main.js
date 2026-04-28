@@ -376,7 +376,12 @@ client.on("interactionCreate", async (interaction) => {
 /////-------_TEST
 
 client.on('messageCreate', async (message) => {
-    shipSystem.handleMessage(message);
+    try {
+        // Добави await тук!
+        await shipSystem.handleMessage(message);
+    } catch (error) {
+        console.error("error message:", error);
+    }
 });
 
 
