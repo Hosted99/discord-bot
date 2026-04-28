@@ -1,121 +1,136 @@
-const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle } = require("discord.js");
+const {EmbedBuilder,ActionRowBuilder,ButtonBuilder,ButtonStyle,ModalBuilder,TextInputBuilder,TextInputStyle,PermissionsBitField} = require("discord.js");
 
-// --- КОНФИГУРАЦИЯ ---
-const ALLOWED_GUILDS = ['1486343040162468003', '1451310326019526800']; // Сложи истинските ID-та тук
-let lastWelcomeMessage = null;
-
-const managedRoles = [
-    "Pirate King Crew", "Pirate King", "Whitebeard's", "Mini Whitebeard's", 
-    "Team builder", "Whitebeard's Leader", "Whitebeard's Vice Leader", 
-    "Mini Whitebeard's Leader", "Mini Whitebeard's Vice Leader"
+const ALLOWED_GUILDS = [
+  "1486343040162468003",
+  "1451310326019526800"
 ];
 
+// 🔐 ROLE IDs (ЗАМЕНИ ТЕЗИ С ТВОИТЕ)
+const ROLES = {
+  ROOKIES: "1498708853896908891",
+  PLAYER: "1498707138250277005"
+};
+
+// 👋 per-guild welcome tracking
+const lastWelcomeMessage = new Map();
+
+// bounty tiers
 const bountyTiers = [];
 for (let i = 900; i >= 50; i -= 50) {
-    bountyTiers.push({ min: i * 1000000, name: `Bounty: ${i}M+` });
+  bountyTiers.push({ min: i * 1000000, name: `Bounty: ${i}M+` });
 }
 
 /**
  * 1. ПОСРЕЩАНЕ И ВЕРИФИКАЦИЯ (НОВИЯТ КОД)
  */
 async function handleNewMember(member) {
-    if (!ALLOWED_GUILDS.includes(member.guild.id)) return;
+  if (!ALLOWED_GUILDS.includes(member.guild.id)) return;
 
-    try {
-        const rookieRole = member.guild.roles.cache.find(r => r.name === "Rookies");
-        const welcomeChannel = member.guild.channels.cache.find(ch => ch.name === "│👋│welcome");
+  try {
+    const rookieRole = member.guild.roles.cache.get(ROLES.ROOKIES);
+    const welcomeChannel = member.guild.channels.cache.find(
+      ch => ch.name === "│👋│welcome"
+    );
 
-        if (rookieRole) await member.roles.add(rookieRole);
+    if (rookieRole) await member.roles.add(rookieRole);
 
-        if (welcomeChannel) {
-            if (lastWelcomeMessage) await lastWelcomeMessage.delete().catch(() => {});
+    if (!welcomeChannel) return;
 
-            const welcomeEmbed = new EmbedBuilder()
-                .setTitle("⚓ New Pirate Aboard!")
-                .setDescription(
-                    `Ahoy, pirate ${member}! 🏴‍☠️\n\n` +
-                    `Welcome to the **Pirate Queen’s Family**.\n\n` +
-                    `📜 **The Pirate Code:** Check <#1497466531322527877>.\n` +
-                    `💰 **Верификация:** Натисни бутона долу, за да въведеш никнейма си. Ролята **Rookies** ще бъде премахната и ще получиш **Player** достъп! ⚔️`
-                )
-                .setColor("#2ECC71")
-                .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
-                .setFooter({ text: `Member #${member.guild.memberCount}` })
-                .setTimestamp();
+    const oldMsg = lastWelcomeMessage.get(member.guild.id);
+    if (oldMsg) await oldMsg.delete().catch(() => {});
 
-            const row = new ActionRowBuilder().addComponents(
-                new ButtonBuilder()
-                    .setCustomId('start_verify')
-                    .setLabel('Въведи Никнейм')
-                    .setStyle(ButtonStyle.Success)
-            );
+    const embed = new EmbedBuilder()
+      .setTitle("⚓ New Pirate Aboard!")
+      .setDescription(
+        `Ahoy ${member} 🏴‍☠️\n\n` +
+        `Welcome to **Pirate Queen’s Family**.\n\n` +
+        `📜 Read rules: <#1497466531322527877>\n` +
+        `💰 Click button to verify and get access!`
+      )
+      .setColor("#2ECC71")
+      .setThumbnail(member.user.displayAvatarURL())
+      .setTimestamp();
 
-            lastWelcomeMessage = await welcomeChannel.send({ content: `${member}`, embeds: [welcomeEmbed], components: [row] });
-        }
-    } catch (err) { console.error("Welcome Error:", err.message); }
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId("start_verify")
+        .setLabel("Верификация")
+        .setStyle(ButtonStyle.Success)
+    );
+
+    const msg = await welcomeChannel.send({
+      content: `${member}`,
+      embeds: [embed],
+      components: [row]
+    });
+
+    lastWelcomeMessage.set(member.guild.id, msg);
+  } catch (err) {
+    console.error("Welcome error:", err);
+  }
 }
 
 /**
  * 2. ОБРАБОТКА НА БУТОНА И МОДАЛА (НОВИЯТ КОД)
  */
 async function handleInteraction(interaction) {
-    if (!interaction.guild || !ALLOWED_GUILDS.includes(interaction.guild.id)) return;
+  if (!interaction.guild) return;
+  if (!ALLOWED_GUILDS.includes(interaction.guild.id)) return;
 
-    if (interaction.isButton() && interaction.customId === 'start_verify') {
-        const modal = new ModalBuilder()
-            .setCustomId('nick_modal')
-            .setTitle('Регистрация на Пират');
+  const { guild, member } = interaction;
 
-        const nameInput = new TextInputBuilder()
-            .setCustomId('new_nickname')
-            .setLabel("Въведи твоя никнейм:")
-            .setStyle(TextInputStyle.Short)
-            .setRequired(true);
+  // BUTTON
+  if (interaction.isButton() && interaction.customId === "start_verify") {
+    const modal = new ModalBuilder()
+      .setCustomId("nick_modal")
+      .setTitle("Регистрация");
 
-        modal.addComponents(new ActionRowBuilder().addComponents(nameInput));
-        return interaction.showModal(modal);
-    }
+    const input = new TextInputBuilder()
+      .setCustomId("new_nickname")
+      .setLabel("Въведи никнейм:")
+      .setStyle(TextInputStyle.Short)
+      .setRequired(true);
 
-    if (interaction.isModalSubmit() && interaction.customId === 'nick_modal') {
-        const newNick = interaction.fields.getTextInputValue('new_nickname');
-        const { guild, member } = interaction;
-        if (member.roles.cache.some(r => r.name === "Player")) {
-    return interaction.reply({
-        content: "⚠️ Вече си верифициран!",
+    modal.addComponents(new ActionRowBuilder().addComponents(input));
+
+    return interaction.showModal(modal);
+  }
+
+  // MODAL
+  if (interaction.isModalSubmit() && interaction.customId === "nick_modal") {
+    const newNick = interaction.fields.getTextInputValue("new_nickname");
+
+    try {
+      const playerRole = guild.roles.cache.get(ROLES.PLAYER);
+      const rookieRole = guild.roles.cache.get(ROLES.ROOKIES);
+
+      // already verified
+      if (playerRole && member.roles.cache.has(playerRole.id)) {
+        return interaction.reply({
+          content: "⚠️ Вече си верифициран!",
+          ephemeral: true
+        });
+      }
+
+      await member.setNickname(newNick);
+
+      if (rookieRole) await member.roles.remove(rookieRole);
+      if (playerRole) await member.roles.add(playerRole);
+
+      return interaction.reply({
+        content: `✅ Добре дошъл, **${newNick}**!`,
         ephemeral: true
-    });
-}
-        try {
-    let playerRole = guild.roles.cache.find(r => r.name === "Player");
-    if (!playerRole) {
-        playerRole = await guild.roles.create({ name: 'Player', color: '#3498db', reason: 'Auto-created' });
-    }
+      });
 
-    const rookieRole = guild.roles.cache.find(r => r.name === "Rookies");
-
-    await member.setNickname(newNick);
-
-    if (rookieRole && member.roles.cache.has(rookieRole.id)) {
-        await member.roles.remove(rookieRole);
-    }
-
-    if (!member.roles.cache.has(playerRole.id)) {
-        await member.roles.add(playerRole);
-    }
-
-    await interaction.reply({ 
-        content: `✅ Успешна регистрация, **${newNick}**!`, 
+    } catch (err) {
+      console.error(err);
+      return interaction.reply({
+        content: "❌ Грешка при верификация.",
         ephemeral: true
-    });
-
-} catch (err) {
-    console.error(err);
-    await interaction.reply({ 
-        content: "❌ Грешка! Провери role hierarchy.", 
-        ephemeral: true 
-    });
-}
+      });
     }
+  }
+}
 
 ///__________________________________ТЕСТ
 
