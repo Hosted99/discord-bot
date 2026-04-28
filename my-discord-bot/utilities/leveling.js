@@ -8,6 +8,7 @@ const LOG_CHANNEL_ID = '1498426571806085192';
 const STATS_CHANNEL_ID = '1498426456143958027';     
 
 // Локален кеш за бърз достъп до XP данните на потребителите
+const xpCache = new Map()
 const messageTracker = new Map();
 const warnTracker = new Map();
 
