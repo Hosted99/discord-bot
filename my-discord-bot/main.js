@@ -373,6 +373,13 @@ client.on("interactionCreate", async (interaction) => {
         console.log("Interaction processed."); 
     }
 });
+/////-------_TEST
 
+client.on('messageCreate', async (message) => {
+    shipSystem.handleMessage(message);
+});
+
+
+/////______TEST
 // 9. Логване на бота
 client.login(process.env.DISCORD_TOKEN);
