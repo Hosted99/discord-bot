@@ -18,56 +18,59 @@ const sendBotManual = async (guild) => {
         .setColor("#ff0044") // Твоето червено
         .setThumbnail(guild.iconURL({ dynamic: true })) // Иконата на сървъра
         .addFields(
-            { 
+           { 
                 name: "🌐 1. AI Translator (#ai-translator)", 
                 value: "• **Auto-Translate:** Write in any language; I'll instantly translate it to 🇺🇸 **English**.\n" +
                        "• **Reverse Translation:** Reply to a translated message in English to translate it back to the original author's language."
             },
-           { 
+            { 
                 name: "⚔️ 2. Mania Battle System", 
                 value: "• **Step 1: `mania-plan g1/g2/all`** - Start recruitment with ✅/❌ reactions.\n" +
-                       "• **Step 2: `mania-list g1/g2 `** - Get a live report of all confirmed players before the fight.\n" +
-                       "• **Step 3: `mania-strategy <text>`** - Post the final formatted battle plan and ping everyone.\n" +
-                           "*Format:* Boss Name - @Player1 @Player2 (use a new line for each boss)."
+                       "• **Step 2: `mania-list g1/g2 `** - Get a live report of all confirmed players.\n" +
+                       "• **Step 3: `mania-strategy <text>`** - Post the battle plan & ping everyone."
             },
             { 
-                name: "🚢 3. Special Channels & Rules", 
-                value: "• **#repair-ship:** Only accepts: `repair @mugi`, `repair @goat`, or `repair @ati`. Everything else is auto-deleted!\n" +
-                       "• **Photos Only:** In channels with 'photos' in the topic, text messages without attachments are auto-removed."
+                name: "🚢 3. Belly Rush Registration", 
+                value: "• **Interactive Panel:** Use the buttons to join `mugi`, `mari`, или `goat` ship.\n" +
+                       "• **Limits:** Max **10 members** per ship (Active Crew).\n" +
+                       "• **Permanent Crew:** Captains and fixed members are pre-registered automatically.\n" +
+                       "• `!clear_all` — (Admin) Reset all active crews for the next event."
             },
             { 
-                name: "☠️ 4. Bounty & Wanted System", 
-                value: "• `!wanted [@user]` — View a pirate's Wanted Poster and reward.\n" +
-                       "• `!setbounty @user <amount>` — (Admin) Set a specific bounty for a pirate.\n" +
-                       "• `!resetbounty @user` — (Admin) Reset a pirate's bounty to 0.\n" +
-                       "• **Bounty Roles:** Your rank updates automatically based on your total bounty."
+                name: "⚓ 4. Leveling & Pirate Ranks", 
+                value: "• `!rank` — Check your Level, XP, and Title. (Self-deletes)\n" +
+                       "• **XP Gains:** Chat to earn XP. Images grant **Bonus XP**!\n" +
+                       "• **Ranks:** Unlock 35 unique roles from *Silent Snail* to *Grass Avoider*."
             },
             { 
-                name: "⚔️ 5. Hero Guides (#unit-build)", 
-                value: "• `!hero <name>` — Get a full build guide (Role, Seals, Haki) with a custom GIF.\n" +
-                       "• `!hero-list` — View all available heroes in our database."
+                name: "☠️ 5. Bounty & Wanted System", 
+                value: "• `!wanted [@user]` — View a pirate's Wanted Poster.\n" +
+                       "• `!setbounty @user <amount>` — (Admin) Set a pirate's bounty.\n" +
+                       "• `!resetbounty @user` — (Admin) Reset bounty to 0."
             },
             { 
-                name: "⏰ 6. Reminders & Events", 
+                name: "⚔️ 6. Hero Guides (#unit-build)", 
+                value: "• `!hero <name>` — Get full build guide (Role, Seals, Haki) with a custom GIF.\n" +
+                       "• `!hero-list` — View all available heroes."
+            },
+            { 
+                name: "⏰ 7. Reminders & Events", 
                 value: "• **Static Events:** Automatic pings for `Mania`, `Shandora`, and `Belly Rush`.\n" +
-                       "• `!remind <cron> <text>` — Set your own custom reminder (stored in Neon DB).\n" +
-                       "• `!reminders` — List your active personal reminders.\n" +
-                       "• `!allreminders` — View the full server schedule."
+                       "• `!remind <cron> <text>` — Set custom reminders (Stored in Neon DB).\n" +
+                       "• `!reminders` — List your active personal reminders."
             },
             { 
-                name: "🎖️ 7. Role Management & Welcome", 
-                value: "• **New Members:** Automatically receive the `Rookies` role and a welcome message.\n" +
-                "• `!addrole @user <rank>` — (Admin) Assign specific pirate ranks.\n" +
-                "• `!removerole @user <rank>` — (Admin) Revoke a member's rank.\n"+
-                "• `!addroleallts @role` — (Admin) Add role to everyone with **ᐪˢ☠️**.\n" +
-                "• `!addroleallgm @role` — (Admin) Add role to everyone with **ᴳᴹ☠️**."
+                name: "🎖️ 8. Role Management", 
+                value: "• `!addrole @user <rank>` — Assign specific pirate ranks.\n" +
+                "• `!addroleallts @role` — Add role to everyone with **ᐪˢ☠️**.\n" +
+                "• `!addroleallgm @role` — Add role to everyone with **ᴳᴹ☠️**."
             },
             { 
-                name: "🛡️ 8. Admin Control & Security", 
-                value: "• **#admin-logs:** Hidden logs for deleted messages (who wrote what).\n" +
-                       "• `!clear <1-100>` — Bulk delete messages to keep the chat clean.\n" +
-                       "• `!help` — Quick access to this command manual.\n" +
-                       "• `!cron` — Show the timing & cron guide."
+                name: "🛡️ 9. Admin Control & Security", 
+                value: "• `!sendto #channel <msg>` — Redirect messages (Auto-cleans in 2s).\n" +
+                       "• `!top` — Show the Top 10 most active pirates on the ship.\n" +
+                       "• `!sync` — Manually save all pirate data to Neon Cloud.\n" +
+                       "• `!clear <1-100>` — Bulk delete messages."
             }
         )
         .setFooter({ text: "Sailing Kingdom Engine • v2.7 • Automatically updated on startup" })
