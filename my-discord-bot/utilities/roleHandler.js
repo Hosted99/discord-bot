@@ -43,19 +43,22 @@ async function handleNewMember(member) {
     const embed = new EmbedBuilder()
       .setTitle("⚓ New Pirate Aboard!")
       .setDescription(
-        `Ahoy ${member} 🏴‍☠️\n\n` +
-        `Welcome to **Pirate Queen’s Family**.\n\n` +
-        `📜 Read rules: <#1497466531322527877>\n` +
-        `💰 Click button to verify and get access!`
-      )
-      .setColor("#2ECC71")
+        `Ahoy, pirate ${member}! 🏴‍☠️\n\n` +
+        `Welcome to the **Pirate Queen’s Family**, ruled by <@825016547138732082>.\n\n` +
+        `📜 **The Pirate Code:** Check <#1497466531322527877> or risk walking the plank!\n` +
+        `🍻 **The Tavern:** Say hi at <#1486343047632523398>.\n` +
+        `💰 **Bounties:** Drop your in-game profile pic in <#1490838764057268392> to claim your reward! ⚔️\n\n` +
+        `📝 **VERIFICATION:** To unlock the server, press the button below and enter your nickname.\n` +
+        `*Note: Your name should include the guild name or tag (e.g., DN Name).*`
+    )
+    .setColor("#2ECC71")
       .setThumbnail(member.user.displayAvatarURL())
       .setTimestamp();
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId("start_verify")
-        .setLabel("Верификация")
+        .setLabel("verification")
         .setStyle(ButtonStyle.Success)
     );
 
@@ -86,11 +89,16 @@ async function handleInteraction(interaction) {
       .setCustomId("nick_modal")
       .setTitle("Регистрация");
 
-    const input = new TextInputBuilder()
-      .setCustomId("new_nickname")
-      .setLabel("Въведи никнейм:")
-      .setStyle(TextInputStyle.Short)
-      .setRequired(true);
+   const input = new TextInputBuilder()
+    .setCustomId("new_nickname")
+    // This is the instruction above the input box
+    .setLabel("Put your guild name or initials before your name:")
+    .setStyle(TextInputStyle.Short)
+    // This is the clue inside the box
+    .setPlaceholder("Example: TS Luffy or Thousand Sunny Luffy") 
+    .setRequired(true)
+    .setMinLength(2)
+    .setMaxLength(32);
 
     modal.addComponents(new ActionRowBuilder().addComponents(input));
 
