@@ -7,6 +7,9 @@ const path = require('path');
 const dataPath = path.join(__dirname, '..', 'data', 'permanent.json');
 let permanentData = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
 
+console.log("Път до JSON:", dataPath);
+console.log("Данни в JSON:", permanentData);
+
 // --- CONFIG ---
 const CONFIG = {
     ADMIN_ID: '190189929316352000',
