@@ -89,10 +89,15 @@ async function handleInteraction(interaction) {
       .setTitle("NickName");
 
     const input = new TextInputBuilder()
-      .setCustomId("new_nickname")
-      .setLabel("Въведи никнейм:")
-      .setStyle(TextInputStyle.Short)
-      .setRequired(true);
+    .setCustomId("new_nickname")
+    // Съкратен текст (41 символа), за да не гърми:
+    .setLabel("Put guild name or initials before name:")
+    .setStyle(TextInputStyle.Short)
+    // Placeholder-ът може да е дълъг (до 100 символа), тук няма проблем:
+    .setPlaceholder("Example: TS Luffy or Thousand Sunny Luffy")
+    .setRequired(true)
+    .setMinLength(2)
+    .setMaxLength(32);
 
     modal.addComponents(new ActionRowBuilder().addComponents(input));
 
