@@ -18,8 +18,34 @@ module.exports = {
     sendShipPanelDirect: async (channel) => {
         const embed = new EmbedBuilder()
             .setTitle('🚢 BELLY RUSH | Ship Registration')
-            .setDescription('***Attention Sailors!*** ⚓\nThe fleet is preparing for departure.')
-            .setColor('#2ecc71')
+            .setDescription(
+                '***Attention Sailors!*** ⚓\n' +
+                'The fleet is preparing for departure. Get ready for battle!'
+            )
+            .addFields(
+                { 
+                    name: '🛡️ Active Crew', 
+                    value: 'These buttons are for **active players** who want to manage their participation. If you like switching ships or join frequently, pick your role below!', 
+                    inline: false 
+                },
+                { 
+                    name: '⚓ Permanent Crew', 
+                    value: 'Your spots are **secured**. If you don\'t feel like clicking, you are already part of the manifest. This is only for those who want to be active or have time on discord!', 
+                    inline: false 
+                },
+                { 
+                    name: '📝 Request Permanent Status', 
+                    value: 'If you don\'t want to deal with buttons every time and your ship choice **won\'t change** for future events, please **let us know**! We will assign you a permanent role so you don\'t have to register manually.', 
+                    inline: false 
+                }
+            )
+            .setColor('#2ecc71') 
+            .setThumbnail('https://flaticon.com') 
+            .setImage('https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExczVjbHA5emc1M3NuYmNybXZhNjlsNHk2OGtjbHMxODRzb2U0dGg1ZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/7zmLy0sYn9Y8O6BrlF/giphy.gif') 
+            .setFooter({ 
+                text: '⚓ Pick your ship and prepare for battle! | Hosted by Captain', 
+                iconURL: 'https://flaticon.com' 
+            })
             .setTimestamp();
 
         const row = new ActionRowBuilder().addComponents(
@@ -101,11 +127,15 @@ module.exports = {
 
             await message.member.roles.add(role);
 
-            // ✅ ЗАПИС В NEON
+            
+        // ✅ ЗАПИС В NEON (с ID и Username)
             await pool.query(
-                "INSERT INTO permanent_crew (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING",
-                [message.author.id]
-            );
+        `INSERT INTO permanent_crew (user_id, username) 
+         VALUES ($1, $2) 
+         ON CONFLICT (user_id) 
+         DO UPDATE SET username = $2`, // Ако си смени името, ще го обнови
+        [message.author.id, message.author.username]    
+    );
 
             return message.reply(`✅ You are now **PERMANENT** in ${role.name}`);
         } catch (error) {
