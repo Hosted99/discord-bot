@@ -5,12 +5,11 @@ const ALLOWED_GUILDS = [
   "1451310326019526800"
 ];
 
-
-const managedRoles = [
-    "Pirate King Crew", "Pirate King", "Whitebeard's", "Mini Whitebeard's", 
-    "Team builder", "Whitebeard's Leader", "Whitebeard's Vice Leader", 
-    "Mini Whitebeard's Leader", "Mini Whitebeard's Vice Leader", "Rookies", "Player", "TEST"
-];
+// 🔐 ROLE IDs (ЗАМЕНИ ТЕЗИ С ТВОИТЕ)
+const ROLES = {
+  ROOKIES: "1498708853896908891",
+  PLAYER: "1498707138250277005"
+};
 
 // 👋 per-guild welcome tracking
 const lastWelcomeMessage = new Map();
@@ -28,7 +27,7 @@ async function handleNewMember(member) {
   if (!ALLOWED_GUILDS.includes(member.guild.id)) return;
 
   try {
-    const rookieRole = member.guild.roles.cache.get(managedRoles.Rookies);
+    const rookieRole = member.guild.roles.cache.get(ROLES.ROOKIES);
     const welcomeChannel = member.guild.channels.cache.find(
       ch => ch.name === "│👋│welcome"
     );
@@ -46,19 +45,19 @@ async function handleNewMember(member) {
         `Ahoy, pirate ${member}! 🏴‍☠️\n\n` +
         `Welcome to the **Pirate Queen’s Family**, ruled by <@825016547138732082>.\n\n` +
         `📜 **The Pirate Code:** Check <#1497466531322527877> or risk walking the plank!\n` +
-        `🍻 **The Tavern:** Say hi at <#1486343047632523398>.\n` +
         `💰 **Bounties:** Drop your in-game profile pic in <#1490838764057268392> to claim your reward! ⚔️\n\n` +
-        `📝 **VERIFICATION:** To unlock the server, press the button below and enter your nickname.\n` +
-        `*Note: Your name should include the guild name or tag (e.g., DN Name).*`
+        `🍻 **The Tavern:** Say hi at <#1486343047632523398>. but first put a NickName \n` +
+        `📝 **Nickanme:** To unlock the server, press the button below and enter your nickname.\n` +
+        `*Note: Your name should include the guild name or tag (e.g., TS Hsoted, Thousand Sunny HOsted).*`
     )
-    .setColor("#2ECC71")
+      .setColor("#2ECC71")
       .setThumbnail(member.user.displayAvatarURL())
       .setTimestamp();
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId("start_verify")
-        .setLabel("verification")
+        .setLabel("Nickname")
         .setStyle(ButtonStyle.Success)
     );
 
@@ -87,9 +86,9 @@ async function handleInteraction(interaction) {
   if (interaction.isButton() && interaction.customId === "start_verify") {
     const modal = new ModalBuilder()
       .setCustomId("nick_modal")
-      .setTitle("register");
+      .setTitle("Nickanmeя");
 
-   const input = new TextInputBuilder()
+    const input = new TextInputBuilder()
     .setCustomId("new_nickname")
     // This is the instruction above the input box
     .setLabel("Put your guild name or initials before your name:")
@@ -110,13 +109,13 @@ async function handleInteraction(interaction) {
     const newNick = interaction.fields.getTextInputValue("new_nickname");
 
     try {
-      const playerRole = guild.roles.cache.get(managedRoles.Player);
-      const rookieRole = guild.roles.cache.get(managedRoles.Rookies);
+      const playerRole = guild.roles.cache.get(ROLES.PLAYER);
+      const rookieRole = guild.roles.cache.get(ROLES.ROOKIES);
 
       // already verified
       if (playerRole && member.roles.cache.has(playerRole.id)) {
         return interaction.reply({
-          content: "⚠️ Вече си верифициран!",
+          content: "⚠️ you have a nickanme already!",
           ephemeral: true
         });
       }
@@ -127,20 +126,19 @@ async function handleInteraction(interaction) {
       if (playerRole) await member.roles.add(playerRole);
 
       return interaction.reply({
-        content: `✅ Добре дошъл, **${newNick}**!`,
+        content: `✅ Welcome, **${newNick}**!`,
         ephemeral: true
       });
 
     } catch (err) {
       console.error(err);
       return interaction.reply({
-        content: "❌ Грешка при верификация.",
+        content: "❌ nickanme error  .",
         ephemeral: true
       });
     }
   }
 }
-
 ///__________________________________ТЕСТ
 
 
