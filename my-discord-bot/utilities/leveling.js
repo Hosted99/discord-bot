@@ -1,11 +1,12 @@
 const { EmbedBuilder, PermissionsBitField } = require('discord.js');
+const cron = require('node-cron');
 
-// --- КОНФИГУРАЦИЯ (ID-тата, които вече попълни) ---
-const TARGET_GUILD_ID = '1486343040162468003'; 
-const LEVEL_UP_CHANNEL_ID = '1498426382219481248'; 
-const LOG_CHANNEL_ID = '1498426571806085192';   
-const STATS_CHANNEL_ID = '1498426456143958027';     
-// ----------------------------------------------
+// --- КОНФИГУРАЦИЯ ---
+const TARGET_GUILD_ID = '1451310326019526800'; 
+const LEVEL_UP_CHANNEL_ID = '1498450042908966922'; 
+const LOG_CHANNEL_ID = '1498450101482295307';   
+const STATS_CHANNEL_ID = '1498450115885666344';     
+// --------------------
 
 const xpCache = new Map();
 
@@ -58,8 +59,7 @@ const RANK_ROLES = {
 const FUNNY_FALLBACKS = [
     "Still a nobody, but at least you're a louder nobody now. 🤡",
     "Level up! Sadly, your reputation is still 0. 📉",
-    "Congratulations! You've achieved... absolutely nothing new. ✨",
-    "Wow, Level Up! Even the sea gulls are unimpressed. 🐦"
+    "Congratulations! You've achieved... absolutely nothing new. ✨"
 ];
 
 // Функция за запис в Neon
@@ -91,8 +91,7 @@ module.exports = (client, poolObj) => {
         if (message.content.toLowerCase().startsWith('!rank')) {
             const rankChannel = client.channels.cache.get(LEVEL_UP_CHANNEL_ID);
             if (!rankChannel) return;
-
-            message.delete().catch(() => {}); // Трие командата !rank
+            message.delete().catch(() => {}), 30000;
 
             let dbRes = await pool.query('SELECT xp, level FROM levels WHERE user_id = $1', [userId]);
             let xp = dbRes.rows[0]?.xp || 0, lvl = dbRes.rows[0]?.level || 1;
@@ -102,7 +101,7 @@ module.exports = (client, poolObj) => {
             const nextXP = lvl * 500;
             const roleInfo = RANK_ROLES[lvl];
             const embed = new EmbedBuilder()
-                .setTitle(`⚓ ${message.author.username}'s Status`)
+                .setTitle(`⚓ ${message.member.displayName}'s Status`)
                 .setThumbnail(message.author.displayAvatarURL({ dynamic: true }))
                 .setColor(roleInfo?.color || '#34495e')
                 .addFields(
@@ -112,39 +111,56 @@ module.exports = (client, poolObj) => {
                 )
                 .setFooter({ text: 'Auto-deleting in 60s' });
 
-            return rankChannel.send({ content: `⚓ ${message.author}, here is your rank:`, embeds: [embed] }).then(msg => {
+            return rankChannel.send({ content: `⚓ ${message.author}, check your status:`, embeds: [embed] }).then(msg => {
                 setTimeout(() => msg.delete().catch(() => {}), 60000);
             });
         }
 
-        // --- КОМАНДА !TOP (Самоизтриваща се) ---
+                       // --- КОМАНДА !TOP (Админска проверка със случайни текстове) ---
         if (message.content.toLowerCase() === '!top') {
+            if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
+                message.delete().catch(() => {});
+                return;
+            }
+
             const statsChannel = client.channels.cache.get(STATS_CHANNEL_ID);
             if (!statsChannel) return;
+            message.delete().catch(() => {});
 
-            message.delete().catch(() => {}); // Трие командата !top
+            // 1. Извличаме данните от Neon
+            const res = await pool.query('SELECT username, level, xp FROM levels ORDER BY level DESC, xp DESC LIMIT 10');
+            const desc = res.rows.map((row, i) => `\`#${i + 1}\` **${row.username}** — Level \`${row.level}\` (${row.xp} XP)`).join('\n');
 
-            const res = await pool.query('SELECT username, level FROM levels ORDER BY level DESC, xp DESC LIMIT 10');
-            const desc = res.rows.map((r, i) => `**${i + 1}.** ${r.username || 'Unknown'} — Lvl \`${r.level}\``).join('\n');
+            // 2. ДЕФИНИРАМЕ ВАРИАНТИТЕ ТУК
+            const variants = [
+                { t: '🏴‍☠️ THE NOISIEST PIRATES ON DECK!', d: `*Arrr! These sea dogs be makin’ the most noise across the seven seas:* \n\n${desc}` },
+                { t: '🍻 WHO WON’T SHUT UP?!', d: `*These pirates drank too much rum and haven’t stopped talkin’ since...*\n\n${desc}` },
+                { t: '⚓ CREW CHATTER CHAMPIONS', d: `*The loudest voices aboard the ship at this very moment:*\n\n${desc}` },
+                { t: '🔥 TOP SPAM LORDS', d: `*Current legends of chaos and chatter:*\n\n${desc}` },
+                { t: '💀 THE TAVERN’S LOUDEST LEGENDS', d: `*If silence was gold, these pirates would be broke:*\n\n${desc}` }
+            ];
+
+            // 3. Избираме един случаен вариант
+            const v = variants[Math.floor(Math.random() * variants.length)];
+
             const embed = new EmbedBuilder()
-                .setTitle('🏆 Most Wanted Pirates')
-                .setDescription(desc || "No data.")
-                .setColor('#f1c40f')
-                .setFooter({ text: 'Auto-deleting in 60s' });
+                .setTitle(v.t)
+                .setDescription(v.d)
+                .setColor('#FF4500')
+                .setThumbnail(message.guild.iconURL({ dynamic: true }))
+                .setFooter({ text: '☠️ This list will vanish into the mist in 60 seconds...' })
+                .setTimestamp();
 
-            return statsChannel.send({ embeds: [embed] }).then(msg => {
-                setTimeout(() => msg.delete().catch(() => {}), 60000);
-            });
+            return statsChannel.send({ embeds: [embed] }).then(m => setTimeout(() => m.delete().catch(() => {}), 60000));
         }
 
-                // --- КОМАНДА !SYNC (Админ) ---
-        if (message.content.toLowerCase() === '!sync' && message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-            const logChannel = client.channels.cache.get(LOG_CHANNEL_ID); // Взимаме лог канала
-            
-            let count = 0;
-            // Изтриваме командата на админа за чистота
-            message.delete().catch(() => {}); 
 
+
+        // --- КОМАНДА !SYNC (Админ) ---
+        if (message.content.toLowerCase() === '!sync' && message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
+            const logChannel = client.channels.cache.get(LOG_CHANNEL_ID);
+            message.delete().catch(() => {}), 30000;
+            let count = 0;
             for (const [id, data] of xpCache.entries()) { 
                 if (data.needsUpdate) { 
                     await saveToDatabase(pool, id, data); 
@@ -152,28 +168,14 @@ module.exports = (client, poolObj) => {
                     count++; 
                 } 
             }
-
-            // Пращаме потвърждението в ЛОГ канала
-            if (logChannel) {
-                const syncEmbed = new EmbedBuilder()
-                    .setTitle('♻️ Manual Sync Executed')
-                    .setDescription(`Admin **${message.author.username}** triggered a manual sync.\nUpdated **${count}** pirate profiles in Neon.`)
-                    .setColor('#2ecc71')
-                    .setTimestamp();
-
-                logChannel.send({ embeds: [syncEmbed] });
-            }
-
-            // Пращаме кратко съобщение на админа в текущия чат, което се трие бързо
-            return message.channel.send(`✅ Sync complete. Check <#${LOG_CHANNEL_ID}> for details.`)
-                .then(m => setTimeout(() => m.delete().catch(() => {}), 5000));
+            if (logChannel) logChannel.send(`✅ Manual sync by **${message.member.displayName}**: **${count}** profiles updated.`);
+            return;
         }
-
 
         // --- ЛОГИКА ЗА XP ---
         let xpGain = message.attachments.size > 0 ? 35 : 15; 
-        let userData = xpCache.get(userId) || { xp: 0, level: 1, username: message.author.username, needsUpdate: false };
-        userData.username = message.author.username;
+        let userData = xpCache.get(userId) || { xp: 0, level: 1, username: message.member.displayName, needsUpdate: false };
+        userData.username = message.member.displayName;
 
         // Посрещане на Ниво 1
         if (userData.level === 1 && !message.member.roles.cache.some(r => r.name === RANK_ROLES[1].name)) {
@@ -183,7 +185,7 @@ module.exports = (client, poolObj) => {
                 const lvlChannel = client.channels.cache.get(LEVEL_UP_CHANNEL_ID);
                 if (lvlChannel) {
                     const embed = new EmbedBuilder()
-                        .setAuthor({ name: `${message.author.username} joined the crew!`, iconURL: 'https://imgur.com' })
+                        .setAuthor({ name: `${message.member.displayName} joined the crew!`, iconURL: 'https://imgur.com' })
                         .setTitle('🏴‍☠️ NEW RECRUIT SPOTTED')
                         .setDescription(`Welcome ${message.author}!\n🔹 **Status:** **${RANK_ROLES[1].name}**\n\n> *"${RANK_ROLES[1].msg}"*`)
                         .setThumbnail(message.author.displayAvatarURL({ dynamic: true })).setColor(RANK_ROLES[1].color);
@@ -203,7 +205,7 @@ module.exports = (client, poolObj) => {
             if (lvlChannel) {
                 const customMsg = roleData ? roleData.msg : FUNNY_FALLBACKS[Math.floor(Math.random() * FUNNY_FALLBACKS.length)];
                 const embed = new EmbedBuilder()
-                    .setAuthor({ name: `${message.author.username} ranked up!`, iconURL: 'https://imgur.com' })
+                    .setAuthor({ name: `${message.member.displayName} ranked up!`, iconURL: 'https://imgur.com' })
                     .setDescription(`Congratulations ${message.author}!\n🔹 **Level:** \`${userData.level}\`\n🔹 **Status:** **${roleData?.name || "Wanderer"}**\n\n> *"${customMsg}"*`)
                     .setThumbnail(message.author.displayAvatarURL({ dynamic: true })).setColor(roleData?.color || '#34495e');
                 lvlChannel.send({ content: `${message.author}`, embeds: [embed] });
@@ -223,6 +225,39 @@ module.exports = (client, poolObj) => {
         } else { userData.needsUpdate = true; }
         xpCache.set(userId, userData);
     });
+
+       // СЕДМИЧЕН ТОП 10 - Изпълнява се всяка неделя в 23:59 (Лондонско време)
+    cron.schedule('59 23 * * 0', async () => {
+        const statsChannel = client.channels.cache.get(STATS_CHANNEL_ID);
+        if (!statsChannel) return;
+
+        const headers = [
+            { title: '🏆 The Loudest Pirates of the Week', desc: 'The crew members who simply will not shut up! 📢' },
+            { title: '🏴‍☠️ Most Wanted Grass Avoiders 🌱❌', desc: 'The weekly report is in: These legends need sunlight!' }
+        ];
+        const style = headers[Math.floor(Math.random() * headers.length)];
+
+        try {
+            const res = await pool.query('SELECT username, level, xp FROM levels ORDER BY level DESC, xp DESC LIMIT 10');
+            const desc = res.rows.map((row, i) => {
+                let icon = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `\`#${i + 1}\``;
+                return `${icon} **${row.username || 'Unknown'}** — Level \`${row.level}\` (${row.xp} XP)`;
+            }).join('\n');
+
+            const embed = new EmbedBuilder()
+                .setTitle(style.title)
+                .setColor('#FF4500')
+                .setDescription(`*${style.desc}*\n\n${desc}`)
+                .setFooter({ text: 'Weekly Ship Log | Official Record' })
+                .setTimestamp();
+            
+            statsChannel.send({ content: "🔔 **WEEKLY LEADERBOARD IS HERE!**", embeds: [embed] });
+            console.log("[System] Седмичната класация беше изпратена по разписание.");
+        } catch (e) { console.error("Cron Leaderboard Error:", e); }
+    }, {
+        timezone: "Europe/London" // Настройваме точното часово време
+    });
+
 
     // Синхронизация на 2 часа
     setInterval(async () => {
