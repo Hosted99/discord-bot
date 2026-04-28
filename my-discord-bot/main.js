@@ -155,6 +155,7 @@ client.on("messageDelete", async (message) => {
 
 // 6. Нови членове
 client.on("guildMemberAdd", async (member) => {
+    console.log(`📡 Нов потребител влезе: ${member.user.tag}`); // Добави това
     await handleNewMember(member);
 });
 
