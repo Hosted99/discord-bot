@@ -92,7 +92,15 @@ async function handleInteraction(interaction) {
             if (rookieRole) await member.roles.remove(rookieRole);
             await member.roles.add(playerRole);
 
-            await interaction.reply({ content: `✅ Успешна регистрация, **${newNick}**!`, ephemeral: true });
+            
+            await interaction.reply({ 
+            content: `✅ Успешна регистрация, **${newNick}**!`, 
+            flags: [MessageFlags.Ephemeral]         
+            });
+
+
+
+            
         } catch (err) {
             await interaction.reply({ content: "❌ Грешка! Ботът няма права над вашата роля.", ephemeral: true });
         }
