@@ -200,7 +200,7 @@ module.exports = (client, poolObj) => {
             if (logChannel) {
                 const syncEmbed = new EmbedBuilder()
                     .setTitle('♻️ Manual Sync Executed')
-                    .setDescription(`Admin **${message.member.displayName}** triggered a manual sync.\nUpdated **${count}** pirate profiles in Neon.`)
+                    .setDescription(`Admin **${message.member.displayName}** triggered a manual sync.\nUpdated **${count}** pirate profiles in DataBase.`)
                     .setColor('#2ecc71') // Зеленият цвят от снимката
                     .setTimestamp();
                 
