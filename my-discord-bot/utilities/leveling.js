@@ -209,10 +209,14 @@ module.exports = (client, poolObj) => {
             return;
         }
 
-        // --- ЛОГИКА ЗА ТРУПАНЕ НА XP ---
-        let xpGain = message.attachments.size > 0 ? 35 : 15; // Повече XP за снимки
-        userData.username = message.member.displayName;
-        userData.xp += xpGain;
+        // --- ИНТЕЛИГЕНТНА ЛОГИКА ЗА XP ---
+        let words = message.content.trim().split(/\s+/).length; // Броим думите
+        let baseXP = message.attachments.size > 0 ? 35 : 15;   // База (снимка или текст)
+        
+        // Бонус за дължина: +5 XP за всеки 10 думи (максимум до +50 бонус XP)
+        let lengthBonus = Math.min(Math.floor(words / 10) * 10, 50); 
+        let xpGain = baseXP + lengthBonus;
+
 
         // ПРОВЕРКА ЗА КАЧВАНЕ НА НИВО
         if (userData.xp >= (userData.level * 500)) {
