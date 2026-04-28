@@ -32,9 +32,15 @@ const CONFIG = {
 // --- SAVE FUNCTION ---
 function savePermanent() {
     try {
-        fs.writeFileSync(dataPath, JSON.stringify(permanentData, null, 2));
+        console.log("Опит за запис на ID-та:", permanentData.users); // Трябва да видиш списък с ID-та тук
+        const content = JSON.stringify(permanentData, null, 2);
+        
+        // Използваме синхронен запис, за да сме сигурни, че ще приключи
+        fs.writeFileSync(dataPath, content, 'utf8');
+        
+        console.log("✅ Файлът е записан успешно!");
     } catch (err) {
-        console.error("❌ Грешка при запис в JSON:", err.message);
+        console.error("❌ КРИТИЧНА ГРЕШКА ПРИ ЗАПИС:", err.message);
     }
 }
 
