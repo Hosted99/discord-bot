@@ -199,27 +199,35 @@ module.exports = (client, poolObj) => {
             return;
         }
 
-        // --- ЛОГИКА ЗА XP ---
+                // --- ЛОГИКА ЗА XP ---
         let xpGain = message.attachments.size > 0 ? 35 : 15; 
         let userData = xpCache.get(userId);
 
         if (!userData) {
-            // Опит за възстановяване от БД при съобщение, ако кеша е празен
             const dbRes = await pool.query('SELECT xp, level, username FROM levels WHERE user_id = $1', [userId]);
             if (dbRes.rows.length > 0) {
-                userData = { xp: dbRes.rows[0].xp, level: dbRes.rows[0].level, username: dbRes.rows[0].username, needsUpdate: false };
+                // ВЗЕМАМЕ СТАРИЯ ПРОГРЕС
+                userData = { 
+                    xp: parseInt(dbRes.rows[0].xp), 
+                    level: parseInt(dbRes.rows[0].level), 
+                    username: dbRes.rows[0].username, 
+                    needsUpdate: false 
+                };
             } else {
-                userData = { xp: 0, level: 1, username: message.member.displayName, needsUpdate: false };
+                // СЪЗДАВАМЕ НОВ ПРОФИЛ САМО АКО ГО НЯМА В БАЗАТА
+                userData = { xp: 0, level: 1, username: message.member.displayName, needsUpdate: true };
+                await saveToDatabase(pool, userId, userData); // Записваме го веднага в Neon
             }
+            xpCache.set(userId, userData);
         }
-        
+
         userData.username = message.member.displayName;
         userData.xp += xpGain;
         let nextLevelXP = userData.level * 500; 
 
         if (userData.xp >= nextLevelXP) {
             userData.level++;
-            userData.xp = 0; // Рестартираме XP при качване на ниво
+            userData.xp = 0;
             const roleData = RANK_ROLES[userData.level];
             const lvlChannel = client.channels.cache.get(LEVEL_UP_CHANNEL_ID);
 
@@ -235,19 +243,20 @@ module.exports = (client, poolObj) => {
             if (roleData) {
                 const newRole = await getOrCreateRole(message.guild, roleData);
                 if (newRole) {
-                    const allRanks = Object.values(RANK_ROLES).map(r => r.name);
-                    const oldRoles = message.member.roles.cache.filter(r => allRanks.includes(r.name));
+                    const allRankNames = Object.values(RANK_ROLES).map(r => r.name);
+                    const oldRoles = message.member.roles.cache.filter(r => allRankNames.includes(r.name));
                     if (oldRoles.size > 0) await message.member.roles.remove(oldRoles).catch(() => {});
                     await message.member.roles.add(newRole).catch(() => {});
                 }
             }
+            // ЗАДЪЛЖИТЕЛЕН ЗАПИС ПРИ LEVEL UP
             await saveToDatabase(pool, userId, userData);
             userData.needsUpdate = false;
         } else { 
             userData.needsUpdate = true; 
         }
         xpCache.set(userId, userData);
-    });
+
 
     // СЕДМИЧЕН ТОП 10
     cron.schedule('59 23 * * 0', async () => {
