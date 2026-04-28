@@ -25,6 +25,8 @@ const { handleNewMember, handleRoleCommands } = require("./utilities/roleHandler
 const { sendBotManual } = require("./utilities/infoHandler");
 const { logDeletedMessage } = require("./utilities/logger");
 const memeSystem = require('./utilities/meme.js');
+const setupVerification = require('./verification.js'); // Провери дали файлът е в същата папка
+
 
 // 1. Конфигурация на Groq AI и Cooldown система
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
