@@ -115,7 +115,7 @@ async function handleInteraction(interaction) {
         ephemeral: true 
     });
 }
-
+    }
 
 ///__________________________________ТЕСТ
 
