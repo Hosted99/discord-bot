@@ -430,3 +430,4 @@ module.exports = (client, poolObj) => {
         } catch (e) { console.error("Sync Error:", e); }
     }, { timezone: "Europe/London" });
 };
+        }; 
