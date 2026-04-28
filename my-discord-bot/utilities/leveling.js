@@ -267,4 +267,10 @@ module.exports = (client, poolObj) => {
             await member.roles.add(role).catch(() => {});
         }
     });
+    // КРИТИЧНО: ЗАПИС ПРИ СПИРАНЕ/РЕСТАРТ (CTRL+C)
+    process.on('SIGINT', async () => {
+        console.log('⚠️ Saving progress before shutdown...');
+        await massSync();
+        process.exit(0);
+    });
 };
