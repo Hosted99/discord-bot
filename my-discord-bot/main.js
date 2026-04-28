@@ -92,13 +92,7 @@ client.once("ready", async () => {
     console.log(`🤖 Онлайн като: ${client.user.tag}`);
 
     
-    ////
-
-       // Стартираме таймера от bday.js
-    startBirthdayTimer(client); 
-
-
-    ////
+  
 
     
 
