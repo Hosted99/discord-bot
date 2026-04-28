@@ -7,7 +7,7 @@ let lastWelcomeMessage = null;
 const managedRoles = [
     "Pirate King Crew", "Pirate King", "Whitebeard's", "Mini Whitebeard's", 
     "Team builder", "Whitebeard's Leader", "Whitebeard's Vice Leader", 
-    "Mini Whitebeard's Leader", "Mini Whitebeard's Vice Leader", "Rookies"
+    "Mini Whitebeard's Leader", "Mini Whitebeard's Vice Leader"
 ];
 
 const bountyTiers = [];
