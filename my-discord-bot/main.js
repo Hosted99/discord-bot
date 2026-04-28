@@ -157,6 +157,21 @@ client.on("guildMemberAdd", async (member) => {
 // --- СЛУШАТЕЛ ЗА КОМАНДИ ---
 client.on("messageCreate", async (msg) => {
     if (msg.author.bot || !msg.guild) return;
+
+    //
+
+            // --- СЛОЖИ ГО ТУК! Най-отгоре, преди всички останали проверки ---
+    try {
+        await shipSystem.handleMessage(msg);
+    } catch (e) {
+        console.error("Ship system error:", e);
+    }
+    
+    
+    
+    //
+
+    
     const lowerContent = msg.content.toLowerCase().trim();
 
     if (lowerContent.startsWith("mania-plan")) {
@@ -375,14 +390,7 @@ client.on("interactionCreate", async (interaction) => {
 });
 /////-------_TEST
 
-client.on('messageCreate', async (message) => {
-    try {
-        // Добави await тук!
-        await shipSystem.handleMessage(message);
-    } catch (error) {
-        console.error("error message:", error);
-    }
-});
+
 
 
 /////______TEST
