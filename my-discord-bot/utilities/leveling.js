@@ -8,7 +8,8 @@ const LOG_CHANNEL_ID = '1498426571806085192';
 const STATS_CHANNEL_ID = '1498426456143958027';     
 
 // Локален кеш за бърз достъп до XP данните на потребителите
-const xpCache = new Map();
+const messageTracker = new Map();
+const warnTracker = new Map();
 
 // Функция за създаване на визуален прогрес бар (например: [▇▇▇——] 60%)
 function createProgressBar(current, total, size = 10) {
@@ -209,15 +210,118 @@ module.exports = (client, poolObj) => {
             return;
         }
 
-        // --- ИНТЕЛИГЕНТНА ЛОГИКА ЗА XP ---
-        let words = message.content.trim().split(/\s+/).length; // Броим думите
-        let baseXP = message.attachments.size > 0 ? 35 : 15;   // База (снимка или текст)
+
+        //_--------
         
-        // Бонус за дължина: +5 XP за всеки 10 думи (максимум до +50 бонус XP)
-        let lengthBonus = Math.min(Math.floor(words / 10) * 10, 50); 
-        let xpGain = baseXP + lengthBonus;
+        // --- ИНТЕЛИГЕНТНА ЛОГИКА ЗА XP + ANTI SPAM ---
 
+let now = Date.now();
 
+// 📊 TRACKER: следи колко съобщения е пратил user в кратък прозорец (10 сек)
+let track = messageTracker.get(userId) || {
+    count: 0,
+    lastReset: now
+};
+
+// ⚠️ WARNING TRACKER: следи колко предупреждения има user-а
+let warnData = warnTracker.get(userId) || {
+    warns: 0,
+    lastWarnTime: 0
+};
+
+// 🔄 reset на брояча на всеки 10 секунди
+if (now - track.lastReset > 10000) {
+    track.count = 0;
+    track.lastReset = now;
+}
+
+// ➕ увеличаваме броя съобщения в текущия прозорец
+track.count += 1;
+messageTracker.set(userId, track);
+
+// 🧮 XP база
+let words = message.content.trim().split(/\s+/).length;
+let baseXP = message.attachments.size > 0 ? 35 : 15;
+
+// 📏 бонус XP според дължината на съобщението
+// +10 XP на всеки 10 думи (до максимум 50 XP)
+let lengthBonus = Math.min(Math.floor(words / 10) * 10, 50);
+
+// 🧠 SPAM MULTIPLIER (намаля XP при spam)
+let multiplier = 1;
+let shouldWarn = false;
+
+// 🟡 лек spam (4–6 съобщения)
+if (track.count > 3) {
+    multiplier = 0.7;
+    shouldWarn = true;
+}
+
+// 🟠 среден spam (7–10 съобщения)
+if (track.count > 6) {
+    multiplier = 0.4;
+    shouldWarn = true;
+}
+
+// 🔴 тежък spam (10+ съобщения)
+if (track.count > 10) {
+    multiplier = 0.1;
+    shouldWarn = true;
+}
+
+// 🧮 финално XP след penalty
+let xpGain = Math.floor((baseXP + lengthBonus) * multiplier);
+
+// =========================
+// ⚠️ WARNING SYSTEM
+// =========================
+if (shouldWarn) {
+
+    // ⏱️ анти-spam за warning (на 10 секунди максимум 1 warning)
+    if (now - (warnData.lastWarnTime || 0) > 10000) {
+
+        // ➕ увеличаваме warnings
+        warnData.warns += 1;
+        warnData.lastWarnTime = now;
+        warnTracker.set(userId, warnData);
+
+        // 📢 изпращаме warning съобщение
+        const warnMsg = await message.channel.send(
+            `⚠️ ${message.author} stop spamming! Warning **${warnData.warns}/3**`
+        );
+
+        // 🧹 автоматично изтриваме warning съобщението след 5 сек
+        setTimeout(() => warnMsg.delete().catch(() => {}), 5000);
+
+        // =========================
+        // 🔇 AUTO MUTE (3 warnings)
+        // =========================
+        if (warnData.warns >= 3) {
+
+            const member = message.member;
+
+            // 🔒 mute (timeout) ако ботът има права
+            if (member && member.moderatable) {
+                await member.timeout(10 * 60 * 1000, "Spam - 3 warnings reached");
+            }
+
+            // 🔄 reset warnings след mute
+            warnTracker.set(userId, { warns: 0, lastWarnTime: 0 });
+
+            // 📢 mute notification
+            const muteMsg = await message.channel.send(
+                `🔇 ${message.author} has been muted for **10 minutes**.`
+            );
+
+            // 🧹 auto delete mute message
+            setTimeout(() => muteMsg.delete().catch(() => {}), 8000);
+        }
+    }
+}
+
+///--------
+
+        
         // ПРОВЕРКА ЗА КАЧВАНЕ НА НИВО
         if (userData.xp >= (userData.level * 500)) {
             userData.level++;
