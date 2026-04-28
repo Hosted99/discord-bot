@@ -3,8 +3,9 @@ const fs = require('fs');
 const path = require('path');
 
 // --- JSON DATA ---
-const dataPath = path.join(__dirname, 'permanent.json');
-let permanentData = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+// Използвай това, за да стигнеш до папка data
+const filePath = path.join(__dirname, '..', 'data', 'permanent.json');
+const data = fs.readFileSync(filePath, 'utf8');
 
 // --- CONFIG ---
 const CONFIG = {
