@@ -1,15 +1,22 @@
 const { EmbedBuilder, PermissionsBitField } = require('discord.js');
 
-// --- КОНФИГУРАЦИЯ ---
-const TARGET_GUILD_ID = '1486343040162468003'; 
-const LEVEL_UP_CHANNEL_ID = '1498426382219481248'; 
-const LOG_CHANNEL_ID = '1498426571806085192';   
-const STATS_CHANNEL_ID = '1498426456143958027';     
-// --------------------
+// --- КОНФИГУРАЦИЯ (ID-тата, които вече попълни) ---
+const TARGET_GUILD_ID = '1451310326019526800'; 
+const LEVEL_UP_CHANNEL_ID = '1498450042908966922'; 
+const LOG_CHANNEL_ID = '1498450101482295307';   
+const STATS_CHANNEL_ID = '1498450115885666344';     
+// ----------------------------------------------
 
 const xpCache = new Map();
 
-// СПИСЪК С РОЛИТЕ
+// Функция за визуален прогрес бар
+function createProgressBar(current, total, size = 10) {
+    const progress = Math.min(size, Math.floor((current / total) * size));
+    const emptyProgress = size - progress;
+    return `\`[${'▇'.repeat(progress)}${'—'.repeat(emptyProgress)}]\` ${Math.floor((current / total) * 100)}%`;
+}
+
+// СПИСЪК С РОЛИТЕ (35 БРОЯ)
 const RANK_ROLES = {
     1:   { name: "Silent Snail 🐌", color: "#7f8c8d", msg: "Welcome to the crew... or are you just watching? 👀" },
     3:   { name: "Keyboard Lost", color: "#95a5a6", msg: "Did you drop your keyboard in the ocean? Say something! 🌊" },
@@ -51,24 +58,24 @@ const RANK_ROLES = {
 const FUNNY_FALLBACKS = [
     "Still a nobody, but at least you're a louder nobody now. 🤡",
     "Level up! Sadly, your reputation is still 0. 📉",
-    "You're climbing the ladder, but it's leaning against the wrong wall. 🪜",
     "Congratulations! You've achieved... absolutely nothing new. ✨",
     "Wow, Level Up! Even the sea gulls are unimpressed. 🐦"
 ];
 
+// Функция за запис в Neon
 async function saveToDatabase(pool, userId, data) {
-    const query = `INSERT INTO levels (user_id, xp, level) VALUES ($1, $2, $3) 
-                   ON CONFLICT (user_id) DO UPDATE SET xp = $2, level = $3;`;
-    try { await pool.query(query, [userId, data.xp, data.level]); } catch (e) { console.error("DB Error:", e); }
+    const query = `
+        INSERT INTO levels (user_id, xp, level, username) VALUES ($1, $2, $3, $4) 
+        ON CONFLICT (user_id) DO UPDATE SET xp = $2, level = $3, username = $4;
+    `;
+    try { await pool.query(query, [userId, data.xp, data.level, data.username]); } catch (e) { console.error("DB Error:", e); }
 }
 
 async function getOrCreateRole(guild, roleData) {
     if (!guild.members.me.permissions.has(PermissionsBitField.Flags.ManageRoles)) return null;
     let role = guild.roles.cache.find(r => r.name === roleData.name);
     if (!role) {
-        try {
-            role = await guild.roles.create({ name: roleData.name, color: roleData.color, reason: 'Automated Rank' });
-        } catch (e) { console.error(e); }
+        try { role = await guild.roles.create({ name: roleData.name, color: roleData.color, reason: 'Automated Rank' }); } catch (e) { console.error(e); }
     }
     return role;
 }
@@ -78,33 +85,109 @@ module.exports = (client, poolObj) => {
 
     client.on('messageCreate', async (message) => {
         if (message.author.bot || !message.guild || message.guild.id !== TARGET_GUILD_ID) return;
-
         const userId = message.author.id;
-        let xpGain = message.attachments.size > 0 ? 35 : 15; 
 
-        let userData = xpCache.get(userId) || { xp: 0, level: 1, needsUpdate: false };
+        // --- КОМАНДА !RANK (Самоизтриваща се) ---
+        if (message.content.toLowerCase().startsWith('!rank')) {
+            const rankChannel = client.channels.cache.get(LEVEL_UP_CHANNEL_ID);
+            if (!rankChannel) return;
 
-        // --- ЛОГИКА ЗА НИВО 1 (НОВОБРАНЦИ) ---
-        if (userData.level === 1) {
-            const startRoleData = RANK_ROLES[1];
-            const hasRole = message.member.roles.cache.some(r => r.name === startRoleData.name);
+            message.delete().catch(() => {}); // Трие командата !rank
+
+            let dbRes = await pool.query('SELECT xp, level FROM levels WHERE user_id = $1', [userId]);
+            let xp = dbRes.rows[0]?.xp || 0, lvl = dbRes.rows[0]?.level || 1;
+            const cached = xpCache.get(userId);
+            if (cached) { xp = cached.xp; lvl = cached.level; }
+
+            const nextXP = lvl * 500;
+            const roleInfo = RANK_ROLES[lvl];
+            const embed = new EmbedBuilder()
+                .setTitle(`⚓ ${message.author.username}'s Status`)
+                .setThumbnail(message.author.displayAvatarURL({ dynamic: true }))
+                .setColor(roleInfo?.color || '#34495e')
+                .addFields(
+                    { name: '👤 Title', value: `**${roleInfo?.name || "Wanderer"}**`, inline: true },
+                    { name: '📈 Level', value: `\`${lvl}\``, inline: true },
+                    { name: '📊 Progress', value: createProgressBar(xp, nextXP), inline: false }
+                )
+                .setFooter({ text: 'Auto-deleting in 60s' });
+
+            return rankChannel.send({ content: `⚓ ${message.author}, here is your rank:`, embeds: [embed] }).then(msg => {
+                setTimeout(() => msg.delete().catch(() => {}), 60000);
+            });
+        }
+
+        // --- КОМАНДА !TOP (Самоизтриваща се) ---
+        if (message.content.toLowerCase() === '!top') {
+            const statsChannel = client.channels.cache.get(STATS_CHANNEL_ID);
+            if (!statsChannel) return;
+
+            message.delete().catch(() => {}); // Трие командата !top
+
+            const res = await pool.query('SELECT username, level FROM levels ORDER BY level DESC, xp DESC LIMIT 10');
+            const desc = res.rows.map((r, i) => `**${i + 1}.** ${r.username || 'Unknown'} — Lvl \`${r.level}\``).join('\n');
+            const embed = new EmbedBuilder()
+                .setTitle('🏆 Most Wanted Pirates')
+                .setDescription(desc || "No data.")
+                .setColor('#f1c40f')
+                .setFooter({ text: 'Auto-deleting in 60s' });
+
+            return statsChannel.send({ embeds: [embed] }).then(msg => {
+                setTimeout(() => msg.delete().catch(() => {}), 60000);
+            });
+        }
+
+                // --- КОМАНДА !SYNC (Админ) ---
+        if (message.content.toLowerCase() === '!sync' && message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
+            const logChannel = client.channels.cache.get(LOG_CHANNEL_ID); // Взимаме лог канала
             
-            if (!hasRole) {
-                const startRole = await getOrCreateRole(message.guild, startRoleData);
-                if (startRole) {
-                    await message.member.roles.add(startRole).catch(() => {});
-                    const lvlChannel = client.channels.cache.get(LEVEL_UP_CHANNEL_ID);
-                    if (lvlChannel) {
-                        const embed = new EmbedBuilder()
-                            .setAuthor({ name: `${message.author.username} joined the crew!`, iconURL: 'https://imgur.com' })
-                            .setTitle('🏴‍☠️ NEW RECRUIT SPOTTED')
-                            .setDescription(`Welcome ${message.author} to the **Sailing Kingdom**!\n\n🔹 **Level:** \`1\`\n🔹 **Status:** **${startRoleData.name}**\n\n> *"${startRoleData.msg}"*`)
-                            .setThumbnail(message.author.displayAvatarURL({ dynamic: true }))
-                            .setColor(startRoleData.color)
-                            .setFooter({ text: 'Sailing Kingdom | Official Log', iconURL: message.guild.iconURL() })
-                            .setTimestamp();
-                        lvlChannel.send({ content: `⚓ **New Pirate Aboard!** ${message.author} has started their journey!`, embeds: [embed] });
-                    }
+            let count = 0;
+            // Изтриваме командата на админа за чистота
+            message.delete().catch(() => {}); 
+
+            for (const [id, data] of xpCache.entries()) { 
+                if (data.needsUpdate) { 
+                    await saveToDatabase(pool, id, data); 
+                    data.needsUpdate = false; 
+                    count++; 
+                } 
+            }
+
+            // Пращаме потвърждението в ЛОГ канала
+            if (logChannel) {
+                const syncEmbed = new EmbedBuilder()
+                    .setTitle('♻️ Manual Sync Executed')
+                    .setDescription(`Admin **${message.author.username}** triggered a manual sync.\nUpdated **${count}** pirate profiles in Neon.`)
+                    .setColor('#2ecc71')
+                    .setTimestamp();
+
+                logChannel.send({ embeds: [syncEmbed] });
+            }
+
+            // Пращаме кратко съобщение на админа в текущия чат, което се трие бързо
+            return message.channel.send(`✅ Sync complete. Check <#${LOG_CHANNEL_ID}> for details.`)
+                .then(m => setTimeout(() => m.delete().catch(() => {}), 5000));
+        }
+
+
+        // --- ЛОГИКА ЗА XP ---
+        let xpGain = message.attachments.size > 0 ? 35 : 15; 
+        let userData = xpCache.get(userId) || { xp: 0, level: 1, username: message.author.username, needsUpdate: false };
+        userData.username = message.author.username;
+
+        // Посрещане на Ниво 1
+        if (userData.level === 1 && !message.member.roles.cache.some(r => r.name === RANK_ROLES[1].name)) {
+            const role = await getOrCreateRole(message.guild, RANK_ROLES[1]);
+            if (role) {
+                await message.member.roles.add(role).catch(() => {});
+                const lvlChannel = client.channels.cache.get(LEVEL_UP_CHANNEL_ID);
+                if (lvlChannel) {
+                    const embed = new EmbedBuilder()
+                        .setAuthor({ name: `${message.author.username} joined the crew!`, iconURL: 'https://imgur.com' })
+                        .setTitle('🏴‍☠️ NEW RECRUIT SPOTTED')
+                        .setDescription(`Welcome ${message.author}!\n🔹 **Status:** **${RANK_ROLES[1].name}**\n\n> *"${RANK_ROLES[1].msg}"*`)
+                        .setThumbnail(message.author.displayAvatarURL({ dynamic: true })).setColor(RANK_ROLES[1].color);
+                    lvlChannel.send({ embeds: [embed] });
                 }
             }
         }
@@ -112,83 +195,37 @@ module.exports = (client, poolObj) => {
         userData.xp += xpGain;
         let nextLevelXP = userData.level * 500; 
 
-        // --- ЛОГИКА ЗА LEVEL UP ---
         if (userData.xp >= nextLevelXP) {
             userData.level++;
             const roleData = RANK_ROLES[userData.level];
-
             const lvlChannel = client.channels.cache.get(LEVEL_UP_CHANNEL_ID);
+
             if (lvlChannel) {
                 const customMsg = roleData ? roleData.msg : FUNNY_FALLBACKS[Math.floor(Math.random() * FUNNY_FALLBACKS.length)];
-                const rankName = roleData ? roleData.name : "Just a Wanderer";
-
                 const embed = new EmbedBuilder()
                     .setAuthor({ name: `${message.author.username} ranked up!`, iconURL: 'https://imgur.com' })
-                    .setTitle('🏴‍☠️ SHIP LOG UPDATE')
-                    .setDescription(`Congratulations ${message.author}!\n\n🔹 **Level:** \`${userData.level}\`\n🔹 **Status:** **${rankName}**\n\n> *"${customMsg}"*`)
-                    .setThumbnail(message.author.displayAvatarURL({ dynamic: true }))
-                    .setColor(roleData ? roleData.color : '#34495e')
-                    .setFooter({ text: 'Sailing Kingdom | Official Log', iconURL: message.guild.iconURL() })
-                    .setTimestamp();
-                
-                lvlChannel.send({ content: `⚓ **Attention Crew!** ${message.author} has reached Level ${userData.level}!`, embeds: [embed] });
+                    .setDescription(`Congratulations ${message.author}!\n🔹 **Level:** \`${userData.level}\`\n🔹 **Status:** **${roleData?.name || "Wanderer"}**\n\n> *"${customMsg}"*`)
+                    .setThumbnail(message.author.displayAvatarURL({ dynamic: true })).setColor(roleData?.color || '#34495e');
+                lvlChannel.send({ content: `${message.author}`, embeds: [embed] });
             }
 
             if (roleData) {
                 const newRole = await getOrCreateRole(message.guild, roleData);
                 if (newRole) {
-                    const allRankNames = Object.values(RANK_ROLES).map(r => r.name);
-                    const currentRankRoles = message.member.roles.cache.filter(r => allRankNames.includes(r.name));
-                    if (currentRankRoles.size > 0) await message.member.roles.remove(currentRankRoles).catch(() => {});
+                    const allRanks = Object.values(RANK_ROLES).map(r => r.name);
+                    const oldRoles = message.member.roles.cache.filter(r => allRanks.includes(r.name));
+                    if (oldRoles.size > 0) await message.member.roles.remove(oldRoles).catch(() => {});
                     await message.member.roles.add(newRole).catch(() => {});
                 }
             }
-
             await saveToDatabase(pool, userId, userData);
             userData.needsUpdate = false;
-        } else {
-            userData.needsUpdate = true; 
-        }
+        } else { userData.needsUpdate = true; }
         xpCache.set(userId, userData);
     });
 
-    // СЕДМИЧЕН ТОП 10 (Класация)
+    // Синхронизация на 2 часа
     setInterval(async () => {
-        const statsChannel = client.channels.cache.get(STATS_CHANNEL_ID);
-        if (!statsChannel) return;
-        const headers = [
-            { title: '🏆 The Most Wanted Grass Avoiders 🌱❌', desc: 'They have forgotten what the sun looks like...' },
-            { title: '🏴‍☠️ The Loudest Pirates on the Deck 📢', desc: 'Hide your ears! These sailors never stop talking!' }
-        ];
-        const style = headers[Math.floor(Math.random() * headers.length)];
-        try {
-            const res = await pool.query('SELECT user_id, level, xp FROM levels ORDER BY level DESC, xp DESC LIMIT 10');
-            const embed = new EmbedBuilder()
-                .setTitle(style.title).setColor('#f1c40f')
-                .setDescription(`*${style.desc}*\n\n` + res.rows.map((row, i) => `**${i + 1}.** <@${row.user_id}> — Level \`${row.level}\` ⚡`).join('\n'))
-                .setTimestamp();
-            statsChannel.send({ embeds: [embed] });
-        } catch (e) { console.error(e); }
-    }, 604800000);
-
-    // СИНХРОНИЗАЦИЯ НА 2 ЧАСА (7200000 ms)
-    setInterval(async () => {
-        let syncCount = 0;
-        for (const [userId, data] of xpCache.entries()) {
-            if (data.needsUpdate) {
-                await saveToDatabase(pool, userId, data);
-                data.needsUpdate = false;
-                syncCount++;
-            }
-        }
-        if (syncCount > 0) {
-            const logChannel = client.channels.cache.get(LOG_CHANNEL_ID);
-            if (logChannel) {
-                const logEmbed = new EmbedBuilder()
-                    .setTitle('📊 Leveling Sync Complete')
-                    .setDescription(`Synced **${syncCount}** active pirates.`).setColor('#2ecc71').setTimestamp();
-                logChannel.send({ embeds: [logEmbed] });
-            }
-        }
+        for (const [id, data] of xpCache.entries()) { if (data.needsUpdate) { await saveToDatabase(pool, id, data); data.needsUpdate = false; } }
     }, 7200000); 
 };
