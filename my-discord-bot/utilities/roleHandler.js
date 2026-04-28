@@ -5,12 +5,12 @@ const ALLOWED_GUILDS = [
   "1451310326019526800"
 ];
 
-// 🔐 ROLE IDs (ЗАМЕНИ ТЕЗИ С ТВОИТЕ)
-const managedRoles  = {
-  ROOKIES: "1498708853896908891",
-  PLAYER: "1498707138250277005",
-  TEST: "1498718194364448839"
-};
+
+const managedRoles = [
+    "Pirate King Crew", "Pirate King", "Whitebeard's", "Mini Whitebeard's", 
+    "Team builder", "Whitebeard's Leader", "Whitebeard's Vice Leader", 
+    "Mini Whitebeard's Leader", "Mini Whitebeard's Vice Leader", "Rookies", "Player", "TEST"
+];
 
 // 👋 per-guild welcome tracking
 const lastWelcomeMessage = new Map();
