@@ -1,97 +1,101 @@
 const { EmbedBuilder, PermissionsBitField } = require('discord.js');
 const cron = require('node-cron');
-//a
-// --- КОНФИГУРАЦИЯ ---
-const TARGET_GUILD_ID = '1486343040162468003'; 
-const LEVEL_UP_CHANNEL_ID = '1498426382219481248'; 
-const LOG_CHANNEL_ID = '1498426571806085192';   
-const STATS_CHANNEL_ID = '1498426456143958027';     
-// --------------------
 
+// ================= CONFIG =================
+const TARGET_GUILD_ID = '1486343040162468003';
+const LEVEL_UP_CHANNEL_ID = '1498426382219481248';
+const LOG_CHANNEL_ID = '1498426571806085192';
+const STATS_CHANNEL_ID = '1498426456143958027';
+
+// ================= CACHE =================
 const xpCache = new Map();
+const cooldown = new Map();
 
-// Функция за визуален прогрес бар
+// ================= PROGRESS BAR =================
 function createProgressBar(current, total, size = 10) {
     const progress = Math.min(size, Math.floor((current / total) * size));
-    const emptyProgress = size - progress;
-    return `\`[${'▇'.repeat(progress)}${'—'.repeat(emptyProgress)}]\` ${Math.floor((current / total) * 100)}%`;
+    const empty = size - progress;
+    return `\`[${'▇'.repeat(progress)}${'—'.repeat(empty)}]\` ${Math.floor((current / total) * 100)}%`;
 }
 
-// СПИСЪК С РОЛИТЕ (35 БРОЯ)
+// ================= ROLES =================
 const RANK_ROLES = {
-    1:   { name: "Silent Snail 🐌", color: "#7f8c8d", msg: "Welcome to the crew... or are you just watching? 👀" },
-    3:   { name: "Keyboard Lost", color: "#95a5a6", msg: "Did you drop your keyboard in the ocean? Say something! 🌊" },
-    5:   { name: "Typing… (forever)", color: "#bdc3c7", msg: "The bubble is there, but no message. Suspicious... 💬" },
-    8:   { name: "Sea Lurker", color: "#7f8c8d", msg: "Hiding in the deep sea of the chat? We see you! 🐙" },
-    10:  { name: "Background NPC", color: "#95a5a6", msg: "The main characters are talking, keep up! 🎮" },
-    15:  { name: "Chat Rookie", color: "#2ecc71", msg: "First steps into the world of chatter! ⚓" },
-    20:  { name: "Word Dripper", color: "#27ae60", msg: "One word at a time... you're getting there. 💧" },
-    25:  { name: "Slow Typist", color: "#16a085", msg: "Slow and steady wins the race? Not here! 🐢" },
-    30:  { name: "Casual Talker", color: "#2ecc71", msg: "Just enjoying a grog and a chat in the tavern. 🍻" },
-    35:  { name: "Den Den Beginner", color: "#1abc9c", msg: "Starting to use the Den Den Mushi properly! 📞" },
-    40:  { name: "Message Machine", color: "#3498db", msg: "You're starting to pump those numbers up! ⚙️" },
-    45:  { name: "Chat Sailor", color: "#2980b9", msg: "Sailing through the sea of messages! ⛵" },
-    50:  { name: "Spam Apprentice", color: "#3498db", msg: "You're learning the dark arts of spamming... ✍️" },
-    55:  { name: "Typing Pirate", color: "#2980b9", msg: "Your fingers are fast as a cutlass! ⚔️" },
-    60:  { name: "Den Den Caller", color: "#34495e", msg: "Bero-bero-bero-bero! You never hang up! 🐌🔊" },
-    65:  { name: "Keyboard Warrior", color: "#9b59b6", msg: "Your keyboard is your strongest weapon! 🛡️" },
-    70:  { name: "Spam Cannon", color: "#8e44ad", msg: "Boom! Messages flying everywhere! 💣" },
-    75:  { name: "Chat Addict", color: "#9b59b6", msg: "You can't go 5 minutes without checking the chat! 💉" },
-    80:  { name: "Message Storm", color: "#8e44ad", msg: "A literal hurricane of words! 🌪️" },
-    85:  { name: "No-Life Sailor", color: "#34495e", msg: "Is there even a real world outside? 🏚️" },
-    90:  { name: "Typing Beast", color: "#e67e22", msg: "Your hands are a blur! Stop them if you can! 🦁" },
-    95:  { name: "Chat Hurricane", color: "#d35400", msg: "The chat is shaking from your activity! 💨" },
-    100: { name: "Infinite Talker", color: "#e67e22", msg: "Does this guy ever stop for breath? ♾️" },
-    110: { name: "Spam Lord", color: "#d35400", msg: "All hail the master of the fast type! 👑" },
-    120: { name: "Den Den Master", color: "#e67e22", msg: "You own the communication lines! 📞💎" },
-    130: { name: "Touch Grass Needed 🌱❌", color: "#e74c3c", msg: "Go outside. The sun won't hurt you, I promise. ☀️" },
-    140: { name: "Sleep Is Optional", color: "#c0392b", msg: "Sleep is for the weak. Spam is for the legends. 💤" },
-    150: { name: "Server Resident", color: "#e74c3c", msg: "You literally live here now. Rent is due! 🏠" },
-    160: { name: "Keyboard Destroyer", color: "#c0392b", msg: "How many keyboards have you broken so far? ⌨️💥" },
-    170: { name: "No Break Pirate", color: "#e74c3c", msg: "Breaks are for marines. Pirates never stop! ⚓" },
-    180: { name: "Chat Emperor", color: "#f1c40f", msg: "Your words rule these waters! 👑" },
-    190: { name: "Spam Yonko", color: "#f39c12", msg: "One of the four Great Spam-lords! 🚩" },
-    200: { name: "Message King", color: "#f1c40f", msg: "The ultimate title for the ultimate talker! 🏆" },
-    210: { name: "Server Overlord", color: "#ffffff", msg: "The server is your kingdom. ✨" },
-    220: { name: "Grass Avoider 🌱❌", color: "#ffeb3b", msg: "Legend says he hasn't seen a tree since 2012. 👑🔥" }
+    1: { name: "Silent Snail 🐌", color: "#7f8c8d", msg: "Welcome to the crew... or are you just watching? 👀" },
+    3: { name: "Keyboard Lost", color: "#95a5a6", msg: "Did you drop your keyboard in the ocean? Say something! 🌊" },
+    5: { name: "Typing… (forever)", color: "#bdc3c7", msg: "The bubble is there, but no message. Suspicious... 💬" },
+    10: { name: "Background NPC", color: "#95a5a6", msg: "Keep up! 🎮" },
+    20: { name: "Word Dripper", color: "#27ae60", msg: "You're getting there. 💧" },
+    50: { name: "Spam Apprentice", color: "#3498db", msg: "Learning spam arts... ✍️" },
+    100: { name: "Infinite Talker", color: "#e67e22", msg: "Does this guy ever stop? ♾️" },
+    200: { name: "Message King", color: "#f1c40f", msg: "The ultimate talker! 🏆" },
+    220: { name: "Grass Avoider 🌱❌", color: "#ffeb3b", msg: "Touch grass challenge failed. 👑" }
 };
 
+// ================= FALLBACK =================
 const FUNNY_FALLBACKS = [
-    "Still a nobody, but at least you're a louder nobody now. 🤡",
-    "Level up! Sadly, your reputation is still 0. 📉",
-    "Congratulations! You've achieved... absolutely nothing new. ✨"
+    "Still a nobody, but louder now. 🤡",
+    "Level up... nothing changed. 📉",
+    "Achievement unlocked: existing. ✨"
 ];
 
-// Функция за запис в Neon
+// ================= DB =================
 async function saveToDatabase(pool, userId, data) {
     const query = `
-        INSERT INTO levels (user_id, xp, level, username) VALUES ($1, $2, $3, $4) 
-        ON CONFLICT (user_id) DO UPDATE SET xp = $2, level = $3, username = $4;
+        INSERT INTO levels (user_id, xp, level, username)
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT (user_id)
+        DO UPDATE SET xp = $2, level = $3, username = $4;
     `;
-    try { await pool.query(query, [userId, data.xp, data.level, data.username]); } catch (e) { console.error("DB Error:", e); }
+    try {
+        await pool.query(query, [userId, data.xp, data.level, data.username]);
+    } catch (e) {
+        console.error("DB Error:", e);
+    }
 }
 
+// ================= ROLE =================
 async function getOrCreateRole(guild, roleData) {
     if (!guild.members.me.permissions.has(PermissionsBitField.Flags.ManageRoles)) return null;
+
     let role = guild.roles.cache.find(r => r.name === roleData.name);
+
     if (!role) {
-        try { role = await guild.roles.create({ name: roleData.name, color: roleData.color, reason: 'Automated Rank' }); } catch (e) { console.error(e); }
+        const fetched = await guild.roles.fetch();
+        role = fetched.find(r => r.name === roleData.name);
     }
+
+    if (!role) {
+        role = await guild.roles.create({
+            name: roleData.name,
+            color: roleData.color,
+            reason: "Auto Rank"
+        });
+    }
+
     return role;
 }
 
+// ================= MAIN =================
 module.exports = (client, poolObj) => {
     const pool = poolObj.pool;
 
     client.on('messageCreate', async (message) => {
         if (message.author.bot || !message.guild || message.guild.id !== TARGET_GUILD_ID) return;
-        const userId = message.author.id;
 
+        const userId = message.author.id;
+        const content = message.content.toLowerCase();
+
+        // ================= ANTI SPAM =================
+        const now = Date.now();
+        if (cooldown.has(userId) && now < cooldown.get(userId) + 5000) return;
+        cooldown.set(userId, now);
+
+        // ================= !RANK =================
         // --- КОМАНДА !RANK (Самоизтриваща се) ---
         if (message.content.toLowerCase().startsWith('!rank')) {
             const rankChannel = client.channels.cache.get(LEVEL_UP_CHANNEL_ID);
             if (!rankChannel) return;
-            message.delete().catch(() => {}), 30000;
+            setTimeout(() => message.delete().catch(() => {}), 30000);
 
             let dbRes = await pool.query('SELECT xp, level FROM levels WHERE user_id = $1', [userId]);
             let xp = dbRes.rows[0]?.xp || 0, lvl = dbRes.rows[0]?.level || 1;
@@ -116,10 +120,11 @@ module.exports = (client, poolObj) => {
             });
         }
 
-                       // --- КОМАНДА !TOP (Админска проверка със случайни текстове) ---
+        // ================= !TOP =================
+        // --- КОМАНДА !TOP (Админска проверка със случайни текстове) ---
         if (message.content.toLowerCase() === '!top') {
             if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-                message.delete().catch(() => {});
+                setTimeout(() => message.delete().catch(() => {}), 30000);
                 return;
             }
 
@@ -154,22 +159,23 @@ module.exports = (client, poolObj) => {
             return statsChannel.send({ embeds: [embed] }).then(m => setTimeout(() => m.delete().catch(() => {}), 60000));
         }
 
+        // ================= !SYNC =================
+        if (content === '!sync') {
+            if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) return;
 
+            setTimeout(() => message.delete().catch(() => {}), 30000);
 
-        // --- КОМАНДА !SYNC (Админ) ---
-        if (message.content.toLowerCase() === '!sync' && message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-            const logChannel = client.channels.cache.get(LOG_CHANNEL_ID);
-            message.delete().catch(() => {}), 30000; 
-            
             let count = 0;
-            for (const [id, data] of xpCache.entries()) { 
-                if (data.needsUpdate) { 
-                    await saveToDatabase(pool, id, data); 
-                    data.needsUpdate = false; 
-                    count++; 
-                } 
+
+            for (const [id, data] of xpCache.entries()) {
+                if (data.needsUpdate) {
+                    await saveToDatabase(pool, id, data);
+                    data.needsUpdate = false;
+                    count++;
+                }
             }
 
+            const logChannel = client.channels.cache.get(LOG_CHANNEL_ID);
             if (logChannel) {
                 const syncEmbed = new EmbedBuilder()
                     .setTitle('♻️ Manual Sync Executed')
@@ -178,65 +184,35 @@ module.exports = (client, poolObj) => {
                     .setTimestamp();
                 logChannel.send({ embeds: [syncEmbed] });
             }
-            return;
         }
 
+        // ================= XP =================
+        if (message.content.length < 3) return;
 
-        // --- ЛОГИКА ЗА XP ---
-        let xpGain = message.attachments.size > 0 ? 35 : 15; 
-        let userData = xpCache.get(userId) || { xp: 0, level: 1, username: message.member.displayName, needsUpdate: false };
+        let xpGain = message.attachments.size ? 35 : 15;
+
+        let userData = xpCache.get(userId) || {
+            xp: 0,
+            level: 1,
+            username: message.member.displayName,
+            needsUpdate: false
+        };
+
         userData.username = message.member.displayName;
+        userData.xp += xpGain;
 
-        // Посрещане на Ниво 1
-        if (userData.level === 1 && !message.member.roles.cache.some(r => r.name === RANK_ROLES[1].name)) {
-            const role = await getOrCreateRole(message.guild, RANK_ROLES[1]);
-            if (role) {
-                await message.member.roles.add(role).catch(() => {});
-                const lvlChannel = client.channels.cache.get(LEVEL_UP_CHANNEL_ID);
-                if (lvlChannel) {
-                    const embed = new EmbedBuilder()
-                        .setAuthor({ name: `${message.member.displayName} joined the crew!`, iconURL: 'https://imgur.com' })
-                        .setTitle('🏴‍☠️ NEW RECRUIT SPOTTED')
-                        .setDescription(`Welcome ${message.author}!\n🔹 **Status:** **${RANK_ROLES[1].name}**\n\n> *"${RANK_ROLES[1].msg}"*`)
-                        .setThumbnail(message.author.displayAvatarURL({ dynamic: true })).setColor(RANK_ROLES[1].color);
-                    lvlChannel.send({ embeds: [embed] });
-                }
-            }
+        let nextLevelXP = Math.floor(500 * Math.pow(userData.level, 1.2));
+
+        while (userData.xp >= nextLevelXP) {
+            userData.level++;
+            nextLevelXP = Math.floor(500 * Math.pow(userData.level, 1.2));
         }
 
-        userData.xp += xpGain;
-        let nextLevelXP = userData.level * 500; 
-
-        if (userData.xp >= nextLevelXP) {
-            userData.level++;
-            const roleData = RANK_ROLES[userData.level];
-            const lvlChannel = client.channels.cache.get(LEVEL_UP_CHANNEL_ID);
-
-            if (lvlChannel) {
-                const customMsg = roleData ? roleData.msg : FUNNY_FALLBACKS[Math.floor(Math.random() * FUNNY_FALLBACKS.length)];
-                const embed = new EmbedBuilder()
-                    .setAuthor({ name: `${message.member.displayName} ranked up!`, iconURL: 'https://imgur.com' })
-                    .setDescription(`Congratulations ${message.author}!\n🔹 **Level:** \`${userData.level}\`\n🔹 **Status:** **${roleData?.name || "Wanderer"}**\n\n> *"${customMsg}"*`)
-                    .setThumbnail(message.author.displayAvatarURL({ dynamic: true })).setColor(roleData?.color || '#34495e');
-                lvlChannel.send({ content: `${message.author}`, embeds: [embed] });
-            }
-
-            if (roleData) {
-                const newRole = await getOrCreateRole(message.guild, roleData);
-                if (newRole) {
-                    const allRanks = Object.values(RANK_ROLES).map(r => r.name);
-                    const oldRoles = message.member.roles.cache.filter(r => allRanks.includes(r.name));
-                    if (oldRoles.size > 0) await message.member.roles.remove(oldRoles).catch(() => {});
-                    await message.member.roles.add(newRole).catch(() => {});
-                }
-            }
-            await saveToDatabase(pool, userId, userData);
-            userData.needsUpdate = false;
-        } else { userData.needsUpdate = true; }
         xpCache.set(userId, userData);
     });
 
-       // СЕДМИЧЕН ТОП 10 - Изпълнява се всяка неделя в 23:59 (Лондонско време)
+    // ================= WEEKLY TOP =================
+   // СЕДМИЧЕН ТОП 10 - Изпълнява се всяка неделя в 23:59 (Лондонско време)
     cron.schedule('59 23 * * 0', async () => {
         const statsChannel = client.channels.cache.get(STATS_CHANNEL_ID);
         if (!statsChannel) return;
@@ -268,49 +244,27 @@ module.exports = (client, poolObj) => {
         timezone: "Europe/London" // Настройваме точното часово време
     });
 
-
- // --- АВТОМАТИЧНА СИНХРОНИЗАЦИЯ (НА ВСЕКИ 2 ЧАСА) ---
-    // Синтаксисът '0 */2 * * *' означава: на всяка 0-ва минута, на всеки 2 часа
+    // ================= AUTO SYNC =================
     cron.schedule('0 */2 * * *', async () => {
-        console.log('--- Стартиране на фонова синхронизация ---');
         const guild = client.guilds.cache.get(TARGET_GUILD_ID);
         if (!guild) return;
 
-        try {
-            // Вземаме списък с всички имена на роли от обекта RANK_ROLES
-            const allRankNames = Object.values(RANK_ROLES).map(r => r.name);
-            const res = await pool.query('SELECT user_id, level FROM levels WHERE level > 0');
+        const roles = Object.values(RANK_ROLES).map(r => r.name);
+        const res = await pool.query('SELECT user_id, level FROM levels');
 
-            for (const row of res.rows) {
-                const member = await guild.members.fetch(row.user_id).catch(() => null);
-                if (!member) continue; // Пропускаме, ако човекът е напуснал сървъра
+        for (const row of res.rows) {
+            const member = await guild.members.fetch(row.user_id).catch(() => null);
+            if (!member) continue;
 
-                const currentRoleData = RANK_ROLES[row.level];
-                if (!currentRoleData) continue;
+            const roleData = RANK_ROLES[row.level];
+            if (!roleData) continue;
 
-                const targetRole = await getOrCreateRole(guild, currentRoleData);
-                if (!targetRole) continue;
+            const role = await getOrCreateRole(guild, roleData);
+            if (!role) continue;
 
-                // Премахваме всички ДРУГИ ранг роли, които потребителят има (за да остане само текущата)
-                const rolesToRemove = member.roles.cache.filter(r => allRankNames.includes(r.name) && r.id !== targetRole.id);
-                if (rolesToRemove.size > 0) {
-                    await member.roles.remove(rolesToRemove).catch(() => {});
-                }
-
-                // Добавяме правилната роля, ако я няма
-                if (!member.roles.cache.has(targetRole.id)) {
-                    await member.roles.add(targetRole).catch(() => {});
-                }
-            }
-            
-            // Логване на успешната синхронизация
-            const logChannel = client.channels.cache.get(LOG_CHANNEL_ID);
-            if (logChannel) {
-                logChannel.send(`🔄 **Синхронизация:** Ролите на потребителите бяха обновени според нивата им.`);
-            }
-            console.log('Синхронизацията приключи успешно.');
-        } catch (err) {
-            console.error('Грешка по време на синхронизация:', err);
+            const toRemove = member.roles.cache.filter(r => roles.includes(r.name));
+            await member.roles.remove(toRemove).catch(() => {});
+            await member.roles.add(role).catch(() => {});
         }
     });
 };
