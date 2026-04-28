@@ -16,35 +16,117 @@ for (let i = 900; i >= 50; i -= 50) {
 }
 
 /**
- * Автоматично посрещане и даване на роля Rookies при влизане на нов член
+ * Извиква се автоматично при влизане на нов член (от main.js)
  */
 async function handleNewMember(member) {
     try {
-        const welcomeRole = member.guild.roles.cache.find(r => r.name === "Rookies");
+        // 1. Даване на начална роля
+        const rookieRole = member.guild.roles.cache.find(r => r.name === "Rookies");
+        if (rookieRole) await member.roles.add(rookieRole);
+
+        // 2. Намиране на канала (увери се, че името съвпада точно)
         const welcomeChannel = member.guild.channels.cache.find(ch => ch.name === "│👋│welcome");
+        if (!welcomeChannel) return;
 
-        if (welcomeRole) await member.roles.add(welcomeRole);
-
-        if (welcomeChannel) {
-            const welcomeEmbed = new EmbedBuilder()
-                .setTitle("⚓ New Pirate Aboard!")
-                .setDescription(
-                    `Ahoy, pirate ${member}! 🏴‍☠️\n\n` +
-                    `Welcome to the **Pirate Queen’s Family**, ruled by <@825016547138732082>.\n\n` +
-                    `📜 **The Pirate Code:** Check <#1497466531322527877> or risk walking the plank!\n` +
-                    `🍻 **The Tavern:** Say hi at <#1486343047632523398>.\n` +
-                    `💰 **Bounties:** Drop your in-game profile pic in <#1490838764057268392> to claim your reward! ⚔️\n\n` +
-                    `*Now behave, or at least get caught in style.* ⚓`
-                )
-                .setColor("#2ECC71") // Малко по-наситено "пиратско" зелено
-                .setThumbnail(member.user.displayAvatarURL({ dynamic: true, size: 256 }))
-                .setFooter({ text: `Member #${member.guild.memberCount}`, iconURL: member.guild.iconURL() })
-                .setTimestamp();
-
-            await welcomeChannel.send({ embeds: [welcomeEmbed] });
+        // 3. Изтриване на старото съобщение за чистота
+        if (lastWelcomeMessage) {
+            await lastWelcomeMessage.delete().catch(() => {});
         }
-    } catch (err) { console.error("Welcome Error:", err.message); }
+
+        // 4. Създаване на Embed съобщението
+        const welcomeEmbed = new EmbedBuilder()
+            .setTitle("⚓ New Pirate Aboard!")
+            .setDescription(
+                `Ahoy, pirate ${member}! 🏴‍☠️\n\n` +
+                `Welcome to the **Pirate Queen’s Family**.\n\n` +
+                `📜 **The Pirate Code:** Check <#1497466531322527877>.\n` +
+                `💰 **Верификация:** Натисни бутона долу, за да въведеш никнейма си, да премахнеш роля **Rookies** и да получиш **Player** достъп! ⚔️`
+            )
+            .setColor("#2ECC71")
+            .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
+            .setFooter({ text: `Member #${member.guild.memberCount}` })
+            .setTimestamp();
+
+        // 5. Бутонът
+        const row = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+                .setCustomId('start_verify')
+                .setLabel('Въведи Никнейм')
+                .setStyle(ButtonStyle.Success)
+        );
+
+        // Пращане и запазване в променливата
+        lastWelcomeMessage = await welcomeChannel.send({ 
+            content: `${member}`, 
+            embeds: [welcomeEmbed], 
+            components: [row] 
+        });
+
+    } catch (err) {
+        console.error("Welcome Error:", err.message);
+    }
 }
+
+/**
+ * Извиква се при всяко взаимодействие (от main.js)
+ */
+async function handleInteraction(interaction) {
+    // Проверка за бутона
+    if (interaction.isButton() && interaction.customId === 'start_verify') {
+        const modal = new ModalBuilder()
+            .setCustomId('nick_modal')
+            .setTitle('Пиратска Регистрация');
+
+        const nameInput = new TextInputBuilder()
+            .setCustomId('new_nickname')
+            .setLabel("Твоят никнейм в играта:")
+            .setStyle(TextInputStyle.Short)
+            .setPlaceholder("Напиши името си тук...")
+            .setMinLength(2)
+            .setMaxLength(32)
+            .setRequired(true);
+
+        modal.addComponents(new ActionRowBuilder().addComponents(nameInput));
+        return interaction.showModal(modal);
+    }
+
+    // Проверка за изпратения Modal
+    if (interaction.isModalSubmit() && interaction.customId === 'nick_modal') {
+        const newNick = interaction.fields.getTextInputValue('new_nickname');
+        const guild = interaction.guild;
+        const member = interaction.member;
+
+        try {
+            // Намиране на ролите
+            const rookieRole = guild.roles.cache.find(r => r.name === "Rookies");
+            const playerRole = guild.roles.cache.find(r => r.name === "Player");
+
+            // Екшън: Смяна на име и роли
+            await member.setNickname(newNick);
+            
+            if (rookieRole) await member.roles.remove(rookieRole);
+            if (playerRole) await member.roles.add(playerRole);
+
+            await interaction.reply({ 
+                content: `✅ Капитан **${newNick}**, добре дошъл! Ролята **Rookies** бе премахната и вече си **Player**.`, 
+                ephemeral: true 
+            });
+
+        } catch (err) {
+            console.error("Verification Error:", err);
+            await interaction.reply({ 
+                content: "❌ Грешка! Ботът не може да промени името ти (ако си администратор) или ролите му са по-ниско от твоите.", 
+                ephemeral: true 
+            });
+        }
+    }
+}
+
+module.exports = { handleNewMember, handleInteraction };
+
+
+///__________________________________ТЕСТ
+
 
 
 /**
