@@ -86,18 +86,13 @@ async function handleInteraction(interaction) {
   if (interaction.isButton() && interaction.customId === "start_verify") {
     const modal = new ModalBuilder()
       .setCustomId("nick_modal")
-      .setTitle("Nickanmeя");
+      .setTitle("NickName");
 
     const input = new TextInputBuilder()
-    .setCustomId("new_nickname")
-    // This is the instruction above the input box
-    .setLabel("Put your guild name or initials before your name:")
-    .setStyle(TextInputStyle.Short)
-    // This is the clue inside the box
-    .setPlaceholder("Example: TS Luffy or Thousand Sunny Luffy") 
-    .setRequired(true)
-    .setMinLength(2)
-    .setMaxLength(32);
+      .setCustomId("new_nickname")
+      .setLabel("Въведи никнейм:")
+      .setStyle(TextInputStyle.Short)
+      .setRequired(true);
 
     modal.addComponents(new ActionRowBuilder().addComponents(input));
 
