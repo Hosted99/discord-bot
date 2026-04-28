@@ -270,41 +270,51 @@ if (cmd === "!remind") {
         return msg.channel.send(content);
     }
 
-    // --- КОМАНДА: !sendto ---
+        // --- КОМАНДА: !sendto ---
     if (cmd === "!sendto") {
-        // Проверка за администраторски права
+        // 1. Проверка за права (трие се след 2 сек)
         if (!msg.member.permissions.has("Administrator")) {
-            return msg.reply("🏴‍☠️ Only the Captain can redirect messages!");
+            return msg.reply("🏴‍☠️ Only the Captain can redirect messages!")
+                .then(m => setTimeout(() => { m.delete().catch(() => {}); msg.delete().catch(() => {}); }, 2000));
         }
 
-        // Вземане на тагнатия канал
         const targetChannel = msg.mentions.channels.first();
-        
-        // Вземане на текста след тага на канала
         const content = args.slice(1).join(" ");
 
+        // 2. Проверка за тагнат канал (трие се след 2 сек)
         if (!targetChannel) {
-            return msg.reply("❌ You must tag a channel! Example: `!sendto #general Hello everyone!`");
-        }
-        if (!content) {
-            return msg.reply("❌ Please provide a message after the channel tag!");
+            return msg.reply("❌ You must tag a channel!")
+                .then(m => setTimeout(() => { m.delete().catch(() => {}); msg.delete().catch(() => {}); }, 2000));
         }
 
-        // Изпращане на съобщението в целевия канал
+        // 3. Проверка за съдържание (трие се след 2 сек)
+        if (!content) {
+            return msg.reply("❌ Please provide a message!")
+                .then(m => setTimeout(() => { m.delete().catch(() => {}); msg.delete().catch(() => {}); }, 2000));
+        }
+
         try {
+            // Изпращане в целевия канал
             await targetChannel.send(content);
-            return msg.reply(`✅ Message successfully sent to ${targetChannel}`);
+
+            // Пращаме потвърждение и го трием ЗАЕДНО с командата след 2 секунди
+            const replyMsg = await msg.reply(`✅ Message successfully sent to ${targetChannel}`);
+            
+            setTimeout(() => {
+                replyMsg.delete().catch(() => {}); // Трий потвърждението
+                msg.delete().catch(() => {});      // Трий твоята команда (!sendto)
+            }, 3000); 
+
         } catch (err) {
             console.error(err);
-            return msg.reply("❌ I cannot send messages to that channel (check bot permissions)!");
-
-             // Изтриваме само командата и потвърждението след 1 минута
+            const errMsg = await msg.reply("❌ I cannot send messages to that channel!");
             setTimeout(() => {
-                replyMsg.delete().catch(() => {}); // Трий отговора на бота
-                msg.delete().catch(() => {});      // Трий твоята команда (!sendto)
-            }, 60000); 
+                errMsg.delete().catch(() => {});
+                msg.delete().catch(() => {});
+            }, 3000);
         }
     }
+
 
     // --- 6. КОМАНДА: !delete ---
     if (cmd === "!delete") {
