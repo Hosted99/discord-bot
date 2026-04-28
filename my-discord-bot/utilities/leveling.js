@@ -269,8 +269,48 @@ module.exports = (client, poolObj) => {
     });
 
 
-    // Синхронизация на 2 часа
-    setInterval(async () => {
-        for (const [id, data] of xpCache.entries()) { if (data.needsUpdate) { await saveToDatabase(pool, id, data); data.needsUpdate = false; } }
-    }, 7200000); 
+ // --- АВТОМАТИЧНА СИНХРОНИЗАЦИЯ (НА ВСЕКИ 2 ЧАСА) ---
+    // Синтаксисът '0 */2 * * *' означава: на всяка 0-ва минута, на всеки 2 часа
+    cron.schedule('0 */2 * * *', async () => {
+        console.log('--- Стартиране на фонова синхронизация ---');
+        const guild = client.guilds.cache.get(TARGET_GUILD_ID);
+        if (!guild) return;
+
+        try {
+            // Вземаме списък с всички имена на роли от обекта RANK_ROLES
+            const allRankNames = Object.values(RANK_ROLES).map(r => r.name);
+            const res = await pool.query('SELECT user_id, level FROM levels WHERE level > 0');
+
+            for (const row of res.rows) {
+                const member = await guild.members.fetch(row.user_id).catch(() => null);
+                if (!member) continue; // Пропускаме, ако човекът е напуснал сървъра
+
+                const currentRoleData = RANK_ROLES[row.level];
+                if (!currentRoleData) continue;
+
+                const targetRole = await getOrCreateRole(guild, currentRoleData);
+                if (!targetRole) continue;
+
+                // Премахваме всички ДРУГИ ранг роли, които потребителят има (за да остане само текущата)
+                const rolesToRemove = member.roles.cache.filter(r => allRankNames.includes(r.name) && r.id !== targetRole.id);
+                if (rolesToRemove.size > 0) {
+                    await member.roles.remove(rolesToRemove).catch(() => {});
+                }
+
+                // Добавяме правилната роля, ако я няма
+                if (!member.roles.cache.has(targetRole.id)) {
+                    await member.roles.add(targetRole).catch(() => {});
+                }
+            }
+            
+            // Логване на успешната синхронизация
+            const logChannel = client.channels.cache.get(LOG_CHANNEL_ID);
+            if (logChannel) {
+                logChannel.send(`🔄 **Синхронизация:** Ролите на потребителите бяха обновени според нивата им.`);
+            }
+            console.log('Синхронизацията приключи успешно.');
+        } catch (err) {
+            console.error('Грешка по време на синхронизация:', err);
+        }
+    });
 };
