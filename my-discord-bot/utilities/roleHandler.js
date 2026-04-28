@@ -7,8 +7,8 @@ const ALLOWED_GUILDS = [
 
 // 🔐 ROLE IDs (ЗАМЕНИ ТЕЗИ С ТВОИТЕ)
 const ROLES = {
-  ROOKIES: "1498708853896908891",
-  PLAYER: "1498707138250277005"
+  ROOKIES: "1490805430262300873",
+  PLAYER: "1498406529534263296"
 };
 
 // 👋 per-guild welcome tracking
