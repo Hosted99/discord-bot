@@ -1,5 +1,5 @@
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
-const { pool } = require("./utilities/db.js"); // Връзката с Neon
+const { pool } = require("./db"); // Връзката с Neon
 
 // --- CONFIG ---
 const CONFIG = {
