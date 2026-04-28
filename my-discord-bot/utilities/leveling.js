@@ -6,16 +6,18 @@ const TARGET_GUILD_ID = '1486343040162468003';
 const LEVEL_UP_CHANNEL_ID = '1498426382219481248'; 
 const LOG_CHANNEL_ID = '1498426571806085192';   
 const STATS_CHANNEL_ID = '1498426456143958027';     
-// --------------------
 
+// Локален кеш за бърз достъп до XP данните на потребителите
 const xpCache = new Map();
 
+// Функция за създаване на визуален прогрес бар (например: [▇▇▇——] 60%)
 function createProgressBar(current, total, size = 10) {
     const progress = Math.min(size, Math.floor((current / total) * size));
     const emptyProgress = size - progress;
     return `\`[${'▇'.repeat(progress)}${'—'.repeat(emptyProgress)}]\` ${Math.floor((current / total) * 100)}%`;
 }
 
+// СПИСЪК С РОЛИТЕ (РАНГОВЕ) И СЪОТВЕТНИТЕ НИВА
 const RANK_ROLES = {
     1:   { name: "Silent Snail 🐌", color: "#7f8c8d", msg: "Welcome to the crew... or are you just watching? 👀" },
     3:   { name: "Keyboard Lost", color: "#95a5a6", msg: "Did you drop your keyboard in the ocean? Say something! 🌊" },
@@ -54,18 +56,20 @@ const RANK_ROLES = {
     220: { name: "Grass Avoider 🌱❌", color: "#ffeb3b", msg: "Legend says he hasn't seen a tree since 2012. 👑🔥" }
 };
 
+// Забавни съобщения при качване на ниво, ако няма конкретно за ранга
 const FUNNY_FALLBACKS = [
     "Still a nobody, but at least you're a louder nobody now. 🤡",
     "Level up! Sadly, your reputation is still 0. 📉",
     "Congratulations! You've achieved... absolutely nothing new. ✨"
 ];
 
-// Функция за запис
+// Функция за запис на данни в Neon базата данни
 async function saveToDatabase(pool, userId, data) {
     const query = `INSERT INTO levels (user_id, xp, level, username) VALUES ($1, $2, $3, $4) ON CONFLICT (user_id) DO UPDATE SET xp = $2, level = $3, username = $4;`;
     try { await pool.query(query, [userId, data.xp, data.level, data.username]); } catch (e) { console.error("DB Error:", e); }
 }
 
+// Функция за намиране или автоматично създаване на роля в сървъра
 async function getOrCreateRole(guild, roleData) {
     if (!guild.members.me.permissions.has(PermissionsBitField.Flags.ManageRoles)) return null;
     let role = guild.roles.cache.find(r => r.name === roleData.name);
@@ -76,7 +80,7 @@ async function getOrCreateRole(guild, roleData) {
 module.exports = (client, poolObj) => {
     const pool = poolObj.pool;
 
-    // --- ЗАЩИТА 1: ЗАРЕЖДАНЕ НА КЕША ПРИ СТАРТ ---
+    // --- ЗАЩИТА 1: ЗАРЕЖДАНЕ НА КЕША ОТ БД ПРИ СТАРТ ---
     async function loadCacheFromDB() {
         try {
             const res = await pool.query('SELECT user_id, xp, level, username FROM levels');
@@ -84,7 +88,7 @@ module.exports = (client, poolObj) => {
                 xpCache.set(row.user_id, { xp: parseInt(row.xp), level: parseInt(row.level), username: row.username, needsUpdate: false });
             });
             console.log(`[System] Заредени ${res.rowCount} профила от Neon.`);
-        } catch (e) { console.error("Грешка при зареждане на кеша:", e); }
+        } catch (e) { console.error("Cache load error:", e); }
     }
 
     loadCacheFromDB();
@@ -93,19 +97,22 @@ module.exports = (client, poolObj) => {
         if (message.author.bot || !message.guild || message.guild.id !== TARGET_GUILD_ID) return;
         const userId = message.author.id;
 
-        // --- ЗАЩИТА 2: ПРОВЕРКА В БД, АКО ЛИПСВА В КЕША ---
+        // --- ЗАЩИТА 2: ВЗЕМАНЕ НА ДАННИ (КЕШ ИЛИ БД) ---
         let userData = xpCache.get(userId);
         if (!userData) {
             const dbRes = await pool.query('SELECT xp, level, username FROM levels WHERE user_id = $1', [userId]);
             if (dbRes.rows.length > 0) {
+                // Използваме индекса [0], за да вземем първия намерен запис
                 userData = { xp: parseInt(dbRes.rows[0].xp), level: parseInt(dbRes.rows[0].level), username: dbRes.rows[0].username, needsUpdate: false };
             } else {
+                // Ако е нов потребител, го създаваме
                 userData = { xp: 0, level: 1, username: message.member.displayName, needsUpdate: true };
+                await saveToDatabase(pool, userId, userData);
             }
             xpCache.set(userId, userData);
         }
 
-        // Автоматична роля за Ниво 1 (Recruit)
+        // Автоматично даване на роля за Ниво 1, ако липсва
         if (userData.level === 1) {
             const role1 = RANK_ROLES[1];
             if (!message.member.roles.cache.some(r => r.name === role1.name)) {
@@ -114,7 +121,7 @@ module.exports = (client, poolObj) => {
             }
         }
 
-        // --- КОМАНДА !RANK (С ОБРАТНО БРОЕНЕ) ---
+        // --- КОМАНДА !RANK (С ОБРАТНО БРОЕНЕ И АВТОМАТИЧНО ИЗТРИВАНЕ) ---
         if (message.content.toLowerCase().startsWith('!rank')) {
             message.delete().catch(() => {});
             const rankChannel = client.channels.cache.get(LEVEL_UP_CHANNEL_ID) || message.channel;
@@ -135,6 +142,7 @@ module.exports = (client, poolObj) => {
 
             const rankMsg = await rankChannel.send({ content: `⚓ ${message.author}, check your status:`, embeds: [embed] });
 
+            // Таймер за обновяване на ембеда всяка секунда/през 10 сек
             const countdown = setInterval(async () => {
                 timeLeft -= 10;
                 if (timeLeft <= 0) { clearInterval(countdown); return rankMsg.delete().catch(() => {}); }
@@ -144,12 +152,9 @@ module.exports = (client, poolObj) => {
             return;
         }
 
-        // --- КОМАНДА !TOP ---
+        // --- КОМАНДА !TOP (СЛУЧАЙНИ ПИРАТСКИ ВАРИАНТИ) ---
         if (message.content.toLowerCase() === '!top') {
-            if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-                message.delete().catch(() => {});
-                return;
-            }
+            if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) { message.delete().catch(() => {}); return; }
             const statsChannel = client.channels.cache.get(STATS_CHANNEL_ID);
             if (!statsChannel) return;
             message.delete().catch(() => {});
@@ -158,88 +163,53 @@ module.exports = (client, poolObj) => {
             const desc = res.rows.map((row, i) => `\`#${i + 1}\` **${row.username}** — Level \`${row.level}\` (${row.xp} XP)`).join('\n');
 
             const variants = [
-                { t: '🏴‍☠️ THE NOISIEST PIRATES ON DECK!', d: `*Arrr! These sea dogs be makin’ the most noise across the seven seas:* \n\n${desc}` },
-                { t: '🍻 WHO WON’T SHUT UP?!', d: `*These pirates drank too much rum and haven’t stopped talkin’ since...*\n\n${desc}` },
-                { t: '⚓ CREW CHATTER CHAMPIONS', d: `*The loudest voices aboard the ship at this very moment:*\n\n${desc}` },
-                { t: '🔥 TOP SPAM LORDS', d: `*Current legends of chaos and chatter:*\n\n${desc}` },
-                { t: '💀 THE TAVERN’S LOUDEST LEGENDS', d: `*If silence was gold, these pirates would be broke:*\n\n${desc}` }
+                { t: '🏴‍☠️ THE NOISIEST PIRATES ON DECK!', d: `*Arrr! These sea dogs be makin’ the most noise:* \n\n${desc}` },
+                { t: '🍻 WHO WON’T SHUT UP?!', d: `*These pirates drank too much rum...*\n\n${desc}` },
+                { t: '⚓ CREW CHATTER CHAMPIONS', d: `*The loudest voices aboard:*\n\n${desc}` },
+                { t: '🔥 TOP SPAM LORDS', d: `*Current legends of chaos:*\n\n${desc}` },
+                { t: '💀 THE TAVERN’S LOUDEST LEGENDS', d: `*If silence was gold, they'd be broke:*\n\n${desc}` }
             ];
 
             const v = variants[Math.floor(Math.random() * variants.length)];
-            const embed = new EmbedBuilder()
-                .setTitle(v.t).setDescription(v.d).setColor('#FF4500')
-                .setThumbnail(message.guild.iconURL({ dynamic: true }))
-                .setFooter({ text: '☠️ This list will vanish into the mist in 60 seconds...' })
-                .setTimestamp();
-
+            const embed = new EmbedBuilder().setTitle(v.t).setDescription(v.d).setColor('#FF4500').setThumbnail(message.guild.iconURL({ dynamic: true })).setFooter({ text: '☠️ Vanish in 60s' }).setTimestamp();
             return statsChannel.send({ embeds: [embed] }).then(m => setTimeout(() => m.delete().catch(() => {}), 60000));
         }
 
-        // --- КОМАНДА !SYNC ---
+        // --- КОМАНДА !SYNC (РЪЧЕН ЗАПИС В БД) ---
         if (message.content.toLowerCase() === '!sync' && message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-            const logChannel = client.channels.cache.get(LOG_CHANNEL_ID);
-            message.delete().catch(() => {}); 
-            
+            message.delete().catch(() => {});
             let count = 0;
-            for (const [id, data] of xpCache.entries()) { 
-                if (data.needsUpdate) { 
-                    await saveToDatabase(pool, id, data); 
-                    data.needsUpdate = false; 
-                    count++; 
-                } 
-            }
-
+            for (const [id, data] of xpCache.entries()) { if (data.needsUpdate) { await saveToDatabase(pool, id, data); data.needsUpdate = false; count++; } }
+            const logChannel = client.channels.cache.get(LOG_CHANNEL_ID);
             if (logChannel) {
-                const syncEmbed = new EmbedBuilder()
-                    .setTitle('♻️ Manual Sync Executed')
-                    .setDescription(`Admin **${message.member.displayName}** triggered a manual sync.\nUpdated **${count}** pirate profiles in Neon.`)
-                    .setColor('#2ecc71').setTimestamp();
+                const syncEmbed = new EmbedBuilder().setTitle('♻️ Manual Sync Executed').setDescription(`Updated **${count}** pirate profiles in Neon.`).setColor('#2ecc71').setTimestamp();
                 logChannel.send({ embeds: [syncEmbed] });
             }
             return;
         }
 
-                // --- ЛОГИКА ЗА XP ---
-        let xpGain = message.attachments.size > 0 ? 35 : 15; 
-        let userData = xpCache.get(userId);
-
-        if (!userData) {
-            const dbRes = await pool.query('SELECT xp, level, username FROM levels WHERE user_id = $1', [userId]);
-            if (dbRes.rows.length > 0) {
-                // ВЗЕМАМЕ СТАРИЯ ПРОГРЕС
-                userData = { 
-                    xp: parseInt(dbRes.rows[0].xp), 
-                    level: parseInt(dbRes.rows[0].level), 
-                    username: dbRes.rows[0].username, 
-                    needsUpdate: false 
-                };
-            } else {
-                // СЪЗДАВАМЕ НОВ ПРОФИЛ САМО АКО ГО НЯМА В БАЗАТА
-                userData = { xp: 0, level: 1, username: message.member.displayName, needsUpdate: true };
-                await saveToDatabase(pool, userId, userData); // Записваме го веднага в Neon
-            }
-            xpCache.set(userId, userData);
-        }
-
+        // --- ЛОГИКА ЗА ТРУПАНЕ НА XP ---
+        let xpGain = message.attachments.size > 0 ? 35 : 15; // Повече XP за снимки
         userData.username = message.member.displayName;
         userData.xp += xpGain;
-        let nextLevelXP = userData.level * 500; 
 
-        if (userData.xp >= nextLevelXP) {
+        // ПРОВЕРКА ЗА КАЧВАНЕ НА НИВО
+        if (userData.xp >= (userData.level * 500)) {
             userData.level++;
-            userData.xp = 0;
+            userData.xp = 0; // Нулираме XP за следващото ниво
             const roleData = RANK_ROLES[userData.level];
             const lvlChannel = client.channels.cache.get(LEVEL_UP_CHANNEL_ID);
 
             if (lvlChannel) {
                 const customMsg = roleData ? roleData.msg : FUNNY_FALLBACKS[Math.floor(Math.random() * FUNNY_FALLBACKS.length)];
-                const embed = new EmbedBuilder()
+                const lvEmbed = new EmbedBuilder()
                     .setAuthor({ name: `${message.member.displayName} ranked up!`, iconURL: message.author.displayAvatarURL() })
                     .setDescription(`Congratulations ${message.author}!\n🔹 **Level:** \`${userData.level}\`\n🔹 **Status:** **${roleData?.name || "Wanderer"}**\n\n> *"${customMsg}"*`)
                     .setThumbnail(message.author.displayAvatarURL({ dynamic: true })).setColor(roleData?.color || '#34495e');
-                lvlChannel.send({ content: `${message.author}`, embeds: [embed] });
+                lvlChannel.send({ content: `${message.author}`, embeds: [lvEmbed] });
             }
 
+            // ПРЕМAXВАНЕ НА СТАРИ РОЛИ И ДОБАВЯНЕ НА НОВАТА
             if (roleData) {
                 const newRole = await getOrCreateRole(message.guild, roleData);
                 if (newRole) {
@@ -249,22 +219,22 @@ module.exports = (client, poolObj) => {
                     await message.member.roles.add(newRole).catch(() => {});
                 }
             }
-            // ЗАДЪЛЖИТЕЛЕН ЗАПИС ПРИ LEVEL UP
+            // Записваме веднага при качване на ниво
             await saveToDatabase(pool, userId, userData);
             userData.needsUpdate = false;
-        } else { 
-            userData.needsUpdate = true; 
+        } else {
+            userData.needsUpdate = true; // Отбелязваме, че има нови данни за записване по-късно
         }
         xpCache.set(userId, userData);
+    });
 
-
-    // СЕДМИЧЕН ТОП 10
+    // СЕДМИЧЕН ТОП 10 (ВСЯКА НЕДЕЛЯ В 23:59)
     cron.schedule('59 23 * * 0', async () => {
         const statsChannel = client.channels.cache.get(STATS_CHANNEL_ID);
         if (!statsChannel) return;
         const headers = [
             { title: '🏆 The Loudest Pirates of the Week', desc: 'The crew members who simply will not shut up! 📢' },
-            { title: '🏴‍☠️ Most Wanted Grass Avoiders 🌱❌', desc: 'The weekly report is in: These legends need sunlight!' }
+            { title: '🏴‍☠️ Most Wanted Grass Avoiders 🌱❌', desc: 'The weekly report is in: Sunlight is needed!' }
         ];
         const style = headers[Math.floor(Math.random() * headers.length)];
         try {
@@ -275,34 +245,18 @@ module.exports = (client, poolObj) => {
             }).join('\n');
             const embed = new EmbedBuilder().setTitle(style.title).setColor('#FF4500').setDescription(`*${style.desc}*\n\n${desc}`).setFooter({ text: 'Weekly Ship Log' }).setTimestamp();
             statsChannel.send({ content: "🔔 **WEEKLY LEADERBOARD IS HERE!**", embeds: [embed] });
-        } catch (e) { console.error("Cron Leaderboard Error:", e); }
+        } catch (e) { console.error(e); }
     }, { timezone: "Europe/London" });
 
-    // АВТОМАТИЧНА СИНХРОНИЗАЦИЯ НА ВСЕКИ 2 ЧАСА
+    // АВТОМАТИЧНА СИНХРОНИЗАЦИЯ НА ВСЕКИ 2 ЧАСА (ЗА ДА НЕ СЕ ГУБИ ПРОГРЕС)
     cron.schedule('0 */2 * * *', async () => {
-        console.log('--- Background Sync Started ---');
-        const guild = client.guilds.cache.get(TARGET_GUILD_ID);
-        if (!guild) return;
         try {
-            const allRankNames = Object.values(RANK_ROLES).map(r => r.name);
-            const res = await pool.query('SELECT user_id, level FROM levels WHERE level > 0');
-            for (const row of res.rows) {
-                const member = await guild.members.fetch(row.user_id).catch(() => null);
-                if (!member) continue;
-                const currentRoleData = RANK_ROLES[row.level];
-                if (currentRoleData) {
-                    const targetRole = await getOrCreateRole(guild, currentRoleData);
-                    if (targetRole && !member.roles.cache.has(targetRole.id)) {
-                        const rolesToRemove = member.roles.cache.filter(r => allRankNames.includes(r.name) && r.id !== targetRole.id);
-                        if (rolesToRemove.size > 0) await member.roles.remove(rolesToRemove).catch(() => {});
-                        await member.roles.add(targetRole).catch(() => {});
-                    }
-                }
+            for (const [id, data] of xpCache.entries()) { 
+                if (data.needsUpdate) { 
+                    await saveToDatabase(pool, id, data); 
+                    data.needsUpdate = false; 
+                } 
             }
-            for (const [id, data] of xpCache.entries()) {
-                if (data.needsUpdate) { await saveToDatabase(pool, id, data); data.needsUpdate = false; }
-            }
-            console.log('--- Background Sync Finished ---');
-        } catch (e) { console.error("Sync Error:", e); }
+        } catch (e) { console.error(e); }
     }, { timezone: "Europe/London" });
 };
