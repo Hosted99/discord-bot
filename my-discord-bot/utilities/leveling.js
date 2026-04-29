@@ -383,13 +383,28 @@ if (shouldWarn) {
 
     // АВТОМАТИЧНА СИНХРОНИЗАЦИЯ НА ВСЕКИ 2 ЧАСА (ЗА ДА НЕ СЕ ГУБИ ПРОГРЕС)
     cron.schedule('0 */2 * * *', async () => {
-        try {
-            for (const [id, data] of xpCache.entries()) { 
-                if (data.needsUpdate) { 
-                    await saveToDatabase(pool, id, data); 
-                    data.needsUpdate = false; 
-                } 
+    const logChannel = client.channels.cache.get('1498426571806085192');
+
+    try {
+        let count = 0;
+        for (const [id, data] of xpCache.entries()) {
+            if (data.needsUpdate) {
+                await saveToDatabase(pool, id, data);
+                data.needsUpdate = false;
+                count++;
             }
-        } catch (e) { console.error(e); }
-    }, { timezone: "Europe/London" });
-};
+        }
+
+        if (logChannel) {
+            const autoSyncEmbed = new EmbedBuilder()
+                .setColor(0x2ecc71) // Зеленият цвят от снимката
+                .setTitle('♻️ Automatic Sync Executed')
+                .setDescription(`Updated **${count}** pirate profiles in DataBase.`)
+                .setTimestamp(); // Добавя часа най-отдолу като на снимката
+
+            logChannel.send({ embeds: [autoSyncEmbed] });
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}, { timezone: "Europe/London" });
