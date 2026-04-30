@@ -36,8 +36,8 @@ async function handleNewMember(member) {
 
     if (!welcomeChannel) return;
 
-    const oldMsg = lastWelcomeMessage.get(member.guild.id);
-    if (oldMsg) await oldMsg.delete().catch(() => {});
+ //   const oldMsg = lastWelcomeMessage.get(member.guild.id);
+//    if (oldMsg) await oldMsg.delete().catch(() => {});
 
     const embed = new EmbedBuilder()
       .setTitle("⚓ New Pirate Aboard!")
