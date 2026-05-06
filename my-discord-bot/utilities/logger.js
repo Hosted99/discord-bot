@@ -1,38 +1,34 @@
-const { EmbedBuilder, AuditLogEvent } = require("discord.js");
+// Коментар: Добавяме AttachmentBuilder за създаване на текстовия файл
+const { EmbedBuilder, AuditLogEvent, AttachmentBuilder } = require("discord.js");
 
 /**
- * Помощна функция за изпращане на лога в конкретен канал
+ * Помощна функция за изпращане на лог
  */
-async function sendLog(guild, embed) {
-    // Намираме канала по точното име
+async function sendLog(guild, embed, files = []) {
     const logChannel = guild.channels.cache.find(ch => ch.name === "│📑│admin-logs");
     if (logChannel && logChannel.isTextBased()) {
-        await logChannel.send({ embeds: [embed] });
+        await logChannel.send({ embeds: [embed], files: files });
     }
 }
 
 /**
- * Логване на единично изтрито съобщение (с проверка на Audit Log)
+ * ЛОГ: Единично изтрито съобщение (показва текста директно в лога)
  */
 async function logDeletedMessage(message) {
-    // Игнорираме, ако няма сървър или ако авторът е бот
     if (!message.guild || message.author?.bot) return;
 
-    // Изчакваме 1 секунда, за да може Discord да запише действието в Audit Log
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Вземаме последния запис за изтрито съобщение от лога на сървъра
     const fetchedLogs = await message.guild.fetchAuditLogs({
         limit: 1,
         type: AuditLogEvent.MessageDelete,
     }).catch(() => null);
 
     const deletionLog = fetchedLogs?.entries.first();
-    let executor = "Unknown (Author or Auto)";
+    let executor = "Unknown (Self or Auto)";
 
     if (deletionLog) {
         const { executor: user, target } = deletionLog;
-        // Проверяваме дали логът съвпада с изтритото съобщение (по ID на автора)
         if (target.id === message.author.id) {
             executor = `${user.tag}`;
         }
@@ -45,7 +41,7 @@ async function logDeletedMessage(message) {
             { name: "Author", value: `${message.author.tag}`, inline: true },
             { name: "Deleted By", value: `${executor}`, inline: true },
             { name: "Channel", value: `#${message.channel.name}`, inline: true },
-            { name: "Content", value: message.content?.substring(0, 1024) || "*(No text/Embed)*" }
+            { name: "Content", value: message.content?.substring(0, 1024) || "*(No text content)*" }
         )
         .setTimestamp();
 
@@ -53,27 +49,35 @@ async function logDeletedMessage(message) {
 }
 
 /**
- * Логване на масово изтрити съобщения (команда !clear)
+ * ЛОГ: Масово триене (Генерира .txt файл със съдържанието)
  */
-async function logBulkDelete(messages) {
-    const firstMsg = messages.first();
-    if (!firstMsg) return;
+async function logBulkDelete(messages, channel, executor) {
+    if (!messages || messages.size === 0) return;
 
-    const guild = firstMsg.guild;
-    const channel = firstMsg.channel;
+    // Коментар: Създаваме текста за файла (Час | Автор: Съобщение)
+    // Използваме .reverse(), за да са подредени хронологично (най-старото най-отгоре)
+    const logContent = messages.reverse().map(m => {
+        const time = m.createdAt.toLocaleString('bg-BG');
+        const author = m.author ? m.author.tag : "Unknown User";
+        const content = m.content || "*(No text content/Image)*";
+        return `[${time}] ${author}: ${content}`;
+    }).join("\n");
+
+    // Коментар: Превръщаме текста в прикачен файл
+    const logFile = new AttachmentBuilder(Buffer.from(logContent, 'utf-8'), { name: 'deleted_messages_log.txt' });
 
     const embed = new EmbedBuilder()
         .setTitle("🧹 Bulk Messages Deleted")
         .setColor("#ffa500")
         .addFields(
             { name: "Channel", value: `#${channel.name}`, inline: true },
-            { name: "Amount", value: `${messages.size}`, inline: true }
+            { name: "Executed By", value: `${executor.tag}`, inline: true },
+            { name: "Total Messages", value: `${messages.size}`, inline: true }
         )
-        .setDescription(`A total of **${messages.size}** messages were removed.`)
-        .setFooter({ text: "Individual logs are suppressed for bulk actions." })
+        .setDescription("Attached file contains the full text of all deleted messages.")
         .setTimestamp();
 
-    await sendLog(guild, embed);
+    await sendLog(channel.guild, embed, [logFile]);
 }
 
 module.exports = { logDeletedMessage, logBulkDelete };
