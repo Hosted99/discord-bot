@@ -147,6 +147,12 @@ client.on("messageDelete", async (message) => {
     await logDeletedMessage(message);
 });
 
+
+// 5.1Коментар: Следи за масово триене (команда !clear)
+client.on("messageDeleteBulk", async (messages) => {
+    await logBulkDelete(messages);
+});
+
 // 6. Нови членове
 client.on("guildMemberAdd", async (member) => {
     console.log(`📡 Нов потребител влезе: ${member.user.tag}`); // Добави това
