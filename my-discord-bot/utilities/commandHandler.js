@@ -467,41 +467,42 @@ if (cmd === "!resetbounty") {
     }
 }
     // --- 10. МОДЕРАЦИЯ: !clear (ДОСТЪПНА НАВСЯКЪДЕ) ---
+// --- МОДЕРАЦИЯ: !clear ---
 if (cmd === "!clear") {
-    // 1. ПРОВЕРКА ЗА ПРАВА: Проверяваме дали потребителят е Админ или има право да трие съобщения
+    // 1. Проверка на права
     if (!msg.member.permissions.has("ManageMessages") && !msg.member.permissions.has("Administrator")) {
         const err = await msg.reply("❌ Only Admirals have the authority to clean the deck!");
-        // Изтриваме съобщението за грешка и командата след 5 секунди, за да не се зацапва чата
         return setTimeout(() => { 
             err.delete().catch(()=>{}); 
             msg.delete().catch(()=>{}); 
         }, 5000);
     }
 
-    // 2. Вземаме числото. Ако преди това си направил args.shift(), числото е в args[0]
+    // 2. Вземане на броя (args[0])
     const amount = parseInt(args[0]);
 
-    // 3. Проверка за валидно число (Discord лимитът е 1-100)
+    // 3. Валидация на числото
     if (isNaN(amount) || amount < 1 || amount > 100) {
         return msg.reply("⚠️ Please specify a number between 1 and 100. Example: `!clear 50`").then(m => {
             setTimeout(() => { m.delete().catch(()=>{}); msg.delete().catch(()=>{}); }, 5000);
         });
     }
 
-    // 4. ИЗПЪЛНЕНИЕ: Масово изтриване
+    // 4. Изпълнение и логване
     try {
-        // Трием посочения брой + самата команда (!clear)
-        await msg.channel.bulkDelete(amount + 1, true);
+        // Изтриваме съобщенията (+1 заради самата команда)
+        const deletedMessages = await msg.channel.bulkDelete(amount + 1, true);
         
-        // Пращаме кратко потвърждение за успех
-        const success = await msg.channel.send(`🧹 **Cleaning complete!** Deleted ${amount} messages.`);
-        // Изтриваме автоматично потвърждението след 3 секунди
+        // Извикваме лога, подавайки съобщенията, канала и човека, който е пуснал командата
+        await logBulkDelete(deletedMessages, msg.channel, msg.author);
+        
+        // Кратко потвърждение в чата
+        const success = await msg.channel.send(`🧹 **Cleaning complete!** Deleted ${deletedMessages.size - 1} messages.`);
         setTimeout(() => success.delete().catch(()=>{}), 3000);
         
     } catch (err) {
         console.error("Clear error:", err.message);
-        // Обясняваме на потребителя, ако Discord откаже (често при съобщения по-стари от 14 дни)
-        msg.reply("❌ Failed to delete messages. (Note: Discord cannot delete messages older than 14 days).");
+        msg.reply("❌ Failed to delete messages. (Messages older than 14 days cannot be bulk deleted).");
     }
 }
 
